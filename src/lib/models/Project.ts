@@ -1,0 +1,89 @@
+import mongoose, { Schema, Document, Model } from 'mongoose';
+import { StatusType } from '@/types';
+
+// ─── Sub-document schemas ────────────────────────────────────────────────────
+
+const StatusEnum: StatusType[] = ['todo', 'in-progress', 'qa', 'done', 'canceled', 'blocked'];
+
+const TaskSchema = new Schema(
+  {
+    name: { type: String, required: true, trim: true },
+    status: { type: String, enum: StatusEnum, default: 'todo' },
+    ownerId: { type: String },
+    ownerName: { type: String },
+    ownerAvatar: { type: String },
+    completionPct: { type: Number, min: 0, max: 100, default: 0 },
+    plannedStart: { type: Date, required: true },
+    plannedEnd: { type: Date, required: true },
+    actualStart: { type: Date },
+    actualEnd: { type: Date },
+    notes: { type: String },
+    color: { type: String },
+  },
+  { _id: true }
+);
+
+const FeatureSchema = new Schema(
+  {
+    name: { type: String, required: true, trim: true },
+    status: { type: String, enum: StatusEnum, default: 'todo' },
+    ownerId: { type: String },
+    ownerName: { type: String },
+    ownerAvatar: { type: String },
+    completionPct: { type: Number, min: 0, max: 100, default: 0 },
+    plannedStart: { type: Date, required: true },
+    plannedEnd: { type: Date, required: true },
+    actualStart: { type: Date },
+    actualEnd: { type: Date },
+    color: { type: String },
+    tasks: { type: [TaskSchema], default: [] },
+  },
+  { _id: true }
+);
+
+const EpicSchema = new Schema(
+  {
+    name: { type: String, required: true, trim: true },
+    status: { type: String, enum: StatusEnum, default: 'todo' },
+    completionPct: { type: Number, min: 0, max: 100, default: 0 },
+    plannedStart: { type: Date, required: true },
+    plannedEnd: { type: Date, required: true },
+    actualStart: { type: Date },
+    actualEnd: { type: Date },
+    color: { type: String },
+    features: { type: [FeatureSchema], default: [] },
+  },
+  { _id: true }
+);
+
+// ─── Root Project schema ─────────────────────────────────────────────────────
+
+export interface IProjectDocument extends Document {
+  name: string;
+  description?: string;
+  color?: string;
+  currentVersion: string;
+  epics: mongoose.Types.DocumentArray<mongoose.Document>;
+}
+
+const ProjectSchema = new Schema<IProjectDocument>(
+  {
+    name: { type: String, required: true, trim: true },
+    description: { type: String },
+    color: { type: String, default: '#6366f1' },
+    currentVersion: { type: String, default: 'v1 (Current)' },
+    epics: { type: [EpicSchema], default: [] },
+  },
+  {
+    timestamps: true,
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true },
+  }
+);
+
+// ─── Model (prevent recompilation on hot-reload) ─────────────────────────────
+
+const Project: Model<IProjectDocument> =
+  mongoose.models.Project ?? mongoose.model<IProjectDocument>('Project', ProjectSchema);
+
+export default Project;
