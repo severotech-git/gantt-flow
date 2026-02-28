@@ -10,26 +10,31 @@ import { StatusConfigSection } from '@/components/settings/StatusConfigSection';
 import { LevelNamesSection } from '@/components/settings/LevelNamesSection';
 import { CalendarSection } from '@/components/settings/CalendarSection';
 import { Loader2 } from 'lucide-react';
+import { PageNavbar } from '@/components/layout/PageNavbar';
 
 export default function SettingsPage() {
   const [section, setSection] = useState<SettingsSection>('theme');
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const isSaving = useSettingsStore((s) => s.isSaving);
 
   return (
     <div className="flex h-screen overflow-hidden bg-background">
-      <Sidebar onNewProject={() => {}} />
+      <Sidebar onNewProject={() => {}} collapsed={sidebarCollapsed} />
 
       <main className="flex flex-col flex-1 overflow-hidden">
-        {/* Top bar */}
-        <div className="flex items-center gap-3 px-6 h-12 border-b border-border shrink-0">
-          <h1 className="text-sm font-semibold text-foreground">Settings</h1>
-          {isSaving && (
-            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-              <Loader2 size={12} className="animate-spin" />
-              Saving…
-            </div>
-          )}
-        </div>
+        <PageNavbar
+          title="Settings"
+          sidebarOpen={!sidebarCollapsed}
+          onToggleSidebar={() => setSidebarCollapsed((v) => !v)}
+          actions={
+            isSaving ? (
+              <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                <Loader2 size={12} className="animate-spin" />
+                Saving…
+              </div>
+            ) : undefined
+          }
+        />
 
         <div className="flex flex-1 overflow-hidden">
           <SettingsSectionNav active={section} onChange={setSection} />

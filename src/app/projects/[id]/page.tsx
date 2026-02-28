@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { use } from 'react';
 import { useProjectStore } from '@/store/useProjectStore';
 import { Sidebar } from '@/components/layout/Sidebar';
-import { TopNav } from '@/components/layout/TopNav';
+import { TopNavbar } from '@/components/gantt/TopNavbar';
 import { GanttBoard } from '@/components/gantt/GanttBoard';
 import { NewProjectDialog } from '@/components/dialogs/NewProjectDialog';
 import { SaveVersionDialog } from '@/components/dialogs/SaveVersionDialog';
@@ -45,7 +45,7 @@ export default function ProjectPage({ params }: ProjectPageProps) {
       <Sidebar onNewProject={() => setNewProjectOpen(true)} collapsed={!sidebarOpen} />
 
       <div className="flex flex-col flex-1 overflow-hidden">
-        <TopNav
+        <TopNavbar
           onSaveVersion={() => setSaveVersionOpen(true)}
           onNewProject={() => setNewProjectOpen(true)}
           onSearch={() => setSearchOpen(true)}

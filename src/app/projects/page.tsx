@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useProjectStore } from '@/store/useProjectStore';
 import { Sidebar } from '@/components/layout/Sidebar';
+import { PageNavbar } from '@/components/layout/PageNavbar';
 import { NewProjectDialog } from '@/components/dialogs/NewProjectDialog';
 import Link from 'next/link';
 import { FolderKanban, Plus, BarChart3, Archive, ArchiveRestore, ChevronDown, ChevronRight, Trash2 } from 'lucide-react';
@@ -18,26 +19,30 @@ export default function ProjectsPage() {
   } = useProjectStore();
   const [newProjectOpen, setNewProjectOpen] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   useEffect(() => { fetchProjects(); }, [fetchProjects]);
 
   return (
     <div className="flex h-screen overflow-hidden">
-      <Sidebar onNewProject={() => setNewProjectOpen(true)} />
+      <Sidebar onNewProject={() => setNewProjectOpen(true)} collapsed={sidebarCollapsed} />
 
       <main className="flex-1 flex flex-col overflow-hidden">
-        {/* Top bar */}
-        <div className="flex items-center justify-between px-8 h-12 border-b border-border shrink-0">
-          <h1 className="text-sm font-semibold text-foreground">All Projects</h1>
-          <Button
-            size="sm"
-            onClick={() => setNewProjectOpen(true)}
-            className="h-7 px-3 text-xs bg-violet-600 hover:bg-violet-500 text-white gap-1.5"
-          >
-            <Plus size={12} />
-            New Project
-          </Button>
-        </div>
+        <PageNavbar
+          title="All Projects"
+          sidebarOpen={!sidebarCollapsed}
+          onToggleSidebar={() => setSidebarCollapsed((v) => !v)}
+          actions={
+            <Button
+              size="sm"
+              onClick={() => setNewProjectOpen(true)}
+              className="h-7 px-3 text-xs bg-violet-600 hover:bg-violet-500 text-white gap-1.5"
+            >
+              <Plus size={12} />
+              New Project
+            </Button>
+          }
+        />
 
         {/* Content */}
         <div className="flex-1 overflow-y-auto p-8 space-y-8">

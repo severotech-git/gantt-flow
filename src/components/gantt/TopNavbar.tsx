@@ -11,10 +11,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Camera, ChevronDown, History, Search, Plus, Crosshair, Loader2, PanelLeftClose, PanelLeftOpen, Eye, RotateCcw, Trash2 } from 'lucide-react';
+import { Camera, ChevronDown, History, Search, Plus, Crosshair, Loader2, Eye, RotateCcw, Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { getDefaultStartDate } from '@/lib/dateUtils';
 import { useState } from 'react';
+import { PageNavbar } from '@/components/layout/PageNavbar';
 
 const SCALES: { value: TimelineScale; label: string }[] = [
   { value: 'week',    label: 'Week'    },
@@ -22,7 +23,7 @@ const SCALES: { value: TimelineScale; label: string }[] = [
   { value: 'quarter', label: 'Quarter' },
 ];
 
-interface TopNavProps {
+interface TopNavbarProps {
   onSaveVersion: () => void;
   onNewProject: () => void;
   onSearch: () => void;
@@ -30,7 +31,7 @@ interface TopNavProps {
   onToggleSidebar: () => void;
 }
 
-export function TopNav({ onSaveVersion, onNewProject, onSearch, sidebarOpen, onToggleSidebar }: TopNavProps) {
+export function TopNavbar({ onSaveVersion, onNewProject, onSearch, sidebarOpen, onToggleSidebar }: TopNavbarProps) {
   const {
     timelineScale,
     setTimelineScale,
@@ -46,25 +47,11 @@ export function TopNav({ onSaveVersion, onNewProject, onSearch, sidebarOpen, onT
   } = useProjectStore();
 
   const [versionMenuOpen, setVersionMenuOpen] = useState(false);
-
   const project = useProjectStore(selectDisplayProject);
 
-  return (
-    <header className="flex items-center h-12 px-4 gap-3 border-b border-border bg-surface-2 shrink-0">
-      {/* Sidebar toggle */}
-      <button
-        onClick={onToggleSidebar}
-        title={sidebarOpen ? 'Hide sidebar' : 'Show sidebar'}
-        className="text-muted-foreground hover:text-foreground transition-colors shrink-0"
-      >
-        {sidebarOpen ? <PanelLeftClose size={16} /> : <PanelLeftOpen size={16} />}
-      </button>
-
-      {/* Project name */}
-      <h1 className="font-semibold text-sm text-foreground truncate mr-2">
-        {project?.name ?? 'Select a project'}
-      </h1>
-
+  // ── Slot: next to title ──────────────────────────────────────────────────
+  const titleActions = (
+    <>
       {/* Scale toggles */}
       <div className="flex items-center bg-accent/60 rounded-md p-0.5 gap-0">
         {SCALES.map((s) => (
@@ -83,7 +70,7 @@ export function TopNav({ onSaveVersion, onNewProject, onSearch, sidebarOpen, onT
         ))}
       </div>
 
-      {/* Read-only banner */}
+      {/* Read-only version banner */}
       {isVersionReadOnly && (
         <div className="flex items-center text-xs font-medium">
           <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-l-md bg-amber-500/10 border border-amber-500/30 border-r-0 text-amber-600 dark:text-amber-400">
@@ -109,9 +96,12 @@ export function TopNav({ onSaveVersion, onNewProject, onSearch, sidebarOpen, onT
         <Crosshair size={12} />
         Today
       </button>
+    </>
+  );
 
-      <div className="flex-1" />
-
+  // ── Slot: right side ─────────────────────────────────────────────────────
+  const actions = (
+    <>
       {/* Saving indicator */}
       {isSaving && (
         <span className="flex items-center gap-1 text-[11px] text-muted-foreground">
@@ -143,7 +133,6 @@ export function TopNav({ onSaveVersion, onNewProject, onSearch, sidebarOpen, onT
           <DropdownMenuContent align="end" className="w-56">
             <DropdownMenuLabel className="text-muted-foreground text-xs">Versions</DropdownMenuLabel>
 
-            {/* Live entry */}
             <DropdownMenuItem
               onSelect={() => { clearVersion(); setVersionMenuOpen(false); }}
               className={cn('text-xs cursor-pointer gap-2', !isVersionReadOnly && 'text-violet-500 font-medium')}
@@ -154,7 +143,6 @@ export function TopNav({ onSaveVersion, onNewProject, onSearch, sidebarOpen, onT
 
             {versions.length > 0 && <DropdownMenuSeparator />}
 
-            {/* Snapshot entries */}
             {versions.map((v) => (
               <DropdownMenuItem
                 key={v._id}
@@ -164,15 +152,12 @@ export function TopNav({ onSaveVersion, onNewProject, onSearch, sidebarOpen, onT
                   activeVersion?._id === v._id && 'text-amber-500 font-medium'
                 )}
               >
-                {/* Name — click to view */}
                 <button
                   className="flex-1 text-left truncate"
                   onClick={() => { loadVersion(v._id); setVersionMenuOpen(false); }}
                 >
                   {v.versionName}
                 </button>
-
-                {/* Actions */}
                 <div className="flex items-center gap-0.5 opacity-0 group-hover/item:opacity-100 transition-opacity shrink-0">
                   <button
                     onClick={() => { restoreVersion(v._id); setVersionMenuOpen(false); }}
@@ -208,6 +193,16 @@ export function TopNav({ onSaveVersion, onNewProject, onSearch, sidebarOpen, onT
         <Plus size={12} />
         New Project
       </Button>
-    </header>
+    </>
+  );
+
+  return (
+    <PageNavbar
+      title={project?.name ?? 'Searching...'}
+      sidebarOpen={sidebarOpen}
+      onToggleSidebar={onToggleSidebar}
+      titleActions={titleActions}
+      actions={actions}
+    />
   );
 }
