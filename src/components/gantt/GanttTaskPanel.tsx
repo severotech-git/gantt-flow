@@ -4,10 +4,10 @@ import { forwardRef, useState, useRef, useCallback } from 'react';
 import { StatusBadge } from '@/components/shared/StatusBadge';
 import { OwnerAvatar } from '@/components/shared/OwnerAvatar';
 import { useProjectStore } from '@/store/useProjectStore';
+import { useSettingsStore } from '@/store/useSettingsStore';
 import { cn } from '@/lib/utils';
 import { ChevronRight, ChevronDown, Plus, Trash2, Check } from 'lucide-react';
 import { getDelayDays } from '@/lib/dateUtils';
-import { StatusType } from '@/types';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -23,9 +23,8 @@ export interface VisibleRow {
   taskId?: string;
   level: 'epic' | 'feature' | 'task';
   name: string;
-  status: StatusType;
-  ownerName?: string;
-  ownerAvatar?: string;
+  status: string;
+  ownerId?: string;
   completionPct: number;
   plannedEnd: string;
   plannedStart: string;
@@ -41,25 +40,9 @@ export interface VisibleRow {
 
 export const ROW_H = 36;
 
-const ALL_STATUSES: StatusType[] = ['todo', 'in-progress', 'qa', 'done', 'canceled', 'blocked'];
-
-const STATUS_LABELS: Record<StatusType, string> = {
-  'todo':        'To Do',
-  'in-progress': 'In Progress',
-  'qa':          'QA',
-  'done':        'Done',
-  'canceled':    'Canceled',
-  'blocked':     'Blocked',
-};
-
-const STATUS_DOT: Record<StatusType, string> = {
-  'todo':        'bg-slate-500',
-  'in-progress': 'bg-violet-500',
-  'qa':          'bg-blue-500',
-  'done':        'bg-emerald-500',
-  'canceled':    'bg-slate-600',
-  'blocked':     'bg-orange-500',
-};
+const PANEL_MIN = 200;
+const PANEL_MAX = 700;
+const PANEL_DEFAULT = 460;
 
 interface GanttTaskPanelProps {
   visibleRows: VisibleRow[];
@@ -67,10 +50,6 @@ interface GanttTaskPanelProps {
   onAddFeature: (epicId: string) => void;
   onAddTask: (epicId: string, featureId: string) => void;
 }
-
-const PANEL_MIN = 200;
-const PANEL_MAX = 700;
-const PANEL_DEFAULT = 460;
 
 export const GanttTaskPanel = forwardRef<HTMLDivElement, GanttTaskPanelProps>(
   function GanttTaskPanel({ visibleRows, onScrollY, onAddFeature, onAddTask }, ref) {
@@ -158,6 +137,12 @@ export const GanttTaskPanel = forwardRef<HTMLDivElement, GanttTaskPanelProps>(
                   else if (row.level === 'task' && row.featureId && row.taskId)
                     updateTask(row.epicId, row.featureId, row.taskId, { status });
                 }}
+                onOwnerChange={(ownerId) => {
+                  if (row.level === 'epic') updateEpic(row.epicId, { ownerId });
+                  else if (row.level === 'feature' && row.featureId) updateFeature(row.epicId, row.featureId, { ownerId });
+                  else if (row.level === 'task' && row.featureId && row.taskId)
+                    updateTask(row.epicId, row.featureId, row.taskId, { ownerId });
+                }}
                 onPctChange={(pct) => {
                   if (row.level === 'task' && row.featureId && row.taskId)
                     updateTask(row.epicId, row.featureId, row.taskId, { completionPct: pct });
@@ -201,21 +186,24 @@ export const GanttTaskPanel = forwardRef<HTMLDivElement, GanttTaskPanelProps>(
 
 // ─── AddRow ──────────────────────────────────────────────────────────────────
 
-const ADD_ROW_CONFIG = {
-  epic:    { label: 'New Epic',    indent: 'pl-3',    accent: 'border-violet-500/40 text-violet-400/70 hover:text-violet-300 hover:bg-violet-500/5' },
-  feature: { label: 'New Feature', indent: 'pl-8',    accent: 'border-blue-500/30 text-blue-400/60 hover:text-blue-300 hover:bg-blue-500/5' },
-  task:    { label: 'New Task',    indent: 'pl-[52px]', accent: 'border-slate-500/30 text-slate-500 hover:text-slate-300 hover:bg-white/[0.03]' },
+const ADD_ROW_STYLE = {
+  epic:    { indent: 'pl-3',    accent: 'border-violet-500/40 text-violet-400/70 hover:text-violet-300 hover:bg-violet-500/5' },
+  feature: { indent: 'pl-8',    accent: 'border-blue-500/30 text-blue-400/60 hover:text-blue-300 hover:bg-blue-500/5' },
+  task:    { indent: 'pl-[52px]', accent: 'border-slate-500/30 text-slate-500 hover:text-slate-300 hover:bg-white/[0.03]' },
 };
 
 function AddRow({ row }: { row: VisibleRow }) {
-  const cfg = ADD_ROW_CONFIG[row.level];
+  const levelNames = useSettingsStore((s) => s.levelNames);
+  const style = ADD_ROW_STYLE[row.level];
+  const levelLabel = row.level === 'epic' ? levelNames.epic : row.level === 'feature' ? levelNames.feature : levelNames.task;
+
   return (
     <button
       onClick={row.addRowCallback}
       className={cn(
         'w-full flex items-center gap-2 border-b border-white/[0.03] transition-colors group',
-        cfg.indent,
-        cfg.accent,
+        style.indent,
+        style.accent,
       )}
       style={{ height: ROW_H }}
     >
@@ -223,7 +211,7 @@ function AddRow({ row }: { row: VisibleRow }) {
         <Plus size={9} />
       </span>
       <span className="text-[11px] font-medium opacity-60 group-hover:opacity-100 transition-opacity">
-        {cfg.label}
+        New {levelLabel}
       </span>
     </button>
   );
@@ -238,7 +226,8 @@ interface TaskRowProps {
   onToggle: () => void;
   onDelete: () => void;
   onAddChild: () => void;
-  onStatusChange: (s: StatusType) => void;
+  onStatusChange: (s: string) => void;
+  onOwnerChange: (uid: string | undefined) => void;
   onPctChange: (n: number) => void;
   onNameChange: (s: string) => void;
 }
@@ -251,11 +240,17 @@ function TaskRow({
   onDelete,
   onAddChild,
   onStatusChange,
+  onOwnerChange,
   onPctChange,
   onNameChange,
 }: TaskRowProps) {
+  const { statuses, users } = useSettingsStore();
+  const statusConfig = statuses.find((s) => s.value === row.status);
+  const ownerUser = users.find((u) => u.uid === row.ownerId);
+  const isFinal = statusConfig?.isFinal ?? false;
+
   const delayDays = getDelayDays(row.plannedEnd, row.actualEnd);
-  const isLate = delayDays > 0 && row.status !== 'done' && row.status !== 'canceled';
+  const isLate = delayDays > 0 && !isFinal;
 
   return (
     <div
@@ -311,9 +306,56 @@ function TaskRow({
         />
       </div>
 
-      {/* Owner */}
+      {/* Owner (click to change) */}
       <div className="w-7 flex items-center justify-center shrink-0">
-        <OwnerAvatar name={row.ownerName} />
+        {readonly || users.length === 0 ? (
+          <OwnerAvatar name={ownerUser?.name} color={ownerUser?.color} />
+        ) : (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button
+                className="rounded-full hover:ring-2 hover:ring-white/20 transition-all"
+                title={ownerUser?.name ?? 'Assign owner'}
+              >
+                <OwnerAvatar name={ownerUser?.name} color={ownerUser?.color} />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent
+              className="bg-[#1a2030] border-white/10 text-slate-200 text-xs min-w-[160px]"
+              align="center"
+            >
+              <DropdownMenuItem
+                onClick={() => onOwnerChange(undefined)}
+                className={cn(
+                  'cursor-pointer text-xs hover:bg-white/[0.07] gap-2',
+                  !row.ownerId && 'text-violet-300'
+                )}
+              >
+                {!row.ownerId && <Check size={10} />}
+                {row.ownerId && <span className="w-2.5" />}
+                <span className="text-slate-400 italic">Unassigned</span>
+              </DropdownMenuItem>
+              {users.map((u) => {
+                const active = row.ownerId === u.uid;
+                return (
+                  <DropdownMenuItem
+                    key={u.uid}
+                    onClick={() => onOwnerChange(u.uid)}
+                    className={cn(
+                      'cursor-pointer text-xs hover:bg-white/[0.07] gap-2',
+                      active && 'text-violet-300'
+                    )}
+                  >
+                    {active && <Check size={10} />}
+                    {!active && <span className="w-2.5" />}
+                    <OwnerAvatar name={u.name} color={u.color} size={16} />
+                    <span className="flex-1">{u.name}</span>
+                  </DropdownMenuItem>
+                );
+              })}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
       </div>
 
       {/* Status (click to edit) */}
@@ -331,19 +373,19 @@ function TaskRow({
               className="bg-[#1a2030] border-white/10 text-slate-200 text-xs min-w-[140px]"
               align="center"
             >
-              {ALL_STATUSES.map((s) => (
+              {statuses.map((s) => (
                 <DropdownMenuItem
-                  key={s}
-                  onClick={() => onStatusChange(s)}
+                  key={s.value}
+                  onClick={() => onStatusChange(s.value)}
                   className={cn(
                     'cursor-pointer text-xs hover:bg-white/[0.07] gap-2',
-                    s === row.status && 'text-violet-300'
+                    s.value === row.status && 'text-violet-300'
                   )}
                 >
-                  {s === row.status && <Check size={10} />}
-                  {s !== row.status && <span className="w-2.5" />}
-                  <span className="flex-1">{STATUS_LABELS[s]}</span>
-                  <span className={cn('w-2 h-2 rounded-full shrink-0', STATUS_DOT[s])} />
+                  {s.value === row.status && <Check size={10} />}
+                  {s.value !== row.status && <span className="w-2.5" />}
+                  <span className="flex-1">{s.label}</span>
+                  <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: s.color }} />
                 </DropdownMenuItem>
               ))}
             </DropdownMenuContent>

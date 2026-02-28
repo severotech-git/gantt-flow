@@ -171,7 +171,7 @@ export function SearchDialog({ open, onClose }: SearchDialogProps) {
         showCloseButton={false}
         className="bg-[#161b22] border-white/[0.1] text-slate-200 p-0 gap-0 max-w-lg overflow-hidden"
       >
-        <DialogTitle className="sr-only">Search tasks</DialogTitle>
+        <DialogTitle className="sr-only">Search</DialogTitle>
 
         {/* Search input */}
         <div className="flex items-center gap-3 px-4 py-3 border-b border-white/[0.08]">
@@ -181,7 +181,7 @@ export function SearchDialog({ open, onClose }: SearchDialogProps) {
             value={query}
             onChange={(e) => { setQuery(e.target.value); }}
             onKeyDown={handleKeyDown}
-            placeholder="Search tasks, features, epics…"
+            placeholder="Search items..."
             className="flex-1 bg-transparent text-sm text-slate-200 placeholder:text-slate-500 outline-none"
           />
           {query && (

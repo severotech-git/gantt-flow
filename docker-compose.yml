@@ -12,5 +12,19 @@ services:
     volumes:
       - mongodb_data:/data/db
 
+  app:
+    build: .
+    container_name: mygantt-app
+    restart: unless-stopped
+    volumes:
+      - .:/app
+      - /app/node_modules
+    ports:
+      - "3000:3000"
+    environment:
+      MONGODB_URI: mongodb://admin:secret@mongodb:27017/mygantt?authSource=admin
+    depends_on:
+      - mongodb
+
 volumes:
   mongodb_data:

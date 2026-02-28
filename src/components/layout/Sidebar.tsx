@@ -105,10 +105,9 @@ export function Sidebar({ onNewProject, collapsed = false }: SidebarProps) {
       <div className="flex-1" />
 
       {/* Bottom links */}
-      {/* <div className="border-t border-white/[0.06] py-2">
-        <SidebarLink href="/projects" active={false} icon={<Settings size={14} />} label="Workspace Settings" />
-        <SidebarLink href="/projects" active={false} icon={<HelpCircle size={14} />} label="Help & Support" />
-      </div> */}
+      <div className="border-t border-white/[0.06] py-2">
+        <SidebarLink href="/settings" active={pathname === '/settings'} icon={<Settings size={14} />} label="Settings" />
+      </div>
     </aside>
   );
 }

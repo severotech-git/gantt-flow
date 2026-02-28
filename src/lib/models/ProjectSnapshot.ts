@@ -20,8 +20,9 @@ const ProjectSnapshotSchema = new Schema<IProjectSnapshotDocument>(
   }
 );
 
+delete (mongoose.models as Record<string, unknown>).ProjectSnapshot;
+
 const ProjectSnapshot: Model<IProjectSnapshotDocument> =
-  mongoose.models.ProjectSnapshot ??
   mongoose.model<IProjectSnapshotDocument>('ProjectSnapshot', ProjectSnapshotSchema);
 
 export default ProjectSnapshot;

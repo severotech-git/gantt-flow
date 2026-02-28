@@ -118,7 +118,7 @@ export function TopNav({ onSaveVersion, onNewProject, onSearch, sidebarOpen, onT
         className="flex items-center gap-2 px-3 py-1.5 text-xs text-slate-400 bg-white/[0.05] border border-white/[0.08] rounded-md hover:bg-white/[0.08] transition-colors min-w-[160px]"
       >
         <Search size={12} />
-        <span className="flex-1 text-left">Search tasks...</span>
+        <span className="flex-1 text-left">Search...</span>
         <kbd className="text-[10px] text-slate-600 font-sans">⌘K</kbd>
       </button>
 

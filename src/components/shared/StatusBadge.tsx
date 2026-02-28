@@ -1,45 +1,34 @@
 'use client';
 
-import { StatusType } from '@/types';
+import { useSettingsStore } from '@/store/useSettingsStore';
 import { cn } from '@/lib/utils';
 
-const CONFIG: Record<StatusType, { label: string; className: string }> = {
-  todo:          { label: 'TO DO',    className: 'bg-slate-700 text-slate-300' },
-  'in-progress': { label: 'IN PROG',  className: 'bg-violet-700 text-violet-100' },
-  qa:            { label: 'QA',       className: 'bg-blue-700 text-blue-100' },
-  done:          { label: 'DONE',     className: 'bg-emerald-700 text-emerald-100' },
-  canceled:      { label: 'CANCELED', className: 'bg-slate-600 text-slate-400' },
-  blocked:       { label: 'BLOCKED',  className: 'bg-orange-700 text-orange-100' },
-};
-
 interface StatusBadgeProps {
-  status: StatusType;
+  status: string;
   className?: string;
 }
 
 export function StatusBadge({ status, className }: StatusBadgeProps) {
-  const { label, className: colorClass } = CONFIG[status] ?? CONFIG.todo;
+  const statuses = useSettingsStore((s) => s.statuses);
+  const config = statuses.find((s) => s.value === status);
+  const label = config?.label ?? status;
+  const color = config?.color ?? '#475569';
+
   return (
     <span
       className={cn(
-        'inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider',
-        colorClass,
+        'inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-white',
         className
       )}
+      style={{ backgroundColor: color }}
     >
       {label}
     </span>
   );
 }
 
-export function getBarColor(status: StatusType): string {
-  const map: Record<StatusType, string> = {
-    todo:          'bg-slate-500',
-    'in-progress': 'bg-violet-500',
-    qa:            'bg-blue-500',
-    done:          'bg-emerald-500',
-    canceled:      'bg-slate-600',
-    blocked:       'bg-orange-500',
-  };
-  return map[status] ?? 'bg-slate-500';
+// Legacy helper — now returns hex color string from store; kept for GanttBar compatibility
+export function getBarColor(status: string): string {
+  // This is a synchronous fallback; GanttBar reads directly from store now
+  return '#64748b';
 }

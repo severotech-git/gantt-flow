@@ -1,22 +1,34 @@
-export type StatusType =
-  | 'todo'
-  | 'in-progress'
-  | 'qa'
-  | 'done'
-  | 'canceled'
-  | 'blocked';
+export type StatusType = string;
 
 export type TimelineScale = 'week' | 'month' | 'quarter';
+
+export interface IStatusConfig {
+  value: string;
+  label: string;
+  color: string;
+  isFinal?: boolean;
+}
+
+export interface IUserConfig {
+  uid: string;
+  name: string;
+  color: string;
+}
+
+export interface IWorkspaceSettings {
+  users: IUserConfig[];
+  theme: 'dark' | 'light';
+  levelNames: { epic: string; feature: string; task: string };
+  statuses: IStatusConfig[];
+}
 
 export interface ITask {
   _id: string;
   name: string;
   status: StatusType;
-  ownerId?: string;
-  ownerName?: string;
-  ownerAvatar?: string;
+  ownerId?: string;  // references IUserConfig.uid
   completionPct: number;
-  plannedStart: string; // ISO date string
+  plannedStart: string;
   plannedEnd: string;
   actualStart?: string;
   actualEnd?: string;
@@ -28,9 +40,7 @@ export interface IFeature {
   _id: string;
   name: string;
   status: StatusType;
-  ownerId?: string;
-  ownerName?: string;
-  ownerAvatar?: string;
+  ownerId?: string;  // references IUserConfig.uid
   completionPct: number;
   plannedStart: string;
   plannedEnd: string;
@@ -44,6 +54,7 @@ export interface IEpic {
   _id: string;
   name: string;
   status: StatusType;
+  ownerId?: string;  // references IUserConfig.uid
   completionPct: number;
   plannedStart: string;
   plannedEnd: string;
@@ -79,8 +90,6 @@ export interface GanttItem {
   name: string;
   status: StatusType;
   ownerId?: string;
-  ownerName?: string;
-  ownerAvatar?: string;
   completionPct: number;
   plannedStart: string;
   plannedEnd: string;

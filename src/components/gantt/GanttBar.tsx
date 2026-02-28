@@ -3,8 +3,7 @@
 import { useDraggable } from '@dnd-kit/core';
 import { CSS } from '@dnd-kit/utilities';
 import { cn } from '@/lib/utils';
-import { StatusType } from '@/types';
-import { getBarColor } from '@/components/shared/StatusBadge';
+import { useSettingsStore } from '@/store/useSettingsStore';
 import { getDelayDays } from '@/lib/dateUtils';
 import { differenceInCalendarDays, parseISO, format, isValid } from 'date-fns';
 import {
@@ -20,14 +19,14 @@ export interface GanttBarData {
   featureId?: string;
   taskId?: string;
   level: 'epic' | 'feature' | 'task';
-  status: StatusType;
+  status: string;
   plannedStart: string;
   plannedEnd: string;
   actualStart?: string;
   actualEnd?: string;
   label: string;
   pct: number;
-  ownerName?: string;
+  ownerId?: string;
   hasWarning?: boolean;
 }
 
@@ -68,17 +67,24 @@ export function GanttBar({
   width,
   readonly,
   isOverlay = false,
-  ownerName,
+  ownerId,
   dragDelta,
   hasWarning,
 }: GanttBarProps) {
+  const statuses = useSettingsStore((s) => s.statuses);
+  const users = useSettingsStore((s) => s.users);
+  const ownerUser = users.find((u) => u.uid === ownerId);
+  const statusConfig = statuses.find((s) => s.value === status);
+  const barColorHex = statusConfig?.color ?? '#64748b';
+  const isFinal = statusConfig?.isFinal ?? false;
+
   // Move logic
-  const { 
-    attributes: moveAttrs, 
-    listeners: moveListeners, 
-    setNodeRef: setMoveRef, 
-    transform, 
-    isDragging: isMoving 
+  const {
+    attributes: moveAttrs,
+    listeners: moveListeners,
+    setNodeRef: setMoveRef,
+    transform,
+    isDragging: isMoving
   } = useDraggable({
     id,
     disabled: readonly || isOverlay,
@@ -86,7 +92,7 @@ export function GanttBar({
   });
 
   const delayDays = getDelayDays(plannedEnd, actualEnd);
-  const isDelayed = delayDays > 0 && status !== 'done' && status !== 'canceled';
+  const isDelayed = delayDays > 0 && !isFinal;
   const isEarly = delayDays < 0 && (status === 'done');
   const durationDays = differenceInCalendarDays(parseISO(plannedEnd), parseISO(plannedStart)) + 1;
 
@@ -120,18 +126,13 @@ export function GanttBar({
     boxShadow: isResizing ? '0 0 15px rgba(99, 102, 241, 0.5)' : undefined,
   };
 
-  const barColor = isDelayed
-    ? 'bg-red-500'
-    : status === 'done'
-    ? 'bg-emerald-500'
-    : getBarColor(status);
+  const resolvedColor = isDelayed ? '#ef4444' : barColorHex;
 
   const barEl = (
     <div
-      style={style}
+      style={{ ...style, backgroundColor: resolvedColor }}
       className={cn(
         'absolute rounded flex items-center select-none group transition-shadow',
-        barColor,
         isMoving && !isOverlay && 'opacity-50',
         isDelayed && !isOverlay && 'overdue-glow',
         isOverlay && 'shadow-xl shadow-black/50 ring-1 ring-white/20 opacity-90',
@@ -200,7 +201,7 @@ export function GanttBar({
         className="bg-[#1e2533] border-white/10 text-slate-200 text-xs p-3 max-w-[220px] space-y-1.5"
       >
         <p className="font-semibold text-white">{label}</p>
-        {ownerName && <p className="text-slate-400 text-[11px]">Owner: {ownerName}</p>}
+        {ownerUser && <p className="text-slate-400 text-[11px]">Owner: {ownerUser.name}</p>}
         <div className="border-t border-white/10 pt-1.5 grid grid-cols-2 gap-x-4 gap-y-1 text-[11px]">
           <span className="text-slate-500">Planned start</span>
           <span>{fmtDate(plannedStart)}</span>

@@ -1,57 +1,51 @@
 import mongoose, { Schema, Document, Model } from 'mongoose';
-import { StatusType } from '@/types';
 
 // ─── Sub-document schemas ────────────────────────────────────────────────────
 
-const StatusEnum: StatusType[] = ['todo', 'in-progress', 'qa', 'done', 'canceled', 'blocked'];
-
 const TaskSchema = new Schema(
   {
-    name: { type: String, required: true, trim: true },
-    status: { type: String, enum: StatusEnum, default: 'todo' },
-    ownerId: { type: String },
-    ownerName: { type: String },
-    ownerAvatar: { type: String },
+    name:          { type: String, required: true, trim: true },
+    status:        { type: String, default: 'todo' },
+    ownerId:       { type: String },   // references IUserConfig.uid
     completionPct: { type: Number, min: 0, max: 100, default: 0 },
-    plannedStart: { type: Date, required: true },
-    plannedEnd: { type: Date, required: true },
-    actualStart: { type: Date },
-    actualEnd: { type: Date },
-    notes: { type: String },
-    color: { type: String },
+    plannedStart:  { type: Date, required: true },
+    plannedEnd:    { type: Date, required: true },
+    actualStart:   { type: Date },
+    actualEnd:     { type: Date },
+    notes:         { type: String },
+    color:         { type: String },
   },
   { _id: true }
 );
 
 const FeatureSchema = new Schema(
   {
-    name: { type: String, required: true, trim: true },
-    status: { type: String, enum: StatusEnum, default: 'todo' },
-    ownerId: { type: String },
-    ownerName: { type: String },
-    ownerAvatar: { type: String },
+    name:          { type: String, required: true, trim: true },
+    status:        { type: String, default: 'todo' },
+    ownerId:       { type: String },   // references IUserConfig.uid
     completionPct: { type: Number, min: 0, max: 100, default: 0 },
-    plannedStart: { type: Date, required: true },
-    plannedEnd: { type: Date, required: true },
-    actualStart: { type: Date },
-    actualEnd: { type: Date },
-    color: { type: String },
-    tasks: { type: [TaskSchema], default: [] },
+    plannedStart:  { type: Date, required: true },
+    plannedEnd:    { type: Date, required: true },
+    actualStart:   { type: Date },
+    actualEnd:     { type: Date },
+    color:         { type: String },
+    tasks:         { type: [TaskSchema], default: [] },
   },
   { _id: true }
 );
 
 const EpicSchema = new Schema(
   {
-    name: { type: String, required: true, trim: true },
-    status: { type: String, enum: StatusEnum, default: 'todo' },
+    name:          { type: String, required: true, trim: true },
+    status:        { type: String, default: 'todo' },
+    ownerId:       { type: String },   // references IUserConfig.uid
     completionPct: { type: Number, min: 0, max: 100, default: 0 },
-    plannedStart: { type: Date, required: true },
-    plannedEnd: { type: Date, required: true },
-    actualStart: { type: Date },
-    actualEnd: { type: Date },
-    color: { type: String },
-    features: { type: [FeatureSchema], default: [] },
+    plannedStart:  { type: Date, required: true },
+    plannedEnd:    { type: Date, required: true },
+    actualStart:   { type: Date },
+    actualEnd:     { type: Date },
+    color:         { type: String },
+    features:      { type: [FeatureSchema], default: [] },
   },
   { _id: true }
 );
@@ -68,22 +62,24 @@ export interface IProjectDocument extends Document {
 
 const ProjectSchema = new Schema<IProjectDocument>(
   {
-    name: { type: String, required: true, trim: true },
-    description: { type: String },
-    color: { type: String, default: '#6366f1' },
+    name:           { type: String, required: true, trim: true },
+    description:    { type: String },
+    color:          { type: String, default: '#6366f1' },
     currentVersion: { type: String, default: 'v1 (Current)' },
-    epics: { type: [EpicSchema], default: [] },
+    epics:          { type: [EpicSchema], default: [] },
   },
   {
     timestamps: true,
-    toJSON: { virtuals: true },
-    toObject: { virtuals: true },
+    toJSON:     { virtuals: true },
+    toObject:   { virtuals: true },
   }
 );
 
-// ─── Model (prevent recompilation on hot-reload) ─────────────────────────────
+// ─── Model ───────────────────────────────────────────────────────────────────
+
+delete (mongoose.models as Record<string, unknown>).Project;
 
 const Project: Model<IProjectDocument> =
-  mongoose.models.Project ?? mongoose.model<IProjectDocument>('Project', ProjectSchema);
+  mongoose.model<IProjectDocument>('Project', ProjectSchema);
 
 export default Project;
