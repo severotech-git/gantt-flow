@@ -169,25 +169,25 @@ export function SearchDialog({ open, onClose }: SearchDialogProps) {
     <Dialog open={open} onOpenChange={(v) => { if (!v) onClose(); }}>
       <DialogContent
         showCloseButton={false}
-        className="bg-[#161b22] border-white/[0.1] text-slate-200 p-0 gap-0 max-w-lg overflow-hidden"
+        className="p-0 gap-0 max-w-lg overflow-hidden"
       >
         <DialogTitle className="sr-only">Search</DialogTitle>
 
         {/* Search input */}
-        <div className="flex items-center gap-3 px-4 py-3 border-b border-white/[0.08]">
-          <Search size={15} className="text-slate-500 shrink-0" />
+        <div className="flex items-center gap-3 px-4 py-3 border-b border-border">
+          <Search size={15} className="text-muted-foreground shrink-0" />
           <input
             ref={inputRef}
             value={query}
             onChange={(e) => { setQuery(e.target.value); }}
             onKeyDown={handleKeyDown}
             placeholder="Search items..."
-            className="flex-1 bg-transparent text-sm text-slate-200 placeholder:text-slate-500 outline-none"
+            className="flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground outline-none"
           />
           {query && (
             <button
               onClick={() => setQuery('')}
-              className="text-slate-500 hover:text-slate-300 text-xs px-1"
+              className="text-muted-foreground hover:text-foreground text-xs px-1"
             >
               ✕
             </button>
@@ -197,24 +197,24 @@ export function SearchDialog({ open, onClose }: SearchDialogProps) {
         {/* Results */}
         <div ref={listRef} className="overflow-y-auto max-h-[420px]">
           {!activeProject && (
-            <p className="px-4 py-8 text-center text-xs text-slate-500">No project selected</p>
+            <p className="px-4 py-8 text-center text-xs text-muted-foreground">No project selected</p>
           )}
 
           {activeProject && filtered.length === 0 && query && (
-            <p className="px-4 py-8 text-center text-xs text-slate-500">
+            <p className="px-4 py-8 text-center text-xs text-muted-foreground">
               No results for &ldquo;{query}&rdquo;
             </p>
           )}
 
           {activeProject && !query && (
-            <p className="px-4 py-4 text-center text-[11px] text-slate-600">
+            <p className="px-4 py-4 text-center text-[11px] text-muted-foreground/70">
               {allItems.length} items — type to search
             </p>
           )}
 
           {groups.map((group) => (
             <div key={group.level}>
-              <div className="px-4 py-1.5 text-[10px] font-semibold text-slate-500 uppercase tracking-wider bg-white/[0.02] border-b border-white/[0.05] sticky top-0">
+              <div className="px-4 py-1.5 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider bg-muted/30 border-b border-border/50 sticky top-0">
                 {LEVEL_LABELS[group.level]}
               </div>
               {group.items.map((item) => {
@@ -227,17 +227,17 @@ export function SearchDialog({ open, onClose }: SearchDialogProps) {
                     onClick={() => handleSelect(item)}
                     onMouseEnter={() => setActiveIdx(idx)}
                     className={cn(
-                      'w-full flex items-start gap-3 px-4 py-2.5 text-left transition-colors border-b border-white/[0.04] last:border-0',
-                      activeIdx === idx ? 'bg-white/[0.07]' : 'hover:bg-white/[0.04]'
+                      'w-full flex items-start gap-3 px-4 py-2.5 text-left transition-colors border-b border-border/30 last:border-0',
+                      activeIdx === idx ? 'bg-muted' : 'hover:bg-muted/60'
                     )}
                   >
-                    <Icon size={13} className="text-slate-500 mt-0.5 shrink-0" />
+                    <Icon size={13} className="text-muted-foreground mt-0.5 shrink-0" />
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
-                        <span className="text-sm text-slate-200 truncate">{item.name}</span>
+                        <span className="text-sm text-foreground truncate">{item.name}</span>
                         <StatusBadge status={item.status} />
                       </div>
-                      <div className="flex items-center gap-2 mt-0.5 text-[11px] text-slate-500 truncate">
+                      <div className="flex items-center gap-2 mt-0.5 text-[11px] text-muted-foreground truncate">
                         {item.grandparentName && (
                           <span>{item.grandparentName} › {item.parentName}</span>
                         )}
@@ -256,7 +256,7 @@ export function SearchDialog({ open, onClose }: SearchDialogProps) {
         </div>
 
         {/* Footer */}
-        <div className="px-4 py-2 border-t border-white/[0.06] flex items-center gap-4 text-[11px] text-slate-600">
+        <div className="px-4 py-2 border-t border-border flex items-center gap-4 text-[11px] text-muted-foreground">
           <span><kbd className="font-sans">↑↓</kbd> navigate</span>
           <span><kbd className="font-sans">↵</kbd> jump to item</span>
           <span><kbd className="font-sans">Esc</kbd> close</span>

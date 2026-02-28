@@ -3,6 +3,12 @@
 import { useEffect } from 'react';
 import { useSettingsStore } from '@/store/useSettingsStore';
 
+function applyTheme(resolved: 'dark' | 'light') {
+  const root = document.documentElement;
+  root.classList.remove('dark', 'light');
+  root.classList.add(resolved);
+}
+
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const theme = useSettingsStore((s) => s.theme);
   const fetchSettings = useSettingsStore((s) => s.fetchSettings);
@@ -13,14 +19,14 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   useEffect(() => {
-    const root = document.documentElement;
-    if (theme === 'light') {
-      root.classList.remove('dark');
-      root.classList.add('light');
-    } else {
-      root.classList.remove('light');
-      root.classList.add('dark');
+    if (theme === 'system') {
+      const mq = window.matchMedia('(prefers-color-scheme: dark)');
+      applyTheme(mq.matches ? 'dark' : 'light');
+      const handler = (e: MediaQueryListEvent) => applyTheme(e.matches ? 'dark' : 'light');
+      mq.addEventListener('change', handler);
+      return () => mq.removeEventListener('change', handler);
     }
+    applyTheme(theme);
   }, [theme]);
 
   return <>{children}</>;

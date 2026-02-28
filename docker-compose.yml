@@ -1,20 +1,20 @@
 services:
   mongodb:
     image: mongo:7
-    container_name: mygantt-mongodb
+    container_name: ganttflow-mongodb
     restart: unless-stopped
     ports:
       - "27017:27017"
     environment:
       MONGO_INITDB_ROOT_USERNAME: admin
       MONGO_INITDB_ROOT_PASSWORD: secret
-      MONGO_INITDB_DATABASE: mygantt
+      MONGO_INITDB_DATABASE: ganttflow
     volumes:
       - mongodb_data:/data/db
 
   app:
     build: .
-    container_name: mygantt-app
+    container_name: ganttflow-app
     restart: unless-stopped
     volumes:
       - .:/app
@@ -22,7 +22,7 @@ services:
     ports:
       - "3000:3000"
     environment:
-      MONGODB_URI: mongodb://admin:secret@mongodb:27017/mygantt?authSource=admin
+      MONGODB_URI: mongodb://admin:secret@mongodb:27017/ganttflow?authSource=admin
     depends_on:
       - mongodb
 

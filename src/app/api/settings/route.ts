@@ -22,7 +22,7 @@ export async function PATCH(request: Request) {
     await connectDB();
     const body = await request.json();
 
-    const allowed = ['users', 'theme', 'levelNames', 'statuses'] as const;
+    const allowed = ['users', 'theme', 'levelNames', 'statuses', 'allowWeekends'] as const;
     const $set: Record<string, unknown> = {};
     for (const key of allowed) {
       if (key in body) $set[key] = body[key];

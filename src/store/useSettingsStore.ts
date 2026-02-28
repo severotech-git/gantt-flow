@@ -13,9 +13,10 @@ export const DEFAULT_STATUSES: IStatusConfig[] = [
 
 interface SettingsState {
   users: IUserConfig[];
-  theme: 'dark' | 'light';
+  theme: 'dark' | 'light' | 'system';
   levelNames: { epic: string; feature: string; task: string };
   statuses: IStatusConfig[];
+  allowWeekends: boolean;
   isLoading: boolean;
   isSaving: boolean;
 }
@@ -23,7 +24,8 @@ interface SettingsState {
 interface SettingsActions {
   fetchSettings: () => Promise<void>;
   persistSettings: () => Promise<void>;
-  setTheme: (t: 'dark' | 'light') => void;
+  setTheme: (t: 'dark' | 'light' | 'system') => void;
+  setAllowWeekends: (v: boolean) => void;
   setLevelName: (level: 'epic' | 'feature' | 'task', v: string) => void;
   // User list CRUD
   addUser: (user: IUserConfig) => void;
@@ -39,9 +41,10 @@ interface SettingsActions {
 export const useSettingsStore = create<SettingsState & SettingsActions>()(
   immer((set, get) => ({
     users: [],
-    theme: 'dark',
+    theme: 'system',
     levelNames: { epic: 'Epic', feature: 'Feature', task: 'Task' },
     statuses: DEFAULT_STATUSES,
+    allowWeekends: false,
     isLoading: false,
     isSaving: false,
 
@@ -53,9 +56,10 @@ export const useSettingsStore = create<SettingsState & SettingsActions>()(
         const data = await res.json();
         set((s) => {
           s.users = data.users ?? [];
-          s.theme = data.theme ?? 'dark';
+          s.theme = data.theme ?? 'system';
           s.levelNames = data.levelNames ?? { epic: 'Epic', feature: 'Feature', task: 'Task' };
           s.statuses = data.statuses?.length ? data.statuses : DEFAULT_STATUSES;
+          s.allowWeekends = data.allowWeekends ?? false;
         });
       } finally {
         set((s) => { s.isLoading = false; });
@@ -65,11 +69,11 @@ export const useSettingsStore = create<SettingsState & SettingsActions>()(
     persistSettings: async () => {
       set((s) => { s.isSaving = true; });
       try {
-        const { users, theme, levelNames, statuses } = get();
+        const { users, theme, levelNames, statuses, allowWeekends } = get();
         const res = await fetch('/api/settings', {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ users, theme, levelNames, statuses }),
+          body: JSON.stringify({ users, theme, levelNames, statuses, allowWeekends }),
         });
         if (!res.ok) {
           const err = await res.json().catch(() => ({}));
@@ -84,6 +88,11 @@ export const useSettingsStore = create<SettingsState & SettingsActions>()(
 
     setTheme: (t) => {
       set((s) => { s.theme = t; });
+      setTimeout(() => get().persistSettings(), 0);
+    },
+
+    setAllowWeekends: (v) => {
+      set((s) => { s.allowWeekends = v; });
       setTimeout(() => get().persistSettings(), 0);
     },
 

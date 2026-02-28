@@ -33,22 +33,22 @@ export function SaveVersionDialog({ open, onClose }: SaveVersionDialogProps) {
 
   return (
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
-      <DialogContent className="bg-[#161b22] border-white/[0.1] text-slate-100 max-w-sm">
+      <DialogContent className="max-w-sm">
         <DialogHeader>
-          <DialogTitle className="text-white">Save Snapshot</DialogTitle>
+          <DialogTitle>Save Snapshot</DialogTitle>
         </DialogHeader>
-        <p className="text-xs text-slate-400 -mt-1">
+        <p className="text-xs text-muted-foreground -mt-1">
           Creates a read-only copy of the current project state. You can restore it later.
         </p>
         <form onSubmit={handleSubmit} className="flex flex-col gap-4 mt-2">
           <div className="flex flex-col gap-1.5">
-            <label className="text-xs text-slate-400">Version name</label>
+            <label className="text-xs text-muted-foreground">Version name</label>
             <Input
               autoFocus
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="e.g. v2.4, Sprint 12, Q3 Final"
-              className="bg-white/[0.05] border-white/[0.1] text-white placeholder:text-slate-600 focus-visible:ring-violet-500"
+              className="focus-visible:ring-violet-500"
             />
           </div>
           <div className="flex justify-end gap-2">
@@ -56,7 +56,7 @@ export function SaveVersionDialog({ open, onClose }: SaveVersionDialogProps) {
               type="button"
               variant="ghost"
               onClick={onClose}
-              className="text-slate-400 hover:text-slate-200"
+              className="text-muted-foreground hover:text-foreground"
             >
               Cancel
             </Button>

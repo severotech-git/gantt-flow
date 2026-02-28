@@ -11,9 +11,10 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Camera, ChevronDown, History, Search, Plus, Crosshair, Loader2, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
+import { Camera, ChevronDown, History, Search, Plus, Crosshair, Loader2, PanelLeftClose, PanelLeftOpen, Eye, RotateCcw, Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { getDefaultStartDate } from '@/lib/dateUtils';
+import { useState } from 'react';
 
 const SCALES: { value: TimelineScale; label: string }[] = [
   { value: 'week',    label: 'Week'    },
@@ -37,31 +38,35 @@ export function TopNav({ onSaveVersion, onNewProject, onSearch, sidebarOpen, onT
     versions,
     loadVersion,
     clearVersion,
+    deleteVersion,
+    restoreVersion,
     isVersionReadOnly,
     activeVersion,
     isSaving,
   } = useProjectStore();
 
+  const [versionMenuOpen, setVersionMenuOpen] = useState(false);
+
   const project = useProjectStore(selectDisplayProject);
 
   return (
-    <header className="flex items-center h-12 px-4 gap-3 border-b border-white/[0.06] bg-[#0d1117] shrink-0">
+    <header className="flex items-center h-12 px-4 gap-3 border-b border-border bg-surface-2 shrink-0">
       {/* Sidebar toggle */}
       <button
         onClick={onToggleSidebar}
         title={sidebarOpen ? 'Hide sidebar' : 'Show sidebar'}
-        className="text-slate-500 hover:text-slate-300 transition-colors shrink-0"
+        className="text-muted-foreground hover:text-foreground transition-colors shrink-0"
       >
         {sidebarOpen ? <PanelLeftClose size={16} /> : <PanelLeftOpen size={16} />}
       </button>
 
       {/* Project name */}
-      <h1 className="font-semibold text-sm text-white truncate mr-2">
+      <h1 className="font-semibold text-sm text-foreground truncate mr-2">
         {project?.name ?? 'Select a project'}
       </h1>
 
       {/* Scale toggles */}
-      <div className="flex items-center bg-white/[0.06] rounded-md p-0.5 gap-0">
+      <div className="flex items-center bg-accent/60 rounded-md p-0.5 gap-0">
         {SCALES.map((s) => (
           <button
             key={s.value}
@@ -69,8 +74,8 @@ export function TopNav({ onSaveVersion, onNewProject, onSearch, sidebarOpen, onT
             className={cn(
               'px-3 py-1 text-xs font-medium rounded transition-colors',
               timelineScale === s.value
-                ? 'bg-white/[0.12] text-white'
-                : 'text-slate-400 hover:text-slate-200'
+                ? 'bg-background text-foreground shadow-sm'
+                : 'text-muted-foreground hover:text-foreground'
             )}
           >
             {s.label}
@@ -80,23 +85,26 @@ export function TopNav({ onSaveVersion, onNewProject, onSearch, sidebarOpen, onT
 
       {/* Read-only banner */}
       {isVersionReadOnly && (
-        <span className="flex items-center gap-1.5 px-2 py-1 rounded bg-amber-900/40 border border-amber-700/40 text-amber-400 text-xs font-medium">
-          <History size={12} />
-          Viewing: {activeVersion?.versionName}
+        <div className="flex items-center text-xs font-medium">
+          <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-l-md bg-amber-500/10 border border-amber-500/30 border-r-0 text-amber-600 dark:text-amber-400">
+            <Eye size={12} className="shrink-0" />
+            {activeVersion?.versionName}
+          </span>
           <button
             onClick={clearVersion}
-            className="ml-1 text-amber-300 hover:text-amber-100 underline text-[11px]"
+            className="flex items-center gap-1.5 px-2.5 py-1 rounded-r-md bg-emerald-500/10 border border-emerald-500/30 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-500/20 transition-colors"
           >
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shrink-0" />
             Back to live
           </button>
-        </span>
+        </div>
       )}
 
       {/* Jump to today */}
       <button
         onClick={() => setTimelineStartDate(getDefaultStartDate(timelineScale))}
         title="Jump to today"
-        className="flex items-center gap-1.5 px-2 py-1.5 text-xs text-slate-400 hover:text-slate-200 bg-white/[0.04] border border-white/[0.07] rounded-md hover:bg-white/[0.07] transition-colors"
+        className="flex items-center gap-1.5 px-2 py-1.5 text-xs text-muted-foreground hover:text-foreground bg-accent/40 border border-border rounded-md hover:bg-accent transition-colors"
       >
         <Crosshair size={12} />
         Today
@@ -106,7 +114,7 @@ export function TopNav({ onSaveVersion, onNewProject, onSearch, sidebarOpen, onT
 
       {/* Saving indicator */}
       {isSaving && (
-        <span className="flex items-center gap-1 text-[11px] text-slate-500">
+        <span className="flex items-center gap-1 text-[11px] text-muted-foreground">
           <Loader2 size={11} className="animate-spin" />
           Saving…
         </span>
@@ -115,48 +123,72 @@ export function TopNav({ onSaveVersion, onNewProject, onSearch, sidebarOpen, onT
       {/* Search */}
       <button
         onClick={onSearch}
-        className="flex items-center gap-2 px-3 py-1.5 text-xs text-slate-400 bg-white/[0.05] border border-white/[0.08] rounded-md hover:bg-white/[0.08] transition-colors min-w-[160px]"
+        className="flex items-center gap-2 px-3 py-1.5 text-xs text-muted-foreground bg-accent/40 border border-border rounded-md hover:bg-accent transition-colors min-w-[160px]"
       >
         <Search size={12} />
         <span className="flex-1 text-left">Search...</span>
-        <kbd className="text-[10px] text-slate-600 font-sans">⌘K</kbd>
+        <kbd className="text-[10px] text-muted-foreground/60 font-sans">⌘K</kbd>
       </button>
 
       {/* Version picker */}
       {project && (
-        <DropdownMenu>
+        <DropdownMenu open={versionMenuOpen} onOpenChange={setVersionMenuOpen}>
           <DropdownMenuTrigger asChild>
-            <button className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs bg-white/[0.05] border border-white/[0.08] rounded-md text-slate-300 hover:bg-white/[0.08] transition-colors">
-              <History size={12} className="text-slate-400" />
-              {activeVersion ? activeVersion.versionName : project.currentVersion}
-              <ChevronDown size={11} className="text-slate-500" />
+            <button className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs bg-accent/40 border border-border rounded-md text-muted-foreground hover:bg-accent hover:text-foreground transition-colors">
+              <History size={12} />
+              {activeVersion ? activeVersion.versionName : 'Live'}
+              <ChevronDown size={11} />
             </button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent
-            align="end"
-            className="bg-[#161b22] border-white/[0.1] text-slate-200 w-52"
-          >
-            <DropdownMenuLabel className="text-slate-500 text-xs">Versions</DropdownMenuLabel>
+          <DropdownMenuContent align="end" className="w-56">
+            <DropdownMenuLabel className="text-muted-foreground text-xs">Versions</DropdownMenuLabel>
+
+            {/* Live entry */}
             <DropdownMenuItem
-              onClick={clearVersion}
-              className={cn(
-                'text-xs cursor-pointer hover:bg-white/[0.07]',
-                !isVersionReadOnly && 'text-violet-400 font-medium'
-              )}
+              onSelect={() => { clearVersion(); setVersionMenuOpen(false); }}
+              className={cn('text-xs cursor-pointer gap-2', !isVersionReadOnly && 'text-violet-500 font-medium')}
             >
-              {project.currentVersion}
+              <span className={cn('w-1.5 h-1.5 rounded-full shrink-0', !isVersionReadOnly ? 'bg-emerald-500' : 'bg-muted-foreground/40')} />
+              Live
             </DropdownMenuItem>
-            {versions.length > 0 && <DropdownMenuSeparator className="bg-white/[0.08]" />}
+
+            {versions.length > 0 && <DropdownMenuSeparator />}
+
+            {/* Snapshot entries */}
             {versions.map((v) => (
               <DropdownMenuItem
                 key={v._id}
-                onClick={() => loadVersion(v._id)}
+                onSelect={(e) => e.preventDefault()}
                 className={cn(
-                  'text-xs cursor-pointer hover:bg-white/[0.07]',
-                  activeVersion?._id === v._id && 'text-amber-400 font-medium'
+                  'text-xs cursor-pointer gap-2 group/item pr-1',
+                  activeVersion?._id === v._id && 'text-amber-500 font-medium'
                 )}
               >
-                {v.versionName}
+                {/* Name — click to view */}
+                <button
+                  className="flex-1 text-left truncate"
+                  onClick={() => { loadVersion(v._id); setVersionMenuOpen(false); }}
+                >
+                  {v.versionName}
+                </button>
+
+                {/* Actions */}
+                <div className="flex items-center gap-0.5 opacity-0 group-hover/item:opacity-100 transition-opacity shrink-0">
+                  <button
+                    onClick={() => { restoreVersion(v._id); setVersionMenuOpen(false); }}
+                    title="Restore as live"
+                    className="p-1 rounded hover:bg-emerald-500/15 hover:text-emerald-600 dark:hover:text-emerald-400 text-muted-foreground transition-colors"
+                  >
+                    <RotateCcw size={11} />
+                  </button>
+                  <button
+                    onClick={() => deleteVersion(v._id)}
+                    title="Delete snapshot"
+                    className="p-1 rounded hover:bg-red-500/15 hover:text-red-500 text-muted-foreground transition-colors"
+                  >
+                    <Trash2 size={11} />
+                  </button>
+                </div>
               </DropdownMenuItem>
             ))}
           </DropdownMenuContent>
@@ -165,23 +197,14 @@ export function TopNav({ onSaveVersion, onNewProject, onSearch, sidebarOpen, onT
 
       {/* Save Snapshot */}
       {!isVersionReadOnly && project && (
-        <Button
-          size="sm"
-          onClick={onSaveVersion}
-          className="h-7 px-3 text-xs bg-violet-600 hover:bg-violet-500 text-white gap-1.5"
-        >
+        <Button size="sm" onClick={onSaveVersion} className="h-7 px-3 text-xs bg-violet-600 hover:bg-violet-500 text-white gap-1.5">
           <Camera size={12} />
           Save Snapshot
         </Button>
       )}
 
       {/* New Project */}
-      <Button
-        size="sm"
-        variant="outline"
-        onClick={onNewProject}
-        className="h-7 px-3 text-xs border-white/[0.12] text-slate-300 hover:bg-white/[0.07] gap-1"
-      >
+      <Button size="sm" variant="outline" onClick={onNewProject} className="h-7 px-3 text-xs gap-1">
         <Plus size={12} />
         New Project
       </Button>

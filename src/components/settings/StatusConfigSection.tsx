@@ -43,8 +43,8 @@ export function StatusConfigSection() {
   return (
     <div className="max-w-lg space-y-6">
       <div>
-        <h2 className="text-lg font-semibold text-white mb-1">Status List</h2>
-        <p className="text-sm text-slate-400">Define the statuses available for tasks, features, and epics.</p>
+        <h2 className="text-lg font-semibold text-foreground mb-1">Status List</h2>
+        <p className="text-sm text-muted-foreground">Define the statuses available for tasks, features, and epics.</p>
       </div>
 
       <div className="space-y-2">
@@ -64,9 +64,9 @@ export function StatusConfigSection() {
 
       <button
         onClick={handleAdd}
-        className="flex items-center gap-2 text-sm text-slate-400 hover:text-violet-300 transition-colors group"
+        className="flex items-center gap-2 text-sm text-muted-foreground hover:text-violet-500 transition-colors group"
       >
-        <span className="flex items-center justify-center w-5 h-5 rounded border border-dashed border-slate-600 group-hover:border-violet-500 transition-colors">
+        <span className="flex items-center justify-center w-5 h-5 rounded border border-dashed border-border group-hover:border-violet-500 transition-colors">
           <Plus size={11} />
         </span>
         Add Status
@@ -95,7 +95,7 @@ interface StatusRowProps {
 
 function StatusRow({ status, idx, total, onMoveUp, onMoveDown, onDelete, onUpdate }: StatusRowProps) {
   return (
-    <div className="flex items-center gap-2 p-2 rounded-lg bg-white/[0.03] border border-white/[0.06] group">
+    <div className="flex items-center gap-2 p-2 rounded-lg bg-muted/30 border border-border group">
       {/* Color */}
       <ColorSwatch color={status.color} onChange={(c) => onUpdate({ color: c })} size={24} />
 
@@ -103,7 +103,7 @@ function StatusRow({ status, idx, total, onMoveUp, onMoveDown, onDelete, onUpdat
       <Input
         value={status.label}
         onChange={(e) => onUpdate({ label: e.target.value })}
-        className="flex-1 h-7 text-xs bg-white/[0.04] border-white/[0.08] text-white focus-visible:ring-violet-500"
+        className="flex-1 h-7 text-xs focus-visible:ring-violet-500"
       />
 
       {/* isFinal toggle */}
@@ -114,7 +114,7 @@ function StatusRow({ status, idx, total, onMoveUp, onMoveDown, onDelete, onUpdat
           'px-2 py-0.5 rounded text-[10px] font-medium border transition-colors shrink-0',
           status.isFinal
             ? 'border-emerald-500/40 text-emerald-400 bg-emerald-500/10'
-            : 'border-white/[0.08] text-slate-600 hover:text-slate-400'
+            : 'border-border text-muted-foreground/60 hover:text-muted-foreground'
         )}
       >
         {status.isFinal ? 'Final' : 'Active'}
@@ -125,14 +125,14 @@ function StatusRow({ status, idx, total, onMoveUp, onMoveDown, onDelete, onUpdat
         <button
           onClick={onMoveUp}
           disabled={idx === 0}
-          className="text-slate-500 hover:text-slate-300 disabled:opacity-20 transition-colors"
+          className="text-muted-foreground hover:text-foreground disabled:opacity-20 transition-colors"
         >
           <ChevronUp size={12} />
         </button>
         <button
           onClick={onMoveDown}
           disabled={idx === total - 1}
-          className="text-slate-500 hover:text-slate-300 disabled:opacity-20 transition-colors"
+          className="text-muted-foreground hover:text-foreground disabled:opacity-20 transition-colors"
         >
           <ChevronDown size={12} />
         </button>
@@ -142,7 +142,7 @@ function StatusRow({ status, idx, total, onMoveUp, onMoveDown, onDelete, onUpdat
       <button
         onClick={onDelete}
         disabled={total <= 1}
-        className="text-slate-600 hover:text-red-400 disabled:opacity-20 transition-colors opacity-0 group-hover:opacity-100"
+        className="text-muted-foreground/60 hover:text-red-500 disabled:opacity-20 transition-colors opacity-0 group-hover:opacity-100"
         title="Delete status"
       >
         <Trash2 size={14} />

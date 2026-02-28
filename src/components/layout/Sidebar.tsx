@@ -5,16 +5,8 @@ import { usePathname } from 'next/navigation';
 import { useProjectStore } from '@/store/useProjectStore';
 import { useEffect } from 'react';
 import { cn } from '@/lib/utils';
-import {
-  LayoutGrid,
-  CheckSquare,
-  Calendar,
-  Settings,
-  HelpCircle,
-  Star,
-  FolderKanban,
-  Plus,
-} from 'lucide-react';
+import { LayoutGrid, Settings, FolderKanban, Plus } from 'lucide-react';
+import Image from 'next/image';
 
 interface SidebarProps {
   onNewProject: () => void;
@@ -29,32 +21,32 @@ export function Sidebar({ onNewProject, collapsed = false }: SidebarProps) {
     fetchProjects();
   }, [fetchProjects]);
 
-  const favorites = projects.slice(0, 3); // first 3 as "favorites" for now
+  const favorites = projects.slice(0, 3);
 
   return (
     <aside
       className={cn(
-        'flex flex-col h-screen bg-[#0d1117] border-r border-white/[0.06] select-none overflow-hidden transition-all duration-200',
+        'flex flex-col h-screen bg-surface-2 border-r border-border select-none overflow-hidden transition-all duration-200',
         collapsed ? 'w-0 border-r-0' : 'w-48 min-w-[192px]',
       )}
     >
       {/* Logo */}
-      <div className="flex items-center gap-2 px-4 h-12 border-b border-white/[0.06]">
-        <span className="text-violet-400">
-          <FolderKanban size={18} />
+      <div className="flex items-center gap-2 px-4 h-12 border-b border-border">
+        <span className="w-5 h-5 flex items-center justify-center">
+          <Image src="/icon.png" alt="GanttFlow Logo" width={20} height={20} className="object-contain" />
         </span>
-        <span className="font-bold text-sm tracking-tight text-white">MyGantt</span>
+        <span className="font-bold text-sm tracking-tight text-foreground">GanttFlow</span>
       </div>
 
       {/* Favorites */}
       <div className="mt-4">
         <div className="flex items-center justify-between px-4 mb-1">
-          <span className="text-[10px] font-semibold uppercase tracking-widest text-slate-500">
+          <span className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
             Favorites
           </span>
           <button
             onClick={onNewProject}
-            className="text-slate-500 hover:text-slate-300 transition-colors"
+            className="text-muted-foreground hover:text-foreground transition-colors"
             title="New project"
           >
             <Plus size={13} />
@@ -70,14 +62,14 @@ export function Sidebar({ onNewProject, collapsed = false }: SidebarProps) {
           />
         ))}
         {favorites.length === 0 && (
-          <p className="px-4 text-[11px] text-slate-600 italic">No favorites yet</p>
+          <p className="px-4 text-[11px] text-muted-foreground/60 italic">No favorites yet</p>
         )}
       </div>
 
       {/* Workspace */}
       <div className="mt-5">
         <div className="px-4 mb-1">
-          <span className="text-[10px] font-semibold uppercase tracking-widest text-slate-500">
+          <span className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
             Workspace
           </span>
         </div>
@@ -87,37 +79,19 @@ export function Sidebar({ onNewProject, collapsed = false }: SidebarProps) {
           icon={<LayoutGrid size={14} />}
           label="All Projects"
         />
-        {/* <SidebarLink
-          href="/projects"
-          active={false}
-          icon={<CheckSquare size={14} />}
-          label="My Tasks"
-        />
-        <SidebarLink
-          href="/projects"
-          active={false}
-          icon={<Calendar size={14} />}
-          label="Calendar"
-        /> */}
       </div>
 
-      {/* Spacer */}
       <div className="flex-1" />
 
       {/* Bottom links */}
-      <div className="border-t border-white/[0.06] py-2">
+      <div className="border-t border-border py-2">
         <SidebarLink href="/settings" active={pathname === '/settings'} icon={<Settings size={14} />} label="Settings" />
       </div>
     </aside>
   );
 }
 
-function SidebarLink({
-  href,
-  active,
-  icon,
-  label,
-}: {
+function SidebarLink({ href, active, icon, label }: {
   href: string;
   active: boolean;
   icon: React.ReactNode;
@@ -129,11 +103,11 @@ function SidebarLink({
       className={cn(
         'flex items-center gap-2.5 px-4 py-1.5 text-[13px] transition-colors rounded-none',
         active
-          ? 'bg-white/[0.07] text-white'
-          : 'text-slate-400 hover:text-slate-200 hover:bg-white/[0.04]'
+          ? 'bg-accent text-foreground'
+          : 'text-muted-foreground hover:text-foreground hover:bg-accent/50'
       )}
     >
-      <span className="shrink-0 text-slate-500">{icon}</span>
+      <span className="shrink-0 text-muted-foreground">{icon}</span>
       <span className="truncate">{label}</span>
     </Link>
   );

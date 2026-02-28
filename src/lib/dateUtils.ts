@@ -173,6 +173,17 @@ export function getDelayDays(plannedEnd: string, actualEnd?: string): number {
   return differenceInCalendarDays(actual, planned);
 }
 
+/**
+ * If weekends are disabled, snap a date to the nearest workday.
+ * Start dates snap forward (Mon), end dates snap backward (Fri).
+ */
+export function snapToWorkday(date: Date, direction: 'forward' | 'backward' = 'forward'): Date {
+  const day = date.getDay(); // 0 = Sun, 6 = Sat
+  if (day === 6) return direction === 'forward' ? addDays(date, 2) : addDays(date, -1);
+  if (day === 0) return direction === 'forward' ? addDays(date, 1) : addDays(date, -2);
+  return date;
+}
+
 /** Default timeline start date for a given scale. */
 export function getDefaultStartDate(scale: TimelineScale): Date {
   const today = new Date();

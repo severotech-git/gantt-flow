@@ -12,6 +12,8 @@ enableMapSet();
 interface ProjectState {
   // Projects list (lightweight, no epics)
   projects: Omit<IProject, 'epics'>[];
+  archivedProjects: Omit<IProject, 'epics'>[];
+  showArchived: boolean;
   isLoadingProjects: boolean;
 
   // Active project (full, with epics)
@@ -39,6 +41,10 @@ interface ProjectState {
 interface ProjectActions {
   // Project list
   fetchProjects: () => Promise<void>;
+  fetchArchivedProjects: () => Promise<void>;
+  setShowArchived: (v: boolean) => void;
+  archiveProject: (id: string) => Promise<void>;
+  unarchiveProject: (id: string) => Promise<void>;
   createProject: (name: string, description?: string, color?: string) => Promise<IProject | null>;
   deleteProject: (id: string) => Promise<void>;
 
@@ -55,6 +61,8 @@ interface ProjectActions {
   saveVersion: (versionName: string) => Promise<void>;
   loadVersion: (versionId: string) => Promise<void>;
   clearVersion: () => void;
+  deleteVersion: (versionId: string) => Promise<void>;
+  restoreVersion: (versionId: string) => Promise<void>;
 
   // Epics
   addEpic: (epic: Omit<IEpic, '_id'>) => Promise<void>;
@@ -94,6 +102,8 @@ export const useProjectStore = create<ProjectStore>()(
   immer((set, get) => ({
     // ── Initial state ──────────────────────────────────────────────────────
     projects: [],
+    archivedProjects: [],
+    showArchived: false,
     isLoadingProjects: false,
     activeProject: null,
     isLoadingProject: false,
@@ -117,6 +127,45 @@ export const useProjectStore = create<ProjectStore>()(
       } catch {
         set((s) => { s.isLoadingProjects = false; });
       }
+    },
+
+    fetchArchivedProjects: async () => {
+      try {
+        const res = await fetch('/api/projects?archived=true');
+        const data = await res.json();
+        set((s) => { s.archivedProjects = Array.isArray(data) ? data : []; });
+      } catch { /* swallow */ }
+    },
+
+    setShowArchived: (v) => {
+      set((s) => { s.showArchived = v; });
+      if (v) get().fetchArchivedProjects();
+    },
+
+    archiveProject: async (id) => {
+      await fetch(`/api/projects/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ archived: true }),
+      });
+      set((s) => {
+        const proj = s.projects.find((p) => p._id === id);
+        s.projects = s.projects.filter((p) => p._id !== id);
+        if (proj && s.showArchived) s.archivedProjects.unshift({ ...proj, archived: true });
+      });
+    },
+
+    unarchiveProject: async (id) => {
+      await fetch(`/api/projects/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ archived: false }),
+      });
+      set((s) => {
+        const proj = s.archivedProjects.find((p) => p._id === id);
+        s.archivedProjects = s.archivedProjects.filter((p) => p._id !== id);
+        if (proj) s.projects.unshift({ ...proj, archived: false });
+      });
     },
 
     createProject: async (name, description, color) => {
@@ -233,6 +282,43 @@ export const useProjectStore = create<ProjectStore>()(
         s.activeVersion = null;
         s.isVersionReadOnly = false;
       });
+    },
+
+    deleteVersion: async (versionId) => {
+      const project = get().activeProject;
+      if (!project) return;
+      const res = await fetch(`/api/projects/${project._id}/versions/${versionId}`, {
+        method: 'DELETE',
+      });
+      if (res.ok) {
+        set((s) => {
+          s.versions = s.versions.filter((v) => v._id !== versionId);
+          if (s.activeVersion?._id === versionId) {
+            s.activeVersion = null;
+            s.isVersionReadOnly = false;
+          }
+        });
+      }
+    },
+
+    restoreVersion: async (versionId) => {
+      const project = get().activeProject;
+      if (!project) return;
+      set((s) => { s.isSaving = true; });
+      try {
+        const res = await fetch(`/api/projects/${project._id}/versions/${versionId}`, {
+          method: 'PATCH',
+        });
+        if (res.ok) {
+          await get().fetchProject(project._id);
+          set((s) => {
+            s.activeVersion = null;
+            s.isVersionReadOnly = false;
+          });
+        }
+      } finally {
+        set((s) => { s.isSaving = false; });
+      }
     },
 
     // ── Epics ───────────────────────────────────────────────────────────────

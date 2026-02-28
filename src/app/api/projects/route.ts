@@ -2,11 +2,13 @@ import { NextRequest, NextResponse } from 'next/server';
 import { connectDB } from '@/lib/mongodb';
 import Project from '@/lib/models/Project';
 
-// GET /api/projects – list all projects (lightweight, no epics)
-export async function GET() {
+// GET /api/projects – list projects (lightweight, no epics)
+// ?archived=true returns only archived; default returns only active
+export async function GET(req: NextRequest) {
   try {
     await connectDB();
-    const projects = await Project.find({}, { epics: 0 }).sort({ updatedAt: -1 }).lean();
+    const archived = new URL(req.url).searchParams.get('archived') === 'true';
+    const projects = await Project.find({ archived }, { epics: 0 }).sort({ updatedAt: -1 }).lean();
     return NextResponse.json(projects);
   } catch (err) {
     console.error('[GET /api/projects]', err);
@@ -28,7 +30,7 @@ export async function POST(req: NextRequest) {
       name: body.name.trim(),
       description: body.description ?? '',
       color: body.color ?? '#6366f1',
-      currentVersion: 'v1 (Current)',
+      currentVersion: 'Live',
       epics: [],
     });
 

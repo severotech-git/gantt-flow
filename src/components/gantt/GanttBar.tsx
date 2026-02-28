@@ -198,35 +198,35 @@ export function GanttBar({
       <TooltipTrigger asChild>{barEl}</TooltipTrigger>
       <TooltipContent
         side="top"
-        className="bg-[#1e2533] border-white/10 text-slate-200 text-xs p-3 max-w-[220px] space-y-1.5"
+        className="bg-popover border-border text-popover-foreground text-xs p-3 max-w-[220px] space-y-1.5"
       >
-        <p className="font-semibold text-white">{label}</p>
-        {ownerUser && <p className="text-slate-400 text-[11px]">Owner: {ownerUser.name}</p>}
-        <div className="border-t border-white/10 pt-1.5 grid grid-cols-2 gap-x-4 gap-y-1 text-[11px]">
-          <span className="text-slate-500">Planned start</span>
+        <p className="font-semibold text-foreground">{label}</p>
+        {ownerUser && <p className="text-muted-foreground text-[11px]">Owner: {ownerUser.name}</p>}
+        <div className="border-t border-border pt-1.5 grid grid-cols-2 gap-x-4 gap-y-1 text-[11px]">
+          <span className="text-muted-foreground">Planned start</span>
           <span>{fmtDate(plannedStart)}</span>
-          <span className="text-slate-500">Planned end</span>
+          <span className="text-muted-foreground">Planned end</span>
           <span>{fmtDate(plannedEnd)}</span>
           {actualStart && (
             <>
-              <span className="text-slate-500">Actual start</span>
+              <span className="text-muted-foreground">Actual start</span>
               <span>{fmtDate(actualStart)}</span>
             </>
           )}
           {actualEnd && (
             <>
-              <span className="text-slate-500">Actual end</span>
+              <span className="text-muted-foreground">Actual end</span>
               <span>{fmtDate(actualEnd)}</span>
             </>
           )}
-          <span className="text-slate-500">Duration</span>
+          <span className="text-muted-foreground">Duration</span>
           <span>{durationDays}d</span>
-          <span className="text-slate-500">Progress</span>
+          <span className="text-muted-foreground">Progress</span>
           <span>{pct}%</span>
         </div>
         <p className={cn(
           'text-[11px] font-medium pt-0.5',
-          isDelayed ? 'text-red-400' : isEarly ? 'text-emerald-400' : 'text-slate-400'
+          isDelayed ? 'text-red-400' : isEarly ? 'text-emerald-400' : 'text-muted-foreground'
         )}>
           {diffLabel}
         </p>

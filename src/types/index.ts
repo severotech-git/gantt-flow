@@ -17,9 +17,10 @@ export interface IUserConfig {
 
 export interface IWorkspaceSettings {
   users: IUserConfig[];
-  theme: 'dark' | 'light';
+  theme: 'dark' | 'light' | 'system';
   levelNames: { epic: string; feature: string; task: string };
   statuses: IStatusConfig[];
+  allowWeekends: boolean;
 }
 
 export interface ITask {
@@ -70,6 +71,7 @@ export interface IProject {
   description?: string;
   color?: string;
   currentVersion: string;
+  archived?: boolean;
   epics: IEpic[];
   createdAt: string;
   updatedAt: string;

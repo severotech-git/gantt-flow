@@ -87,7 +87,7 @@ export const GanttTaskPanel = forwardRef<HTMLDivElement, GanttTaskPanelProps>(
       <div className="relative flex flex-col shrink-0" style={{ width: panelWidth }}>
         {/* Header */}
         <div
-          className="sticky top-0 z-20 flex items-center border-b border-white/[0.06] bg-[#0d1117] text-[11px] font-semibold uppercase tracking-wider text-slate-500 shrink-0"
+          className="sticky top-0 z-20 flex items-center border-b border-border bg-surface-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground shrink-0"
           style={{ height: 48 }}
         >
           <div className="flex-1 px-3">Name</div>
@@ -160,7 +160,7 @@ export const GanttTaskPanel = forwardRef<HTMLDivElement, GanttTaskPanelProps>(
           )}
 
           {visibleRows.length === 0 && (
-            <div className="flex flex-col items-center justify-center gap-2 py-16 text-slate-600 text-xs">
+            <div className="flex flex-col items-center justify-center gap-2 py-16 text-muted-foreground/50 text-xs">
               <p>No items yet.</p>
             </div>
           )}
@@ -176,7 +176,7 @@ export const GanttTaskPanel = forwardRef<HTMLDivElement, GanttTaskPanelProps>(
         >
           <div className={cn(
             'absolute inset-y-0 right-0 w-px transition-colors',
-            isResizing ? 'bg-violet-500' : 'bg-white/[0.06] group-hover:bg-violet-500/60',
+            isResizing ? 'bg-violet-500' : 'bg-border group-hover:bg-violet-500/60',
           )} />
         </div>
       </div>
@@ -187,9 +187,9 @@ export const GanttTaskPanel = forwardRef<HTMLDivElement, GanttTaskPanelProps>(
 // ─── AddRow ──────────────────────────────────────────────────────────────────
 
 const ADD_ROW_STYLE = {
-  epic:    { indent: 'pl-3',    accent: 'border-violet-500/40 text-violet-400/70 hover:text-violet-300 hover:bg-violet-500/5' },
+  epic:    { indent: 'pl-3',    accent: 'border-violet-500/40 text-violet-400/70 hover:text-violet-500 hover:bg-violet-500/5' },
   feature: { indent: 'pl-8',    accent: 'border-blue-500/30 text-blue-400/60 hover:text-blue-300 hover:bg-blue-500/5' },
-  task:    { indent: 'pl-[52px]', accent: 'border-slate-500/30 text-slate-500 hover:text-slate-300 hover:bg-white/[0.03]' },
+  task:    { indent: 'pl-[52px]', accent: 'border-slate-500/30 text-muted-foreground hover:text-foreground hover:bg-muted/30' },
 };
 
 function AddRow({ row }: { row: VisibleRow }) {
@@ -201,7 +201,7 @@ function AddRow({ row }: { row: VisibleRow }) {
     <button
       onClick={row.addRowCallback}
       className={cn(
-        'w-full flex items-center gap-2 border-b border-white/[0.03] transition-colors group',
+        'w-full flex items-center gap-2 border-b border-border/30 transition-colors group',
         style.indent,
         style.accent,
       )}
@@ -255,8 +255,8 @@ function TaskRow({
   return (
     <div
       className={cn(
-        'flex items-center border-b border-white/[0.04] group text-xs relative',
-        row.level === 'epic' && 'bg-white/[0.02]',
+        'flex items-center border-b border-border/40 group text-xs relative',
+        row.level === 'epic' && 'bg-[var(--row-alt)]',
       )}
       style={{ height: ROW_H }}
     >
@@ -279,7 +279,7 @@ function TaskRow({
         {row.level !== 'task' ? (
           <button
             onClick={onToggle}
-            className="shrink-0 text-slate-500 hover:text-slate-300 transition-colors"
+            className="shrink-0 text-muted-foreground hover:text-foreground transition-colors"
           >
             {isExpanded ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
           </button>
@@ -287,7 +287,7 @@ function TaskRow({
           <span className="w-3.5 shrink-0 flex items-center justify-center">
             <span className={cn(
               'w-1.5 h-1.5 rounded-full',
-              isLate ? 'bg-red-500' : 'bg-slate-600'
+              isLate ? 'bg-red-500' : 'bg-muted-foreground/40'
             )} />
           </span>
         )}
@@ -299,9 +299,9 @@ function TaskRow({
           readonly={readonly}
           className={cn(
             'truncate ml-0.5',
-            isLate ? 'text-red-300' : 'text-slate-200',
-            row.level === 'epic' && 'text-white font-semibold text-[12px]',
-            row.level === 'feature' && 'text-slate-100 font-medium',
+            isLate ? 'text-red-500 dark:text-red-400' : 'text-foreground',
+            row.level === 'epic' && 'text-foreground font-semibold text-[12px]',
+            row.level === 'feature' && 'text-foreground font-medium',
           )}
         />
       </div>
@@ -314,26 +314,26 @@ function TaskRow({
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button
-                className="rounded-full hover:ring-2 hover:ring-white/20 transition-all"
+                className="rounded-full hover:ring-2 hover:ring-ring/30 transition-all"
                 title={ownerUser?.name ?? 'Assign owner'}
               >
                 <OwnerAvatar name={ownerUser?.name} color={ownerUser?.color} />
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent
-              className="bg-[#1a2030] border-white/10 text-slate-200 text-xs min-w-[160px]"
+              className="text-xs min-w-[160px]"
               align="center"
             >
               <DropdownMenuItem
                 onClick={() => onOwnerChange(undefined)}
                 className={cn(
-                  'cursor-pointer text-xs hover:bg-white/[0.07] gap-2',
-                  !row.ownerId && 'text-violet-300'
+                  'cursor-pointer text-xs hover:bg-muted gap-2',
+                  !row.ownerId && 'text-violet-500'
                 )}
               >
                 {!row.ownerId && <Check size={10} />}
                 {row.ownerId && <span className="w-2.5" />}
-                <span className="text-slate-400 italic">Unassigned</span>
+                <span className="text-muted-foreground italic">Unassigned</span>
               </DropdownMenuItem>
               {users.map((u) => {
                 const active = row.ownerId === u.uid;
@@ -342,8 +342,8 @@ function TaskRow({
                     key={u.uid}
                     onClick={() => onOwnerChange(u.uid)}
                     className={cn(
-                      'cursor-pointer text-xs hover:bg-white/[0.07] gap-2',
-                      active && 'text-violet-300'
+                      'cursor-pointer text-xs hover:bg-muted gap-2',
+                      active && 'text-violet-500'
                     )}
                   >
                     {active && <Check size={10} />}
@@ -365,12 +365,12 @@ function TaskRow({
         ) : (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <button className="rounded hover:ring-1 hover:ring-white/20 transition-all">
+              <button className="rounded hover:ring-1 hover:ring-ring/30 transition-all">
                 <StatusBadge status={row.status} />
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent
-              className="bg-[#1a2030] border-white/10 text-slate-200 text-xs min-w-[140px]"
+              className="text-xs min-w-[140px]"
               align="center"
             >
               {statuses.map((s) => (
@@ -378,8 +378,8 @@ function TaskRow({
                   key={s.value}
                   onClick={() => onStatusChange(s.value)}
                   className={cn(
-                    'cursor-pointer text-xs hover:bg-white/[0.07] gap-2',
-                    s.value === row.status && 'text-violet-300'
+                    'cursor-pointer text-xs gap-2',
+                    s.value === row.status && 'text-violet-500'
                   )}
                 >
                   {s.value === row.status && <Check size={10} />}
@@ -398,7 +398,7 @@ function TaskRow({
         {!readonly && row.level !== 'epic' ? (
           <PctEditor value={row.completionPct} onChange={onPctChange} />
         ) : (
-          <span className="text-[11px] text-slate-400">{row.completionPct}%</span>
+          <span className="text-[11px] text-muted-foreground">{row.completionPct}%</span>
         )}
       </div>
 
@@ -408,7 +408,7 @@ function TaskRow({
           {row.level !== 'task' && (
             <button
               onClick={onAddChild}
-              className="p-1.5 rounded text-slate-400 hover:text-violet-400 hover:bg-violet-500/10 transition-colors"
+              className="p-1.5 rounded text-muted-foreground hover:text-violet-400 hover:bg-violet-500/10 transition-colors"
               title={row.level === 'epic' ? 'Add feature' : 'Add task'}
             >
               <Plus size={14} />
@@ -416,7 +416,7 @@ function TaskRow({
           )}
           <button
             onClick={onDelete}
-            className="p-1.5 rounded text-slate-500 hover:text-red-400 hover:bg-red-500/10 transition-colors"
+            className="p-1.5 rounded text-muted-foreground hover:text-red-400 hover:bg-red-500/10 transition-colors"
             title="Delete"
           >
             <Trash2 size={14} />
@@ -426,7 +426,7 @@ function TaskRow({
 
       {/* Mini progress bar at row bottom */}
       {row.completionPct > 0 && (
-        <div className="absolute bottom-0 left-0 right-0 h-px bg-white/[0.04]">
+        <div className="absolute bottom-0 left-0 right-0 h-px bg-border/30">
           <div
             className={cn(
               'h-full transition-all',
@@ -459,7 +459,7 @@ function NameEditor({ value, onChange, readonly, className }: { value: string; o
     return (
       <button
         onClick={() => { if (!readonly) { setDraft(value); setEditing(true); setTimeout(() => inputRef.current?.select(), 0); } }}
-        className={cn("text-left overflow-hidden min-w-0 flex-1", !readonly && "hover:bg-white/[0.06] rounded px-1 -ml-1 transition-colors")}
+        className={cn("text-left overflow-hidden min-w-0 flex-1", !readonly && "hover:bg-muted rounded px-1 -ml-1 transition-colors")}
         title={readonly ? undefined : "Click to edit name"}
       >
         <span className={className}>{value}</span>
@@ -475,7 +475,7 @@ function NameEditor({ value, onChange, readonly, className }: { value: string; o
       onChange={(e) => setDraft(e.target.value)}
       onBlur={commit}
       onKeyDown={(e) => { if (e.key === 'Enter') commit(); if (e.key === 'Escape') { setDraft(value); setEditing(false); } }}
-      className="flex-1 bg-white/[0.08] border border-violet-500/50 rounded px-1 -ml-1 outline-none text-[inherit] font-[inherit]"
+      className="flex-1 bg-muted border border-violet-500/50 rounded px-1 -ml-1 outline-none text-[inherit] font-[inherit]"
       autoFocus
     />
   );
@@ -498,7 +498,7 @@ function PctEditor({ value, onChange }: { value: number; onChange: (n: number) =
     return (
       <button
         onClick={() => { setDraft(String(value)); setEditing(true); setTimeout(() => inputRef.current?.select(), 0); }}
-        className="text-[11px] text-slate-400 hover:text-white hover:bg-white/[0.06] px-1.5 py-0.5 rounded transition-colors tabular-nums"
+        className="text-[11px] text-muted-foreground hover:text-foreground hover:bg-muted px-1.5 py-0.5 rounded transition-colors tabular-nums"
         title="Click to edit"
       >
         {value}%
@@ -516,7 +516,7 @@ function PctEditor({ value, onChange }: { value: number; onChange: (n: number) =
       onChange={(e) => setDraft(e.target.value)}
       onBlur={commit}
       onKeyDown={(e) => { if (e.key === 'Enter') commit(); if (e.key === 'Escape') setEditing(false); }}
-      className="w-12 text-[11px] text-white bg-white/[0.08] border border-violet-500/50 rounded px-1 py-0.5 text-center outline-none tabular-nums"
+      className="w-12 text-[11px] text-foreground bg-muted border border-violet-500/50 rounded px-1 py-0.5 text-center outline-none tabular-nums"
       autoFocus
     />
   );

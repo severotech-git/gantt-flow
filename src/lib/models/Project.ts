@@ -57,6 +57,7 @@ export interface IProjectDocument extends Document {
   description?: string;
   color?: string;
   currentVersion: string;
+  archived: boolean;
   epics: mongoose.Types.DocumentArray<mongoose.Document>;
 }
 
@@ -65,7 +66,8 @@ const ProjectSchema = new Schema<IProjectDocument>(
     name:           { type: String, required: true, trim: true },
     description:    { type: String },
     color:          { type: String, default: '#6366f1' },
-    currentVersion: { type: String, default: 'v1 (Current)' },
+    currentVersion: { type: String, default: 'Live' },
+    archived:       { type: Boolean, default: false },
     epics:          { type: [EpicSchema], default: [] },
   },
   {

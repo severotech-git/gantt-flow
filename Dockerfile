@@ -20,7 +20,7 @@ COPY . .
 EXPOSE 3000
 
 # Set the MONGODB_URI environment variable (will be overridden by docker-compose)
-ENV MONGODB_URI=mongodb://admin:secret@mygantt-mongodb:27017/mygantt?authSource=admin
+ENV MONGODB_URI=mongodb://admin:secret@ganttflow-mongodb:27017/ganttflow?authSource=admin
 
 # Command to run the application in development mode
 CMD ["pnpm", "run", "dev"]

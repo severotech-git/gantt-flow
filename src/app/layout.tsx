@@ -7,7 +7,7 @@ import { ThemeProvider } from '@/components/providers/ThemeProvider';
 const geist = Geist({ subsets: ['latin'], variable: '--font-geist' });
 
 export const metadata: Metadata = {
-  title: 'MyGantt – Project Roadmap',
+  title: 'GanttFlow – Project Roadmap',
   description: 'Personal Gantt chart and project management tool',
 };
 

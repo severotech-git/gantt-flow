@@ -18,6 +18,8 @@ import { GanttTimeline, GanttTimelineHandle } from './GanttTimeline';
 import { GanttBar, GanttBarData } from './GanttBar';
 import { AddItemDialog } from '@/components/dialogs/AddItemDialog';
 import { addDays, parseISO, isValid, differenceInCalendarDays } from 'date-fns';
+import { snapToWorkday } from '@/lib/dateUtils';
+import { useSettingsStore } from '@/store/useSettingsStore';
 import { BarChart3 } from 'lucide-react';
 
 const PX_PER_DAY: Record<string, number> = { week: 28, month: 10, quarter: 4 };
@@ -45,6 +47,8 @@ export function GanttBoard() {
     expandedEpicIds, expandedFeatureIds,
     isVersionReadOnly, isLoadingProject,
   } = useProjectStore();
+
+  const allowWeekends = useSettingsStore((s) => s.allowWeekends);
 
   // Scroll sync
   const taskPanelRef = useRef<HTMLDivElement>(null);
@@ -275,7 +279,8 @@ export function GanttBoard() {
       if (!oldStart || !oldEnd) return;
 
       if (isRight) {
-        const newEnd = addDays(oldEnd, deltaDays);
+        const raw = addDays(oldEnd, deltaDays);
+        const newEnd = allowWeekends ? raw : snapToWorkday(raw, 'backward');
         if (newEnd.getTime() <= oldStart.getTime()) return;
         const patch = { plannedEnd: newEnd.toISOString() };
         if (row.level === 'task' && row.featureId && row.taskId)
@@ -285,7 +290,8 @@ export function GanttBoard() {
         else if (row.level === 'epic')
           updateEpic(row.epicId, patch);
       } else {
-        const newStart = addDays(oldStart, deltaDays);
+        const raw = addDays(oldStart, deltaDays);
+        const newStart = allowWeekends ? raw : snapToWorkday(raw, 'forward');
         if (newStart.getTime() >= oldEnd.getTime()) return;
         const patch = { plannedStart: newStart.toISOString() };
         if (row.level === 'task' && row.featureId && row.taskId)
@@ -306,8 +312,12 @@ export function GanttBoard() {
     const oldEnd   = safeParseISO(row.bar.plannedEnd);
     if (!oldStart || !oldEnd) return;
 
-    const newStart = addDays(oldStart, deltaDays).toISOString();
-    const newEnd   = addDays(oldEnd,   deltaDays).toISOString();
+    function snap(d: Date, dir: 'forward' | 'backward') {
+      return allowWeekends ? d : snapToWorkday(d, dir);
+    }
+
+    const newStart = snap(addDays(oldStart, deltaDays), 'forward').toISOString();
+    const newEnd   = snap(addDays(oldEnd,   deltaDays), 'backward').toISOString();
 
     if (row.level === 'task' && row.featureId && row.taskId) {
       updateTask(row.epicId, row.featureId, row.taskId, { plannedStart: newStart, plannedEnd: newEnd });
@@ -320,8 +330,8 @@ export function GanttBoard() {
           const te = safeParseISO(task.plannedEnd);
           if (ts && te) {
             updateTask(row.epicId, row.featureId!, task._id, {
-              plannedStart: addDays(ts, deltaDays).toISOString(),
-              plannedEnd:   addDays(te, deltaDays).toISOString(),
+              plannedStart: snap(addDays(ts, deltaDays), 'forward').toISOString(),
+              plannedEnd:   snap(addDays(te, deltaDays), 'backward').toISOString(),
             });
           }
         }
@@ -335,8 +345,8 @@ export function GanttBoard() {
             const te = safeParseISO(task.plannedEnd);
             if (ts && te) {
               updateTask(row.epicId, feat._id, task._id, {
-                plannedStart: addDays(ts, deltaDays).toISOString(),
-                plannedEnd:   addDays(te, deltaDays).toISOString(),
+                plannedStart: snap(addDays(ts, deltaDays), 'forward').toISOString(),
+                plannedEnd:   snap(addDays(te, deltaDays), 'backward').toISOString(),
               });
             }
           }
@@ -362,7 +372,7 @@ export function GanttBoard() {
   // ── Empty state ─────────────────────────────────────────────────────────
   if (!project) {
     return (
-      <div className="flex flex-col flex-1 items-center justify-center gap-4 text-slate-600">
+      <div className="flex flex-col flex-1 items-center justify-center gap-4 text-muted-foreground">
         <BarChart3 size={48} strokeWidth={1} />
         <p className="text-sm">Select a project from the sidebar</p>
       </div>
@@ -409,7 +419,7 @@ export function GanttBoard() {
         </div>
 
         {/* Footer */}
-        <div className="flex items-center gap-3 px-4 py-1.5 border-t border-white/[0.06] text-[11px] text-slate-500 bg-[#0d1117] shrink-0">
+        <div className="flex items-center gap-3 px-4 py-1.5 border-t border-border text-[11px] text-muted-foreground bg-surface-2 shrink-0">
           <span className="tabular-nums">{totalTasks} tasks</span>
           {doneCount > 0 && (
             <span className="text-emerald-500">• {doneCount} done</span>

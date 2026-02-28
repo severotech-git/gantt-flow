@@ -22,15 +22,15 @@ export function UsersSection() {
   return (
     <div className="max-w-md space-y-6">
       <div>
-        <h2 className="text-lg font-semibold text-white mb-1">Team Members</h2>
-        <p className="text-sm text-slate-400">
+        <h2 className="text-lg font-semibold text-foreground mb-1">Team Members</h2>
+        <p className="text-sm text-muted-foreground">
           Define the people who can be assigned as Owner on tasks, features, and epics.
         </p>
       </div>
 
       <div className="space-y-2">
         {users.length === 0 && (
-          <p className="text-xs text-slate-600 italic py-2">No users yet. Add one below.</p>
+          <p className="text-xs text-muted-foreground/60 italic py-2">No users yet. Add one below.</p>
         )}
         {users.map((user) => (
           <UserRow
@@ -44,9 +44,9 @@ export function UsersSection() {
 
       <button
         onClick={handleAdd}
-        className="flex items-center gap-2 text-sm text-slate-400 hover:text-violet-300 transition-colors group"
+        className="flex items-center gap-2 text-sm text-muted-foreground hover:text-violet-500 transition-colors group"
       >
-        <span className="flex items-center justify-center w-5 h-5 rounded border border-dashed border-slate-600 group-hover:border-violet-500 transition-colors">
+        <span className="flex items-center justify-center w-5 h-5 rounded border border-dashed border-border group-hover:border-violet-500 transition-colors">
           <Plus size={11} />
         </span>
         Add Member
@@ -71,21 +71,21 @@ interface UserRowProps {
 
 function UserRow({ user, onUpdate, onDelete }: UserRowProps) {
   return (
-    <div className="flex items-center gap-3 p-2 rounded-lg bg-white/[0.03] border border-white/[0.06] group">
+    <div className="flex items-center gap-3 p-2 rounded-lg bg-muted/30 border border-border group">
       <OwnerAvatar name={user.name || '?'} color={user.color} size={28} />
 
       <Input
         value={user.name}
         onChange={(e) => onUpdate({ name: e.target.value })}
         placeholder="Name…"
-        className="flex-1 h-7 text-sm bg-white/[0.04] border-white/[0.08] text-white placeholder:text-slate-600 focus-visible:ring-violet-500"
+        className="flex-1 h-7 text-sm focus-visible:ring-violet-500"
       />
 
       <ColorSwatch color={user.color} onChange={(c) => onUpdate({ color: c })} size={24} />
 
       <button
         onClick={onDelete}
-        className="text-slate-600 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100"
+        className="text-muted-foreground/60 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100"
         title="Remove"
       >
         <Trash2 size={14} />

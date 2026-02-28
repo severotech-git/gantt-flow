@@ -25,7 +25,7 @@ export async function PATCH(req: NextRequest, { params }: Params) {
     const { id } = await params;
     const body = await req.json();
 
-    const allowedFields = ['name', 'description', 'color', 'currentVersion', 'epics'];
+    const allowedFields = ['name', 'description', 'color', 'currentVersion', 'archived', 'epics'];
     const update: Record<string, unknown> = {};
     for (const key of allowedFields) {
       if (key in body) {

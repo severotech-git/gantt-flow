@@ -46,32 +46,32 @@ export function NewProjectDialog({ open, onClose }: NewProjectDialogProps) {
 
   return (
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
-      <DialogContent className="bg-[#161b22] border-white/[0.1] text-slate-100 max-w-md">
+      <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle className="text-white">Create New Project</DialogTitle>
+          <DialogTitle>Create New Project</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="flex flex-col gap-4 mt-2">
           <div className="flex flex-col gap-1.5">
-            <label className="text-xs text-slate-400">Project name</label>
+            <label className="text-xs text-muted-foreground">Project name</label>
             <Input
               autoFocus
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="e.g. Q4 Roadmap 2025"
-              className="bg-white/[0.05] border-white/[0.1] text-white placeholder:text-slate-600 focus-visible:ring-violet-500"
+              className="focus-visible:ring-violet-500"
             />
           </div>
           <div className="flex flex-col gap-1.5">
-            <label className="text-xs text-slate-400">Description (optional)</label>
+            <label className="text-xs text-muted-foreground">Description (optional)</label>
             <Input
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Short description…"
-              className="bg-white/[0.05] border-white/[0.1] text-white placeholder:text-slate-600 focus-visible:ring-violet-500"
+              className="focus-visible:ring-violet-500"
             />
           </div>
           <div className="flex flex-col gap-1.5">
-            <label className="text-xs text-slate-400">Color</label>
+            <label className="text-xs text-muted-foreground">Color</label>
             <div className="flex gap-2">
               {COLORS.map((c) => (
                 <button
@@ -92,7 +92,7 @@ export function NewProjectDialog({ open, onClose }: NewProjectDialogProps) {
               type="button"
               variant="ghost"
               onClick={onClose}
-              className="text-slate-400 hover:text-slate-200"
+              className="text-muted-foreground hover:text-foreground"
             >
               Cancel
             </Button>

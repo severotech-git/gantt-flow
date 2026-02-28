@@ -13,7 +13,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { OwnerAvatar } from '@/components/shared/OwnerAvatar';
 import { cn } from '@/lib/utils';
-import { format, addDays } from 'date-fns';
+import { format, addDays, parseISO } from 'date-fns';
+import { snapToWorkday } from '@/lib/dateUtils';
 
 type AddMode = 'epic' | 'feature' | 'task';
 
@@ -28,10 +29,28 @@ interface AddItemDialogProps {
 const today = new Date();
 
 export function AddItemDialog({ open, onClose, mode, epicId, featureId }: AddItemDialogProps) {
-  const { levelNames, statuses, users } = useSettingsStore();
+  const { levelNames, statuses, users, allowWeekends } = useSettingsStore();
   const [name, setName] = useState('');
   const [plannedStart, setPlannedStart] = useState(format(today, 'yyyy-MM-dd'));
   const [plannedEnd, setPlannedEnd] = useState(format(addDays(today, 7), 'yyyy-MM-dd'));
+
+  function handleStartChange(val: string) {
+    if (!allowWeekends && val) {
+      const snapped = snapToWorkday(parseISO(val), 'forward');
+      setPlannedStart(format(snapped, 'yyyy-MM-dd'));
+    } else {
+      setPlannedStart(val);
+    }
+  }
+
+  function handleEndChange(val: string) {
+    if (!allowWeekends && val) {
+      const snapped = snapToWorkday(parseISO(val), 'backward');
+      setPlannedEnd(format(snapped, 'yyyy-MM-dd'));
+    } else {
+      setPlannedEnd(val);
+    }
+  }
   const [status, setStatus] = useState(statuses[0]?.value ?? 'todo');
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -79,24 +98,24 @@ export function AddItemDialog({ open, onClose, mode, epicId, featureId }: AddIte
 
   return (
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
-      <DialogContent className="bg-[#161b22] border-white/[0.1] text-slate-100 max-w-md">
+      <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle className="text-white">{title}</DialogTitle>
+          <DialogTitle>{title}</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="flex flex-col gap-4 mt-2">
           <div className="flex flex-col gap-1.5">
-            <label className="text-xs text-slate-400">Name</label>
+            <label className="text-xs text-muted-foreground">Name</label>
             <Input
               autoFocus
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder={`${levelLabel} name…`}
-              className="bg-white/[0.05] border-white/[0.1] text-white placeholder:text-slate-600 focus-visible:ring-violet-500"
+              className="focus-visible:ring-violet-500"
             />
           </div>
           {(mode === 'feature' || mode === 'task') && users.length > 0 && (
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs text-slate-400">Owner</label>
+              <label className="text-xs text-muted-foreground">Owner</label>
               <div className="flex flex-wrap gap-1.5">
                 <button
                   type="button"
@@ -104,11 +123,11 @@ export function AddItemDialog({ open, onClose, mode, epicId, featureId }: AddIte
                   className={cn(
                     'flex items-center gap-1.5 px-2 py-1 rounded border text-[12px] transition-colors',
                     selectedUserId === null
-                      ? 'border-violet-400 text-violet-300 bg-violet-900/30'
-                      : 'border-white/[0.1] text-slate-500 hover:border-white/[0.2]'
+                      ? 'border-violet-400 text-violet-600 dark:text-violet-300 bg-violet-500/10'
+                      : 'border-border text-muted-foreground hover:border-border/80'
                   )}
                 >
-                  None
+                  unassigned
                 </button>
                 {users.map((u) => (
                   <button
@@ -118,8 +137,8 @@ export function AddItemDialog({ open, onClose, mode, epicId, featureId }: AddIte
                     className={cn(
                       'flex items-center gap-1.5 px-2 py-1 rounded border text-[12px] transition-colors',
                       selectedUserId === u.uid
-                        ? 'border-violet-400 text-violet-300 bg-violet-900/30'
-                        : 'border-white/[0.1] text-slate-500 hover:border-white/[0.2]'
+                        ? 'border-violet-400 text-violet-600 dark:text-violet-300 bg-violet-500/10'
+                        : 'border-border text-muted-foreground hover:border-border/80'
                     )}
                   >
                     <OwnerAvatar name={u.name} color={u.color} size={16} />
@@ -131,26 +150,26 @@ export function AddItemDialog({ open, onClose, mode, epicId, featureId }: AddIte
           )}
           <div className="grid grid-cols-2 gap-3">
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs text-slate-400">Planned Start</label>
+              <label className="text-xs text-muted-foreground">Planned Start</label>
               <Input
                 type="date"
                 value={plannedStart}
-                onChange={(e) => setPlannedStart(e.target.value)}
-                className="bg-white/[0.05] border-white/[0.1] text-white focus-visible:ring-violet-500"
+                onChange={(e) => handleStartChange(e.target.value)}
+                className="focus-visible:ring-violet-500"
               />
             </div>
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs text-slate-400">Planned End</label>
+              <label className="text-xs text-muted-foreground">Planned End</label>
               <Input
                 type="date"
                 value={plannedEnd}
-                onChange={(e) => setPlannedEnd(e.target.value)}
-                className="bg-white/[0.05] border-white/[0.1] text-white focus-visible:ring-violet-500"
+                onChange={(e) => handleEndChange(e.target.value)}
+                className="focus-visible:ring-violet-500"
               />
             </div>
           </div>
           <div className="flex flex-col gap-1.5">
-            <label className="text-xs text-slate-400">Status</label>
+            <label className="text-xs text-muted-foreground">Status</label>
             <div className="flex flex-wrap gap-1.5">
               {statuses.map((s) => (
                 <button
@@ -159,8 +178,8 @@ export function AddItemDialog({ open, onClose, mode, epicId, featureId }: AddIte
                   onClick={() => setStatus(s.value)}
                   className={`px-2 py-0.5 rounded text-[11px] font-medium uppercase tracking-wider border transition-colors ${
                     status === s.value
-                      ? 'border-violet-400 text-violet-300 bg-violet-900/30'
-                      : 'border-white/[0.1] text-slate-500 hover:border-white/[0.2]'
+                      ? 'border-violet-400 text-violet-600 dark:text-violet-300 bg-violet-500/10'
+                      : 'border-border text-muted-foreground hover:border-border/80'
                   }`}
                 >
                   {s.label}
@@ -169,7 +188,7 @@ export function AddItemDialog({ open, onClose, mode, epicId, featureId }: AddIte
             </div>
           </div>
           <div className="flex justify-end gap-2 pt-1">
-            <Button type="button" variant="ghost" onClick={onClose} className="text-slate-400">
+            <Button type="button" variant="ghost" onClick={onClose} className="text-muted-foreground">
               Cancel
             </Button>
             <Button

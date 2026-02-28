@@ -179,16 +179,16 @@ export const GanttTimeline = forwardRef<GanttTimelineHandle, GanttTimelineProps>
 
           {/* ── Header ──────────────────────────────────────── */}
           <div
-            className="sticky top-0 z-20 border-b border-white/[0.06] bg-[#0d1117]"
+            className="sticky top-0 z-20 border-b border-border bg-surface-2"
             style={{ height: HEADER_H }}
           >
             {groups && (
-              <div className="flex absolute top-0 left-0 right-0 h-6 border-b border-white/[0.05]">
+              <div className="flex absolute top-0 left-0 right-0 h-6 border-b border-border/50">
                 {groups.map((g, i) => (
                   <div
                     key={i}
                     style={{ width: g.days * pxPerDay, minWidth: g.days * pxPerDay }}
-                    className="shrink-0 flex items-center justify-center text-[11px] font-medium text-slate-400 border-r border-white/[0.05] truncate px-2"
+                    className="shrink-0 flex items-center justify-center text-[11px] font-medium text-muted-foreground border-r border-border/50 truncate px-2"
                   >
                     {g.label}
                   </div>
@@ -205,12 +205,12 @@ export const GanttTimeline = forwardRef<GanttTimelineHandle, GanttTimelineProps>
                   key={i}
                   style={{ width: pxPerDay, minWidth: pxPerDay }}
                   className={cn(
-                    'shrink-0 flex items-center justify-center text-[10px] font-medium border-r border-white/[0.04]',
+                    'shrink-0 flex items-center justify-center text-[10px] font-medium border-r border-border/40',
                     d.isToday
-                      ? 'text-blue-400 bg-blue-500/10'
+                      ? 'text-blue-500 bg-blue-500/10'
                       : d.isWeekend
-                      ? 'text-slate-600 bg-white/[0.015]'
-                      : 'text-slate-500'
+                      ? 'text-muted-foreground/50 bg-[var(--weekend-bg)]'
+                      : 'text-muted-foreground/70'
                   )}
                 >
                   {pxPerDay >= 16 ? d.label : ''}
@@ -225,8 +225,8 @@ export const GanttTimeline = forwardRef<GanttTimelineHandle, GanttTimelineProps>
               <div
                 key={row.rowKey}
                 className={cn(
-                  'relative border-b border-white/[0.04]',
-                  !row.isAddRow && row.level === 'epic' && 'bg-white/[0.015]',
+                  'relative border-b border-border/40',
+                  !row.isAddRow && row.level === 'epic' && 'bg-[var(--row-alt)]',
                   row.isAddRow && 'bg-transparent',
                 )}
                 style={{ height: ROW_H }}
@@ -237,8 +237,8 @@ export const GanttTimeline = forwardRef<GanttTimelineHandle, GanttTimelineProps>
                     key={i}
                     className={cn(
                       'absolute top-0 bottom-0',
-                      d.isWeekend && 'bg-white/[0.012]',
-                      'border-r border-white/[0.03]',
+                      d.isWeekend && 'bg-[var(--weekend-bg)]',
+                      'border-r border-border/30',
                     )}
                     style={{ left: i * pxPerDay, width: pxPerDay }}
                   />
@@ -259,7 +259,7 @@ export const GanttTimeline = forwardRef<GanttTimelineHandle, GanttTimelineProps>
 
             {/* Empty state rows placeholder */}
             {visibleRows.length === 0 && (
-              <div className="flex items-center justify-center h-24 text-slate-600 text-xs">
+              <div className="flex items-center justify-center h-24 text-muted-foreground/50 text-xs">
                 No items to display
               </div>
             )}

@@ -27,19 +27,19 @@ export function LevelNamesSection() {
   return (
     <div className="max-w-md space-y-6">
       <div>
-        <h2 className="text-lg font-semibold text-white mb-1">Level Names</h2>
-        <p className="text-sm text-slate-400">Rename the three hierarchy levels to match your team&apos;s terminology.</p>
+        <h2 className="text-lg font-semibold text-foreground mb-1">Level Names</h2>
+        <p className="text-sm text-muted-foreground">Rename the three hierarchy levels to match your team&apos;s terminology.</p>
       </div>
 
       <div className="space-y-4">
         {LEVELS.map(({ key, label }) => (
           <div key={key} className="flex flex-col gap-1.5">
             <div className="flex items-center justify-between">
-              <label className="text-xs text-slate-400">{label}</label>
+              <label className="text-xs text-muted-foreground">{label}</label>
               {local[key] !== DEFAULTS[key] && (
                 <button
                   onClick={() => setLocal((p) => ({ ...p, [key]: DEFAULTS[key] }))}
-                  className="flex items-center gap-1 text-[10px] text-slate-500 hover:text-slate-300 transition-colors"
+                  className="flex items-center gap-1 text-[10px] text-muted-foreground hover:text-foreground transition-colors"
                   title={`Reset to "${DEFAULTS[key]}"`}
                 >
                   <RotateCcw size={10} />
@@ -51,9 +51,9 @@ export function LevelNamesSection() {
               value={local[key]}
               onChange={(e) => setLocal((p) => ({ ...p, [key]: e.target.value }))}
               placeholder={DEFAULTS[key]}
-              className="bg-white/[0.05] border-white/[0.1] text-white placeholder:text-slate-600 focus-visible:ring-violet-500"
+              className="focus-visible:ring-violet-500"
             />
-            <p className="text-[10px] text-slate-600">Default: &quot;{DEFAULTS[key]}&quot;</p>
+            <p className="text-[10px] text-muted-foreground/50">Default: &quot;{DEFAULTS[key]}&quot;</p>
           </div>
         ))}
       </div>
