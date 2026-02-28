@@ -28,6 +28,7 @@ interface ProjectState {
   // Timeline display
   timelineScale: TimelineScale;
   timelineStartDate: Date;
+  zoomLevel: number;
 
   // UI state
   expandedEpicIds: Set<string>;
@@ -55,6 +56,8 @@ interface ProjectActions {
   // Timeline
   setTimelineScale: (scale: TimelineScale) => void;
   setTimelineStartDate: (date: Date) => void;
+  setZoomLevel: (z: number) => void;
+  jumpToToday: () => void;
 
   // Version control
   fetchVersions: (projectId: string) => Promise<void>;
@@ -112,6 +115,7 @@ export const useProjectStore = create<ProjectStore>()(
     versions: [],
     timelineScale: 'week',
     timelineStartDate: getDefaultStartDate('week'),
+    zoomLevel: 1,
     expandedEpicIds: new Set<string>(),
     expandedFeatureIds: new Set<string>(),
     isSaving: false,
@@ -227,6 +231,20 @@ export const useProjectStore = create<ProjectStore>()(
 
     setTimelineStartDate: (date) => {
       set((s) => { s.timelineStartDate = date; });
+    },
+
+    setZoomLevel: (z) => {
+      set((s) => { s.zoomLevel = Math.min(4, Math.max(0.25, z)); });
+    },
+
+    jumpToToday: () => {
+      const { timelineScale, zoomLevel } = get();
+      const BASE_PX: Record<string, number> = { week: 28, month: 10, quarter: 4 };
+      const pxPerDay = BASE_PX[timelineScale] * zoomLevel;
+      // Place today ~200px from the left edge of the viewport, regardless of zoom
+      const offsetDays = Math.max(2, Math.round(200 / pxPerDay));
+      const startDate = new Date(Date.now() - offsetDays * 86_400_000);
+      set((s) => { s.timelineStartDate = startDate; });
     },
 
     // ── Version control ─────────────────────────────────────────────────────

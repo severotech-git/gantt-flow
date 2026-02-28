@@ -13,7 +13,6 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Camera, ChevronDown, History, Search, Plus, Crosshair, Loader2, Eye, RotateCcw, Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { getDefaultStartDate } from '@/lib/dateUtils';
 import { useState } from 'react';
 import { PageNavbar } from '@/components/layout/PageNavbar';
 
@@ -35,7 +34,7 @@ export function TopNavbar({ onSaveVersion, onNewProject, onSearch, sidebarOpen, 
   const {
     timelineScale,
     setTimelineScale,
-    setTimelineStartDate,
+    jumpToToday,
     versions,
     loadVersion,
     clearVersion,
@@ -89,7 +88,7 @@ export function TopNavbar({ onSaveVersion, onNewProject, onSearch, sidebarOpen, 
 
       {/* Jump to today */}
       <button
-        onClick={() => setTimelineStartDate(getDefaultStartDate(timelineScale))}
+        onClick={jumpToToday}
         title="Jump to today"
         className="flex items-center gap-1.5 px-2 py-1.5 text-xs text-muted-foreground hover:text-foreground bg-accent/40 border border-border rounded-md hover:bg-accent transition-colors"
       >

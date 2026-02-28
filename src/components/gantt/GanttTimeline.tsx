@@ -83,10 +83,10 @@ function buildHeader(scale: string, timelineStart: Date, totalDays: number) {
 
 export const GanttTimeline = forwardRef<GanttTimelineHandle, GanttTimelineProps>(
   function GanttTimeline({ visibleRows, onScrollY, dragDelta }, ref) {
-    const { timelineScale, timelineStartDate: storeStartDate, isVersionReadOnly, focusedBarId, setFocusedBarId } = useProjectStore();
+    const { timelineScale, timelineStartDate: storeStartDate, isVersionReadOnly, focusedBarId, setFocusedBarId, zoomLevel } = useProjectStore();
     const scrollRef = useRef<HTMLDivElement>(null);
 
-    const pxPerDay = PX_PER_DAY[timelineScale];
+    const pxPerDay = PX_PER_DAY[timelineScale] * zoomLevel;
 
     // Local timeline state — independent from store so infinite scroll doesn't
     // clash with the store's "reset on Today/scale" effect.
@@ -109,6 +109,12 @@ export const GanttTimeline = forwardRef<GanttTimelineHandle, GanttTimelineProps>
       }
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [storeStartDate, timelineScale]);
+
+    // When zoom changes, ensure canvas has enough days (zooming out needs more days)
+    useEffect(() => {
+      setLocalTotalDays((d) => Math.max(d, initialTotalDays(pxPerDay)));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [pxPerDay]);
 
     // Apply scroll compensation for left extensions — must run before paint
     useLayoutEffect(() => {

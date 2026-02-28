@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useState, useMemo, useCallback } from 'react';
+import { useRef, useState, useMemo, useCallback, useEffect } from 'react';
 import {
   DndContext,
   DragEndEvent,
@@ -20,10 +20,17 @@ import { AddItemDialog } from '@/components/dialogs/AddItemDialog';
 import { addDays, parseISO, isValid, differenceInCalendarDays } from 'date-fns';
 import { snapToWorkday } from '@/lib/dateUtils';
 import { useSettingsStore } from '@/store/useSettingsStore';
-import { BarChart3 } from 'lucide-react';
+import { BarChart3, ZoomIn, ZoomOut } from 'lucide-react';
 
-const PX_PER_DAY: Record<string, number> = { week: 28, month: 10, quarter: 4 };
+const BASE_PX_PER_DAY: Record<string, number> = { week: 28, month: 10, quarter: 4 };
 const OVERLAY_BAR_H = 22;
+
+const ZOOM_STEPS = [0.25, 0.5, 0.75, 1, 1.25, 1.5, 2, 3, 4];
+
+function stepZoom(current: number, dir: 'in' | 'out'): number {
+  if (dir === 'in') return ZOOM_STEPS.find((z) => z > current + 0.01) ?? current;
+  return [...ZOOM_STEPS].reverse().find((z) => z < current - 0.01) ?? current;
+}
 
 const today = new Date();
 function taskHasIssue(task: { status: string; plannedEnd: string }): boolean {
@@ -46,9 +53,40 @@ export function GanttBoard() {
     updateTask, updateFeature, updateEpic,
     expandedEpicIds, expandedFeatureIds,
     isVersionReadOnly, isLoadingProject,
+    zoomLevel, setZoomLevel,
   } = useProjectStore();
 
+  const pxPerDay = BASE_PX_PER_DAY[timelineScale] * zoomLevel;
+
   const allowWeekends = useSettingsStore((s) => s.allowWeekends);
+
+  // Zoom — keyboard shortcuts (Cmd/Ctrl +/-/0) and Ctrl+wheel
+  const boardRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function onKeyDown(e: KeyboardEvent) {
+      if (!e.metaKey && !e.ctrlKey) return;
+      const { zoomLevel: z, setZoomLevel: sz } = useProjectStore.getState();
+      if (e.key === '=' || e.key === '+') { e.preventDefault(); sz(stepZoom(z, 'in')); }
+      else if (e.key === '-')             { e.preventDefault(); sz(stepZoom(z, 'out')); }
+      else if (e.key === '0')             { e.preventDefault(); sz(1); }
+    }
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, []);
+
+  useEffect(() => {
+    const el = boardRef.current;
+    if (!el) return;
+    function onWheel(e: WheelEvent) {
+      if (!e.ctrlKey && !e.metaKey) return;
+      e.preventDefault();
+      const { zoomLevel: z, setZoomLevel: sz } = useProjectStore.getState();
+      sz(stepZoom(z, e.deltaY > 0 ? 'out' : 'in'));
+    }
+    el.addEventListener('wheel', onWheel, { passive: false });
+    return () => el.removeEventListener('wheel', onWheel);
+  }, []);
 
   // Scroll sync
   const taskPanelRef = useRef<HTMLDivElement>(null);
@@ -244,12 +282,11 @@ export function GanttBoard() {
     
     const row = visibleRows.find((r) => r.bar?.id === dragId);
     if (!row?.bar) return;
-    const pxPerDay = PX_PER_DAY[timelineScale];
     const s = safeParseISO(row.bar.plannedStart);
     const e = safeParseISO(row.bar.plannedEnd);
     const width = s && e ? Math.max((differenceInCalendarDays(e, s) + 1) * pxPerDay, 8) : pxPerDay * 7;
     setActiveDrag({ bar: row.bar, overlayWidth: width });
-  }, [visibleRows, timelineScale]);
+  }, [visibleRows, pxPerDay]);
 
   const handleDragMove = useCallback((event: DragMoveEvent) => {
     setDragDelta({ id: event.active.id as string, x: event.delta.x });
@@ -261,7 +298,6 @@ export function GanttBoard() {
     const { active, delta } = event;
     if (!delta.x) return;
 
-    const pxPerDay = PX_PER_DAY[timelineScale];
     const deltaDays = Math.round(delta.x / pxPerDay);
     if (deltaDays === 0) return;
 
@@ -353,7 +389,7 @@ export function GanttBoard() {
         }
       }
     }
-  }, [visibleRows, timelineScale, updateTask, updateFeature, updateEpic, project]);
+  }, [visibleRows, pxPerDay, allowWeekends, updateTask, updateFeature, updateEpic, project]);
 
   // ── Loading skeleton ────────────────────────────────────────────────────
   if (isLoadingProject) {
@@ -400,7 +436,7 @@ export function GanttBoard() {
       onDragEnd={handleDragEnd}
       onDragCancel={() => { setActiveDrag(null); setDragDelta(null); }}
     >
-      <div className="flex flex-col flex-1 overflow-hidden">
+      <div ref={boardRef} className="flex flex-col flex-1 overflow-hidden">
         <div className="flex flex-1 overflow-hidden">
           <GanttTaskPanel
             ref={taskPanelRef}
@@ -427,6 +463,33 @@ export function GanttBoard() {
           {overdueCount > 0 && (
             <span className="text-red-500 font-medium animate-pulse">• {overdueCount} overdue</span>
           )}
+
+          {/* Zoom controls */}
+          <div className="ml-auto flex items-center gap-0.5">
+            <button
+              onClick={() => setZoomLevel(stepZoom(zoomLevel, 'out'))}
+              disabled={zoomLevel <= ZOOM_STEPS[0]}
+              title="Zoom out (Ctrl −)"
+              className="p-1 rounded text-muted-foreground hover:text-foreground hover:bg-accent disabled:opacity-30 transition-colors"
+            >
+              <ZoomOut size={13} />
+            </button>
+            <button
+              onClick={() => setZoomLevel(1)}
+              title="Reset zoom (Ctrl 0)"
+              className="px-2 py-0.5 rounded text-[11px] tabular-nums text-muted-foreground hover:text-foreground hover:bg-accent transition-colors min-w-[42px] text-center"
+            >
+              {Math.round(zoomLevel * 100)}%
+            </button>
+            <button
+              onClick={() => setZoomLevel(stepZoom(zoomLevel, 'in'))}
+              disabled={zoomLevel >= ZOOM_STEPS[ZOOM_STEPS.length - 1]}
+              title="Zoom in (Ctrl =)"
+              className="p-1 rounded text-muted-foreground hover:text-foreground hover:bg-accent disabled:opacity-30 transition-colors"
+            >
+              <ZoomIn size={13} />
+            </button>
+          </div>
         </div>
       </div>
 
