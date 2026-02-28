@@ -34,6 +34,7 @@ interface GanttBarProps extends GanttBarData {
   width: number;
   readonly: boolean;
   isOverlay?: boolean;
+  dragDelta?: { id: string; x: number } | null;
 }
 
 // Level-specific bar heights (px)
@@ -42,6 +43,8 @@ const BAR_H: Record<GanttBarData['level'], number> = {
   feature: 22,
   task:    18,
 };
+
+const ROW_H = 36;
 
 function fmtDate(iso: string | undefined): string {
   if (!iso) return '—';
@@ -64,11 +67,19 @@ export function GanttBar({
   readonly,
   isOverlay = false,
   ownerName,
+  dragDelta,
 }: GanttBarProps) {
-  const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
+  // Move logic
+  const { 
+    attributes: moveAttrs, 
+    listeners: moveListeners, 
+    setNodeRef: setMoveRef, 
+    transform, 
+    isDragging: isMoving 
+  } = useDraggable({
     id,
     disabled: readonly || isOverlay,
-    data: { plannedStart, plannedEnd, level },
+    data: { plannedStart, plannedEnd, level, type: 'move' },
   });
 
   const delayDays = getDelayDays(plannedEnd, actualEnd);
@@ -76,16 +87,34 @@ export function GanttBar({
   const isEarly = delayDays < 0 && (status === 'done');
   const durationDays = differenceInCalendarDays(parseISO(plannedEnd), parseISO(plannedStart)) + 1;
 
+  // ── Live Preview Logic ──
+  let finalLeft = left;
+  let finalWidth = width;
+  let finalTransform = transform ? CSS.Translate.toString(transform) : undefined;
+  let isResizing = false;
+
+  if (dragDelta) {
+    if (dragDelta.id === `resize-left:${id}`) {
+      isResizing = true;
+      finalLeft = left + Math.min(dragDelta.x, width - 8);
+      finalWidth = Math.max(width - dragDelta.x, 8);
+      finalTransform = undefined;
+    } else if (dragDelta.id === `resize-right:${id}`) {
+      isResizing = true;
+      finalWidth = Math.max(width + dragDelta.x, 8);
+      finalTransform = undefined;
+    }
+  }
+
   const style: React.CSSProperties = {
-    left,
-    width: Math.max(width, 8),
-    height: BAR_H[level],
-    transform: isOverlay
-      ? undefined
-      : transform
-      ? CSS.Transform.toString({ ...transform, y: 0, scaleX: 1, scaleY: 1 })
-      : undefined,
-    zIndex: isDragging ? 50 : 'auto',
+    left: `${finalLeft}px`,
+    width: `${finalWidth}px`,
+    height: `${BAR_H[level]}px`,
+    top: `${(ROW_H - BAR_H[level]) / 2}px`,
+    transform: finalTransform,
+    zIndex: isMoving || isResizing ? 100 : 'auto',
+    outline: isResizing ? '2px solid #6366f1' : 'none',
+    boxShadow: isResizing ? '0 0 15px rgba(99, 102, 241, 0.5)' : undefined,
   };
 
   const barColor = isDelayed
@@ -96,54 +125,45 @@ export function GanttBar({
 
   const barEl = (
     <div
-      ref={isOverlay ? undefined : setNodeRef}
       style={style}
-      {...(isOverlay ? {} : { ...attributes, ...listeners })}
       className={cn(
-        'absolute top-1/2 -translate-y-1/2 rounded flex items-center overflow-hidden select-none group',
-        !isOverlay && !readonly && 'cursor-grab active:cursor-grabbing',
-        !isOverlay && 'transition-shadow',
+        'absolute rounded flex items-center select-none group transition-shadow',
         barColor,
-        isDragging && !isOverlay && 'opacity-50',
+        isMoving && !isOverlay && 'opacity-50',
         isDelayed && !isOverlay && 'overdue-glow',
         isOverlay && 'shadow-xl shadow-black/50 ring-1 ring-white/20 opacity-90',
         level === 'epic' && 'rounded-sm',
       )}
     >
-      {/* Progress fill */}
-      {pct > 0 && (
-        <div
-          className={cn(
-            'absolute inset-y-0 left-0 rounded-l',
-            pct >= 100 ? 'rounded' : '',
-            'bg-white/20'
-          )}
-          style={{ width: `${Math.min(pct, 100)}%` }}
-        />
-      )}
-
-      {/* Label — only show if bar is wide enough */}
-      {width > 44 && (
-        <span className="relative px-2 text-[10px] font-semibold text-white/90 truncate leading-none pointer-events-none whitespace-nowrap">
-          {isDelayed && <span className="mr-1 opacity-90">⚠</span>}
-          {label}
-        </span>
-      )}
-
-      {/* Actual-end tick — shown when task is done and actualEnd differs from plannedEnd */}
-      {actualEnd && actualEnd !== plannedEnd && status === 'done' && (() => {
-        const diffDays = differenceInCalendarDays(parseISO(actualEnd), parseISO(plannedStart));
-        const tickLeft = Math.min(Math.max((diffDays / durationDays) * 100, 0), 100);
-        return (
+      <div
+        ref={isOverlay ? undefined : setMoveRef}
+        {...(isOverlay ? {} : { ...moveAttrs, ...moveListeners })}
+        className={cn(
+          "absolute inset-0 flex items-center overflow-hidden rounded",
+          !isOverlay && !readonly && 'cursor-grab active:cursor-grabbing',
+        )}
+      >
+        {pct > 0 && (
           <div
-            className="absolute top-0 bottom-0 w-0.5 bg-white/60 z-10 pointer-events-none"
-            style={{ left: `${tickLeft}%` }}
-            title={`Actual end: ${fmtDate(actualEnd)}`}
+            className={cn('absolute inset-y-0 left-0 rounded-l', pct >= 100 && 'rounded', 'bg-white/20')}
+            style={{ width: `${Math.min(pct, 100)}%` }}
           />
-        );
-      })()}
+        )}
 
-      {/* Resize handles — separate draggables on left/right edges */}
+        {finalWidth > 44 && (
+          <span className="relative px-2 text-[10px] font-semibold text-white/90 truncate leading-none pointer-events-none whitespace-nowrap">
+            {isDelayed && <span className="mr-1 opacity-90">⚠</span>}
+            {label}
+          </span>
+        )}
+
+        {actualEnd && actualEnd !== plannedEnd && status === 'done' && (() => {
+          const diffDays = differenceInCalendarDays(parseISO(actualEnd), parseISO(plannedStart));
+          const tickLeft = Math.min(Math.max((diffDays / durationDays) * 100, 0), 100);
+          return <div className="absolute top-0 bottom-0 w-0.5 bg-white/60 z-10 pointer-events-none" style={{ left: `${tickLeft}%` }} />;
+        })()}
+      </div>
+
       {!isOverlay && !readonly && (
         <>
           <ResizeHandle barId={id} side="left" />
@@ -203,10 +223,6 @@ export function GanttBar({
   );
 }
 
-// ─── ResizeHandle ─────────────────────────────────────────────────────────────
-// Separate draggable component for left/right resize edges.
-// ID convention: "resize-left:<barId>" | "resize-right:<barId>"
-
 function ResizeHandle({ barId, side }: { barId: string; side: 'left' | 'right' }) {
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
     id: `resize-${side}:${barId}`,
@@ -219,18 +235,13 @@ function ResizeHandle({ barId, side }: { barId: string; side: 'left' | 'right' }
       {...attributes}
       {...listeners}
       className={cn(
-        'absolute top-0 bottom-0 z-20 flex items-center justify-center cursor-ew-resize',
-        // Wide enough touch target, but visually thin
-        side === 'left' ? 'left-0 pl-px' : 'right-0 pr-px',
-        'w-3',
+        'absolute top-0 bottom-0 z-30 flex items-center justify-center cursor-ew-resize w-4',
+        side === 'left' ? '-left-2' : '-right-2',
       )}
-      // Prevent the bar's own drag listeners from firing when the handle is grabbed
-      onPointerDown={(e) => e.stopPropagation()}
     >
-      {/* Visual indicator: appears on hover / active drag */}
       <div className={cn(
-        'w-0.5 h-3/4 rounded-full bg-white/50 transition-opacity',
-        isDragging ? 'opacity-100' : 'opacity-0 group-hover:opacity-60',
+        'w-1.5 h-1/2 rounded-full bg-white/50 transition-opacity',
+        isDragging ? 'opacity-100' : 'opacity-0 group-hover:opacity-100',
       )} />
     </div>
   );

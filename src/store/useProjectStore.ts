@@ -375,8 +375,10 @@ export const useProjectStore = create<ProjectStore>()(
     persistProject: async () => {
       const project = get().activeProject;
       if (!project || get().isVersionReadOnly) return;
+      
+      set((s) => { s.isSaving = true; });
       try {
-        await fetch(`/api/projects/${project._id}`, {
+        const res = await fetch(`/api/projects/${project._id}`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -387,8 +389,24 @@ export const useProjectStore = create<ProjectStore>()(
             currentVersion: project.currentVersion,
           }),
         });
-      } catch {
-        // Silent fail – user can retry
+        
+        if (res.ok) {
+          const updatedProject: IProject = await res.json();
+          // We update the active project with the server response to sync IDs (tmp_ -> real)
+          // but we only do this if the user hasn't moved to another version/project.
+          set((s) => {
+            if (s.activeProject && s.activeProject._id === updatedProject._id) {
+              s.activeProject = updatedProject;
+            }
+          });
+        } else {
+          const err = await res.json();
+          console.error('[persistProject] Failed:', err);
+        }
+      } catch (err) {
+        console.error('[persistProject] Error:', err);
+      } finally {
+        set((s) => { s.isSaving = false; });
       }
     },
   }))

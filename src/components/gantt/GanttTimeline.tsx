@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, forwardRef, useImperativeHandle } from 'react';
+import { useRef, forwardRef, useImperativeHandle, useEffect } from 'react';
 import { useProjectStore } from '@/store/useProjectStore';
 import { GanttBar, GanttBarData } from './GanttBar';
 import { differenceInCalendarDays, parseISO, isValid, addDays, startOfWeek, format } from 'date-fns';
@@ -20,6 +20,7 @@ import { VisibleRow } from './GanttTaskPanel';
 interface GanttTimelineProps {
   visibleRows: VisibleRow[];
   onScrollY: (scrollTop: number) => void;
+  dragDelta: { id: string; x: number } | null;
 }
 
 export interface GanttTimelineHandle {
@@ -79,13 +80,18 @@ function buildHeader(scale: string, timelineStart: Date, totalDays: number) {
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export const GanttTimeline = forwardRef<GanttTimelineHandle, GanttTimelineProps>(
-  function GanttTimeline({ visibleRows, onScrollY }, ref) {
+  function GanttTimeline({ visibleRows, onScrollY, dragDelta }, ref) {
     const { timelineScale, timelineStartDate, isVersionReadOnly } = useProjectStore();
     const scrollRef = useRef<HTMLDivElement>(null);
 
     useImperativeHandle(ref, () => ({
       scrollTo: (top: number) => { if (scrollRef.current) scrollRef.current.scrollTop = top; },
     }));
+
+    // Reset horizontal scroll whenever the timeline origin changes (Today button or scale switch)
+    useEffect(() => {
+      if (scrollRef.current) scrollRef.current.scrollLeft = 0;
+    }, [timelineStartDate]);
 
     const pxPerDay = PX_PER_DAY[timelineScale];
     const totalDays = Math.ceil(1400 / pxPerDay) + 40;
@@ -190,6 +196,7 @@ export const GanttTimeline = forwardRef<GanttTimelineHandle, GanttTimelineProps>
                     left={barLeft(row.bar.plannedStart)}
                     width={barWidth(row.bar.plannedStart, row.bar.plannedEnd)}
                     readonly={isVersionReadOnly}
+                    dragDelta={(dragDelta?.id === row.bar.id || dragDelta?.id.endsWith(`:${row.bar.id}`)) ? dragDelta : null}
                   />
                 )}
               </div>

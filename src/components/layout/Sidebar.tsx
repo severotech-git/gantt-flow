@@ -81,7 +81,7 @@ export function Sidebar({ onNewProject }: SidebarProps) {
           icon={<LayoutGrid size={14} />}
           label="All Projects"
         />
-        <SidebarLink
+        {/* <SidebarLink
           href="/projects"
           active={false}
           icon={<CheckSquare size={14} />}
@@ -92,17 +92,17 @@ export function Sidebar({ onNewProject }: SidebarProps) {
           active={false}
           icon={<Calendar size={14} />}
           label="Calendar"
-        />
+        /> */}
       </div>
 
       {/* Spacer */}
       <div className="flex-1" />
 
       {/* Bottom links */}
-      <div className="border-t border-white/[0.06] py-2">
+      {/* <div className="border-t border-white/[0.06] py-2">
         <SidebarLink href="/projects" active={false} icon={<Settings size={14} />} label="Workspace Settings" />
         <SidebarLink href="/projects" active={false} icon={<HelpCircle size={14} />} label="Help & Support" />
-      </div>
+      </div> */}
     </aside>
   );
 }

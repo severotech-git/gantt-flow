@@ -76,7 +76,7 @@ export const GanttTaskPanel = forwardRef<HTMLDivElement, GanttTaskPanelProps>(
           className="sticky top-0 z-20 flex items-center border-b border-white/[0.06] bg-[#0d1117] text-[11px] font-semibold uppercase tracking-wider text-slate-500 shrink-0"
           style={{ height: 48 }}
         >
-          <div className="flex-1 px-3">Task Name</div>
+          <div className="flex-1 px-3">Name</div>
           <div className="w-7 text-center">Owner</div>
           <div className="w-[88px] text-center">Status</div>
           <div className="w-14 text-center">%</div>
@@ -129,6 +129,12 @@ export const GanttTaskPanel = forwardRef<HTMLDivElement, GanttTaskPanelProps>(
                     updateTask(row.epicId, row.featureId, row.taskId, { completionPct: pct });
                   else if (row.level === 'feature' && row.featureId)
                     updateFeature(row.epicId, row.featureId, { completionPct: pct });
+                }}
+                onNameChange={(name) => {
+                  if (row.level === 'epic') updateEpic(row.epicId, { name });
+                  else if (row.level === 'feature' && row.featureId) updateFeature(row.epicId, row.featureId, { name });
+                  else if (row.level === 'task' && row.featureId && row.taskId)
+                    updateTask(row.epicId, row.featureId, row.taskId, { name });
                 }}
               />
             )
@@ -186,6 +192,7 @@ interface TaskRowProps {
   onAddChild: () => void;
   onStatusChange: (s: StatusType) => void;
   onPctChange: (n: number) => void;
+  onNameChange: (s: string) => void;
 }
 
 function TaskRow({
@@ -197,6 +204,7 @@ function TaskRow({
   onAddChild,
   onStatusChange,
   onPctChange,
+  onNameChange,
 }: TaskRowProps) {
   const delayDays = getDelayDays(row.plannedEnd, row.actualEnd);
   const isLate = delayDays > 0 && row.status !== 'done' && row.status !== 'canceled';
@@ -250,14 +258,17 @@ function TaskRow({
         )}
 
         {/* Name */}
-        <span className={cn(
-          'truncate ml-0.5',
-          isLate ? 'text-red-300' : 'text-slate-200',
-          row.level === 'epic' && 'text-white font-semibold text-[12px]',
-          row.level === 'feature' && 'text-slate-100 font-medium',
-        )}>
-          {row.name}
-        </span>
+        <NameEditor
+          value={row.name}
+          onChange={onNameChange}
+          readonly={readonly}
+          className={cn(
+            'truncate ml-0.5',
+            isLate ? 'text-red-300' : 'text-slate-200',
+            row.level === 'epic' && 'text-white font-semibold text-[12px]',
+            row.level === 'feature' && 'text-slate-100 font-medium',
+          )}
+        />
       </div>
 
       {/* Owner */}
@@ -358,6 +369,46 @@ function TaskRow({
         </div>
       )}
     </div>
+  );
+}
+
+// ─── Inline Name editor ──────────────────────────────────────────────────────
+
+function NameEditor({ value, onChange, readonly, className }: { value: string; onChange: (s: string) => void; readonly: boolean; className?: string }) {
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(value);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  function commit() {
+    const s = draft.trim();
+    if (s && s !== value) onChange(s);
+    else setDraft(value);
+    setEditing(false);
+  }
+
+  if (readonly || !editing) {
+    return (
+      <button
+        onClick={() => { if (!readonly) { setDraft(value); setEditing(true); setTimeout(() => inputRef.current?.select(), 0); } }}
+        className={cn("text-left overflow-hidden min-w-0 flex-1", !readonly && "hover:bg-white/[0.06] rounded px-1 -ml-1 transition-colors")}
+        title={readonly ? undefined : "Click to edit name"}
+      >
+        <span className={className}>{value}</span>
+      </button>
+    );
+  }
+
+  return (
+    <input
+      ref={inputRef}
+      type="text"
+      value={draft}
+      onChange={(e) => setDraft(e.target.value)}
+      onBlur={commit}
+      onKeyDown={(e) => { if (e.key === 'Enter') commit(); if (e.key === 'Escape') { setDraft(value); setEditing(false); } }}
+      className="flex-1 bg-white/[0.08] border border-violet-500/50 rounded px-1 -ml-1 outline-none text-[inherit] font-[inherit]"
+      autoFocus
+    />
   );
 }
 

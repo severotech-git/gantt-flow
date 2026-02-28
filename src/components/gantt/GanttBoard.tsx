@@ -1,10 +1,11 @@
 'use client';
 
-import { useRef, useState } from 'react';
+import { useRef, useState, useMemo, useCallback } from 'react';
 import {
   DndContext,
   DragEndEvent,
   DragStartEvent,
+  DragMoveEvent,
   PointerSensor,
   useSensor,
   useSensors,
@@ -42,18 +43,19 @@ export function GanttBoard() {
   const timelineRef = useRef<GanttTimelineHandle>(null);
   const syncingRef = useRef(false);
 
-  function onTaskPanelScroll(top: number) {
+  const onTaskPanelScroll = useCallback((top: number) => {
     if (syncingRef.current) return;
     syncingRef.current = true;
     timelineRef.current?.scrollTo(top);
     syncingRef.current = false;
-  }
-  function onTimelineScroll(top: number) {
+  }, []);
+
+  const onTimelineScroll = useCallback((top: number) => {
     if (syncingRef.current) return;
     syncingRef.current = true;
     if (taskPanelRef.current) taskPanelRef.current.scrollTop = top;
     syncingRef.current = false;
-  }
+  }, []);
 
   // Add-item dialog
   const [addDialog, setAddDialog] = useState<{
@@ -61,20 +63,26 @@ export function GanttBoard() {
     epicId?: string; featureId?: string;
   } | null>(null);
 
-  // Active drag tracking (for DragOverlay)
+  // Active drag tracking
   const [activeDrag, setActiveDrag] = useState<{
     bar: GanttBarData; overlayWidth: number;
   } | null>(null);
 
+  // Live preview delta
+  const [dragDelta, setDragDelta] = useState<{
+    id: string;
+    x: number;
+  } | null>(null);
+
   // ── Build flat visible rows (data rows + inline add-rows) ───────────────
-  const visibleRows: VisibleRow[] = [];
+  const visibleRows = useMemo(() => {
+    const rows: VisibleRow[] = [];
+    if (!project || !Array.isArray(project.epics)) return rows;
 
-  // Minimal stub required by VisibleRow for add-rows (no bar, no real data)
-  const ADD_STUB = { name: '', status: 'todo' as const, completionPct: 0, plannedStart: '', plannedEnd: '' };
+    const ADD_STUB = { name: '', status: 'todo' as const, completionPct: 0, plannedStart: '', plannedEnd: '' };
 
-  if (project) {
     for (const epic of project.epics) {
-      visibleRows.push({
+      rows.push({
         rowKey: `epic-${epic._id}`,
         epicId: epic._id,
         level: 'epic',
@@ -102,7 +110,7 @@ export function GanttBoard() {
       if (!expandedEpicIds.has(epic._id)) continue;
 
       for (const feat of epic.features) {
-        visibleRows.push({
+        rows.push({
           rowKey: `feat-${feat._id}`,
           epicId: epic._id,
           featureId: feat._id,
@@ -135,7 +143,7 @@ export function GanttBoard() {
         if (!expandedFeatureIds.has(feat._id)) continue;
 
         for (const task of feat.tasks) {
-          visibleRows.push({
+          rows.push({
             rowKey: `task-${task._id}`,
             epicId: epic._id,
             featureId: feat._id,
@@ -167,9 +175,8 @@ export function GanttBoard() {
           });
         }
 
-        // ── "+ New Task" row after this feature's tasks ──────────────
         if (!isVersionReadOnly) {
-          visibleRows.push({
+          rows.push({
             ...ADD_STUB,
             rowKey: `add-task-${feat._id}`,
             epicId: epic._id,
@@ -181,9 +188,8 @@ export function GanttBoard() {
         }
       }
 
-      // ── "+ New Feature" row after this epic's features ───────────────
       if (!isVersionReadOnly) {
-        visibleRows.push({
+        rows.push({
           ...ADD_STUB,
           rowKey: `add-feat-${epic._id}`,
           epicId: epic._id,
@@ -194,9 +200,8 @@ export function GanttBoard() {
       }
     }
 
-    // ── "+ New Epic" row at the very end ─────────────────────────────
     if (!isVersionReadOnly) {
-      visibleRows.push({
+      rows.push({
         ...ADD_STUB,
         rowKey: 'add-epic',
         epicId: '__new__',
@@ -205,17 +210,21 @@ export function GanttBoard() {
         addRowCallback: () => setAddDialog({ mode: 'epic' }),
       });
     }
-  }
+
+    return rows;
+  }, [project, expandedEpicIds, expandedFeatureIds, isVersionReadOnly]);
 
   // ── DnD ────────────────────────────────────────────────────────────────
   const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 6 } })
+    useSensor(PointerSensor, { activationConstraint: { distance: 3 } })
   );
 
-  function handleDragStart(event: DragStartEvent) {
+  const handleDragStart = useCallback((event: DragStartEvent) => {
     const dragId = event.active.id as string;
-    // Skip overlay for resize handles — only show overlay for bar moves
+    setDragDelta({ id: dragId, x: 0 });
+    
     if (dragId.startsWith('resize-')) return;
+    
     const row = visibleRows.find((r) => r.bar?.id === dragId);
     if (!row?.bar) return;
     const pxPerDay = PX_PER_DAY[timelineScale];
@@ -223,10 +232,15 @@ export function GanttBoard() {
     const e = safeParseISO(row.bar.plannedEnd);
     const width = s && e ? Math.max((differenceInCalendarDays(e, s) + 1) * pxPerDay, 8) : pxPerDay * 7;
     setActiveDrag({ bar: row.bar, overlayWidth: width });
-  }
+  }, [visibleRows, timelineScale]);
 
-  function handleDragEnd(event: DragEndEvent) {
+  const handleDragMove = useCallback((event: DragMoveEvent) => {
+    setDragDelta({ id: event.active.id as string, x: event.delta.x });
+  }, []);
+
+  const handleDragEnd = useCallback((event: DragEndEvent) => {
     setActiveDrag(null);
+    setDragDelta(null);
     const { active, delta } = event;
     if (!delta.x) return;
 
@@ -248,9 +262,8 @@ export function GanttBoard() {
       if (!oldStart || !oldEnd) return;
 
       if (isRight) {
-        // Drag right edge → change plannedEnd only
         const newEnd = addDays(oldEnd, deltaDays);
-        if (newEnd <= oldStart) return; // prevent inverting
+        if (newEnd.getTime() <= oldStart.getTime()) return;
         const patch = { plannedEnd: newEnd.toISOString() };
         if (row.level === 'task' && row.featureId && row.taskId)
           updateTask(row.epicId, row.featureId, row.taskId, patch);
@@ -259,9 +272,8 @@ export function GanttBoard() {
         else if (row.level === 'epic')
           updateEpic(row.epicId, patch);
       } else {
-        // Drag left edge → change plannedStart only
         const newStart = addDays(oldStart, deltaDays);
-        if (newStart >= oldEnd) return; // prevent inverting
+        if (newStart.getTime() >= oldEnd.getTime()) return;
         const patch = { plannedStart: newStart.toISOString() };
         if (row.level === 'task' && row.featureId && row.taskId)
           updateTask(row.epicId, row.featureId, row.taskId, patch);
@@ -274,8 +286,6 @@ export function GanttBoard() {
     }
 
     // ── Move (shift whole bar) ────────────────────────────────────────────
-    const parts = dragId.split('-');
-    const level = parts[1] as 'epic' | 'feat' | 'task';
     const row = visibleRows.find((r) => r.bar?.id === dragId);
     if (!row?.bar) return;
 
@@ -286,9 +296,9 @@ export function GanttBoard() {
     const newStart = addDays(oldStart, deltaDays).toISOString();
     const newEnd   = addDays(oldEnd,   deltaDays).toISOString();
 
-    if (level === 'task' && row.featureId && row.taskId) {
+    if (row.level === 'task' && row.featureId && row.taskId) {
       updateTask(row.epicId, row.featureId, row.taskId, { plannedStart: newStart, plannedEnd: newEnd });
-    } else if (level === 'feat' && row.featureId) {
+    } else if (row.level === 'feature' && row.featureId) {
       const epicData = project?.epics.find((e) => e._id === row.epicId);
       const featData = epicData?.features.find((f) => f._id === row.featureId);
       if (featData) {
@@ -303,7 +313,7 @@ export function GanttBoard() {
           }
         }
       }
-    } else if (level === 'epic') {
+    } else if (row.level === 'epic') {
       const epicData = project?.epics.find((e) => e._id === row.epicId);
       if (epicData) {
         for (const feat of epicData.features) {
@@ -320,7 +330,7 @@ export function GanttBoard() {
         }
       }
     }
-  }
+  }, [visibleRows, timelineScale, updateTask, updateFeature, updateEpic, project]);
 
   // ── Loading skeleton ────────────────────────────────────────────────────
   if (isLoadingProject) {
@@ -363,8 +373,9 @@ export function GanttBoard() {
       sensors={sensors}
       modifiers={[restrictToHorizontalAxis]}
       onDragStart={handleDragStart}
+      onDragMove={handleDragMove}
       onDragEnd={handleDragEnd}
-      onDragCancel={() => setActiveDrag(null)}
+      onDragCancel={() => { setActiveDrag(null); setDragDelta(null); }}
     >
       <div className="flex flex-col flex-1 overflow-hidden">
         <div className="flex flex-1 overflow-hidden">
@@ -382,6 +393,7 @@ export function GanttBoard() {
             ref={timelineRef}
             visibleRows={visibleRows}
             onScrollY={onTimelineScroll}
+            dragDelta={dragDelta}
           />
         </div>
 
@@ -397,7 +409,6 @@ export function GanttBoard() {
         </div>
       </div>
 
-      {/* DragOverlay — floating bar preview */}
       <DragOverlay dropAnimation={null}>
         {activeDrag && (
           <div

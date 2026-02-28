@@ -28,7 +28,13 @@ export async function PATCH(req: NextRequest, { params }: Params) {
     const allowedFields = ['name', 'description', 'color', 'currentVersion', 'epics'];
     const update: Record<string, unknown> = {};
     for (const key of allowedFields) {
-      if (key in body) update[key] = body[key];
+      if (key in body) {
+        if (key === 'epics' && Array.isArray(body[key])) {
+          update[key] = cleanTmpIds(body[key]);
+        } else {
+          update[key] = body[key];
+        }
+      }
     }
 
     const project = await Project.findByIdAndUpdate(
@@ -43,6 +49,23 @@ export async function PATCH(req: NextRequest, { params }: Params) {
     console.error('[PATCH /api/projects/[id]]', err);
     return NextResponse.json({ error: 'Failed to update project' }, { status: 500 });
   }
+}
+
+/** Recursively removes _id fields that start with 'tmp_' */
+function cleanTmpIds(obj: any): any {
+  if (Array.isArray(obj)) {
+    return obj.map(cleanTmpIds);
+  } else if (obj !== null && typeof obj === 'object') {
+    const newObj: any = {};
+    for (const key in obj) {
+      if (key === '_id' && typeof obj[key] === 'string' && obj[key].startsWith('tmp_')) {
+        continue;
+      }
+      newObj[key] = cleanTmpIds(obj[key]);
+    }
+    return newObj;
+  }
+  return obj;
 }
 
 // DELETE /api/projects/[id]
