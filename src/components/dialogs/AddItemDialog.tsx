@@ -59,8 +59,17 @@ export function AddItemDialog({ open, onClose, mode, epicId, featureId }: AddIte
 
     if (mode === 'epic') {
       await addEpic({ ...base, features: [] });
+      // Expand the newly created epic so the user can immediately add features
+      const { activeProject: p, expandedEpicIds, toggleEpic } = useProjectStore.getState();
+      const newEpic = p?.epics[p.epics.length - 1];
+      if (newEpic && !expandedEpicIds.has(newEpic._id)) toggleEpic(newEpic._id);
     } else if (mode === 'feature' && epicId) {
       await addFeature(epicId, { ...base, tasks: [] });
+      // Expand the newly created feature so the user can immediately add tasks
+      const { activeProject: p, expandedFeatureIds, toggleFeature } = useProjectStore.getState();
+      const epic = p?.epics.find((e) => e._id === epicId);
+      const newFeat = epic?.features[epic.features.length - 1];
+      if (newFeat && !expandedFeatureIds.has(newFeat._id)) toggleFeature(newFeat._id);
     } else if (mode === 'task' && epicId && featureId) {
       await addTask(epicId, featureId, base);
     }

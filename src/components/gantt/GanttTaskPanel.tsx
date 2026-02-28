@@ -1,13 +1,12 @@
 'use client';
 
-import { forwardRef, useState, useRef } from 'react';
+import { forwardRef, useState, useRef, useCallback } from 'react';
 import { StatusBadge } from '@/components/shared/StatusBadge';
 import { OwnerAvatar } from '@/components/shared/OwnerAvatar';
 import { useProjectStore } from '@/store/useProjectStore';
 import { cn } from '@/lib/utils';
 import { ChevronRight, ChevronDown, Plus, Trash2, Check } from 'lucide-react';
 import { getDelayDays } from '@/lib/dateUtils';
-import { differenceInCalendarDays, parseISO } from 'date-fns';
 import { StatusType } from '@/types';
 import {
   DropdownMenu,
@@ -34,6 +33,7 @@ export interface VisibleRow {
   actualEnd?: string;
   isExpanded?: boolean;
   bar?: GanttBarData;
+  hasWarning?: boolean;
   // Add-row marker
   isAddRow?: true;
   addRowCallback?: () => void;
@@ -52,12 +52,25 @@ const STATUS_LABELS: Record<StatusType, string> = {
   'blocked':     'Blocked',
 };
 
+const STATUS_DOT: Record<StatusType, string> = {
+  'todo':        'bg-slate-500',
+  'in-progress': 'bg-violet-500',
+  'qa':          'bg-blue-500',
+  'done':        'bg-emerald-500',
+  'canceled':    'bg-slate-600',
+  'blocked':     'bg-orange-500',
+};
+
 interface GanttTaskPanelProps {
   visibleRows: VisibleRow[];
   onScrollY: (scrollTop: number) => void;
   onAddFeature: (epicId: string) => void;
   onAddTask: (epicId: string, featureId: string) => void;
 }
+
+const PANEL_MIN = 200;
+const PANEL_MAX = 700;
+const PANEL_DEFAULT = 460;
 
 export const GanttTaskPanel = forwardRef<HTMLDivElement, GanttTaskPanelProps>(
   function GanttTaskPanel({ visibleRows, onScrollY, onAddFeature, onAddTask }, ref) {
@@ -69,8 +82,30 @@ export const GanttTaskPanel = forwardRef<HTMLDivElement, GanttTaskPanelProps>(
       isVersionReadOnly,
     } = useProjectStore();
 
+    const [panelWidth, setPanelWidth] = useState(PANEL_DEFAULT);
+    const [isResizing, setIsResizing] = useState(false);
+
+    const onResizeMouseDown = useCallback((e: React.MouseEvent) => {
+      e.preventDefault();
+      const startX = e.clientX;
+      const startWidth = panelWidth;
+      setIsResizing(true);
+
+      function onMouseMove(ev: MouseEvent) {
+        const next = Math.min(Math.max(startWidth + ev.clientX - startX, PANEL_MIN), PANEL_MAX);
+        setPanelWidth(next);
+      }
+      function onMouseUp() {
+        setIsResizing(false);
+        window.removeEventListener('mousemove', onMouseMove);
+        window.removeEventListener('mouseup', onMouseUp);
+      }
+      window.addEventListener('mousemove', onMouseMove);
+      window.addEventListener('mouseup', onMouseUp);
+    }, [panelWidth]);
+
     return (
-      <div className="flex flex-col shrink-0" style={{ width: 460 }}>
+      <div className="relative flex flex-col shrink-0" style={{ width: panelWidth }}>
         {/* Header */}
         <div
           className="sticky top-0 z-20 flex items-center border-b border-white/[0.06] bg-[#0d1117] text-[11px] font-semibold uppercase tracking-wider text-slate-500 shrink-0"
@@ -80,8 +115,7 @@ export const GanttTaskPanel = forwardRef<HTMLDivElement, GanttTaskPanelProps>(
           <div className="w-7 text-center">Owner</div>
           <div className="w-[88px] text-center">Status</div>
           <div className="w-14 text-center">%</div>
-          <div className="w-16 text-center text-[10px]">Diff</div>
-          <div className="w-8" />
+          <div className="w-16" />
         </div>
 
         {/* Rows */}
@@ -146,6 +180,20 @@ export const GanttTaskPanel = forwardRef<HTMLDivElement, GanttTaskPanelProps>(
             </div>
           )}
         </div>
+
+        {/* Resize handle */}
+        <div
+          onMouseDown={onResizeMouseDown}
+          className={cn(
+            'absolute right-0 top-0 bottom-0 w-1 cursor-col-resize group z-30',
+            isResizing && 'bg-violet-500/40',
+          )}
+        >
+          <div className={cn(
+            'absolute inset-y-0 right-0 w-px transition-colors',
+            isResizing ? 'bg-violet-500' : 'bg-white/[0.06] group-hover:bg-violet-500/60',
+          )} />
+        </div>
       </div>
     );
   }
@@ -208,14 +256,6 @@ function TaskRow({
 }: TaskRowProps) {
   const delayDays = getDelayDays(row.plannedEnd, row.actualEnd);
   const isLate = delayDays > 0 && row.status !== 'done' && row.status !== 'canceled';
-  const isEarly = row.status === 'done' && delayDays < 0;
-
-  // Diff vs. planned: if actualEnd exists use that; else for overdue items use today
-  const diffDays = row.actualEnd
-    ? differenceInCalendarDays(parseISO(row.actualEnd), parseISO(row.plannedEnd))
-    : (row.status !== 'done' && row.status !== 'canceled' && new Date() > parseISO(row.plannedEnd))
-      ? differenceInCalendarDays(new Date(), parseISO(row.plannedEnd))
-      : null;
 
   return (
     <div
@@ -302,7 +342,8 @@ function TaskRow({
                 >
                   {s === row.status && <Check size={10} />}
                   {s !== row.status && <span className="w-2.5" />}
-                  {STATUS_LABELS[s]}
+                  <span className="flex-1">{STATUS_LABELS[s]}</span>
+                  <span className={cn('w-2 h-2 rounded-full shrink-0', STATUS_DOT[s])} />
                 </DropdownMenuItem>
               ))}
             </DropdownMenuContent>
@@ -319,38 +360,24 @@ function TaskRow({
         )}
       </div>
 
-      {/* Diff badge */}
-      <div className="w-16 flex items-center justify-center shrink-0">
-        {diffDays !== null && (
-          <span className={cn(
-            'text-[10px] font-semibold px-1 py-0.5 rounded',
-            diffDays > 0 ? 'text-red-400 bg-red-500/10' :
-            diffDays < 0 ? 'text-emerald-400 bg-emerald-500/10' :
-            'text-slate-500'
-          )}>
-            {diffDays > 0 ? `+${diffDays}d` : diffDays < 0 ? `${diffDays}d` : '±0'}
-          </span>
-        )}
-      </div>
-
       {/* Row actions (hover) */}
       {!readonly && (
-        <div className="w-8 flex items-center justify-center gap-0.5 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+        <div className="w-16 flex items-center justify-center shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
           {row.level !== 'task' && (
             <button
               onClick={onAddChild}
-              className="p-0.5 text-slate-500 hover:text-violet-400 transition-colors"
+              className="p-1.5 rounded text-slate-400 hover:text-violet-400 hover:bg-violet-500/10 transition-colors"
               title={row.level === 'epic' ? 'Add feature' : 'Add task'}
             >
-              <Plus size={11} />
+              <Plus size={14} />
             </button>
           )}
           <button
             onClick={onDelete}
-            className="p-0.5 text-slate-600 hover:text-red-400 transition-colors"
+            className="p-1.5 rounded text-slate-500 hover:text-red-400 hover:bg-red-500/10 transition-colors"
             title="Delete"
           >
-            <Trash2 size={11} />
+            <Trash2 size={14} />
           </button>
         </div>
       )}

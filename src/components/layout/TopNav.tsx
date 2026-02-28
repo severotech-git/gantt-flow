@@ -11,12 +11,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Camera, ChevronDown, History, Search, Plus, Crosshair, Loader2 } from 'lucide-react';
+import { Camera, ChevronDown, History, Search, Plus, Crosshair, Loader2, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { getDefaultStartDate } from '@/lib/dateUtils';
 
 const SCALES: { value: TimelineScale; label: string }[] = [
-  { value: 'day',     label: 'Day'     },
   { value: 'week',    label: 'Week'    },
   { value: 'month',   label: 'Month'   },
   { value: 'quarter', label: 'Quarter' },
@@ -25,9 +24,12 @@ const SCALES: { value: TimelineScale; label: string }[] = [
 interface TopNavProps {
   onSaveVersion: () => void;
   onNewProject: () => void;
+  onSearch: () => void;
+  sidebarOpen: boolean;
+  onToggleSidebar: () => void;
 }
 
-export function TopNav({ onSaveVersion, onNewProject }: TopNavProps) {
+export function TopNav({ onSaveVersion, onNewProject, onSearch, sidebarOpen, onToggleSidebar }: TopNavProps) {
   const {
     timelineScale,
     setTimelineScale,
@@ -44,6 +46,15 @@ export function TopNav({ onSaveVersion, onNewProject }: TopNavProps) {
 
   return (
     <header className="flex items-center h-12 px-4 gap-3 border-b border-white/[0.06] bg-[#0d1117] shrink-0">
+      {/* Sidebar toggle */}
+      <button
+        onClick={onToggleSidebar}
+        title={sidebarOpen ? 'Hide sidebar' : 'Show sidebar'}
+        className="text-slate-500 hover:text-slate-300 transition-colors shrink-0"
+      >
+        {sidebarOpen ? <PanelLeftClose size={16} /> : <PanelLeftOpen size={16} />}
+      </button>
+
       {/* Project name */}
       <h1 className="font-semibold text-sm text-white truncate mr-2">
         {project?.name ?? 'Select a project'}
@@ -102,9 +113,13 @@ export function TopNav({ onSaveVersion, onNewProject }: TopNavProps) {
       )}
 
       {/* Search */}
-      <button className="flex items-center gap-2 px-3 py-1.5 text-xs text-slate-400 bg-white/[0.05] border border-white/[0.08] rounded-md hover:bg-white/[0.08] transition-colors min-w-[160px]">
+      <button
+        onClick={onSearch}
+        className="flex items-center gap-2 px-3 py-1.5 text-xs text-slate-400 bg-white/[0.05] border border-white/[0.08] rounded-md hover:bg-white/[0.08] transition-colors min-w-[160px]"
+      >
         <Search size={12} />
-        Search tasks...
+        <span className="flex-1 text-left">Search tasks...</span>
+        <kbd className="text-[10px] text-slate-600 font-sans">⌘K</kbd>
       </button>
 
       {/* Version picker */}

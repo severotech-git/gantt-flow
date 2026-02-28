@@ -9,7 +9,7 @@ const CONFIG: Record<StatusType, { label: string; className: string }> = {
   qa:            { label: 'QA',       className: 'bg-blue-700 text-blue-100' },
   done:          { label: 'DONE',     className: 'bg-emerald-700 text-emerald-100' },
   canceled:      { label: 'CANCELED', className: 'bg-slate-600 text-slate-400' },
-  blocked:       { label: 'BLOCKED',  className: 'bg-red-700 text-red-100' },
+  blocked:       { label: 'BLOCKED',  className: 'bg-orange-700 text-orange-100' },
 };
 
 interface StatusBadgeProps {
@@ -39,7 +39,7 @@ export function getBarColor(status: StatusType): string {
     qa:            'bg-blue-500',
     done:          'bg-emerald-500',
     canceled:      'bg-slate-600',
-    blocked:       'bg-red-500',
+    blocked:       'bg-orange-500',
   };
   return map[status] ?? 'bg-slate-500';
 }

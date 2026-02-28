@@ -1,17 +1,21 @@
 'use client';
 
-import { useRef, forwardRef, useImperativeHandle, useEffect } from 'react';
+import { useRef, forwardRef, useImperativeHandle, useEffect, useLayoutEffect, useState, useCallback } from 'react';
 import { useProjectStore } from '@/store/useProjectStore';
 import { GanttBar, GanttBarData } from './GanttBar';
 import { differenceInCalendarDays, parseISO, isValid, addDays, startOfWeek, format } from 'date-fns';
 import { cn } from '@/lib/utils';
 
 const PX_PER_DAY: Record<string, number> = {
-  day:     40,
   week:    28,
   month:   10,
   quarter:  4,
 };
+
+// Days added per infinite-scroll extension
+const CHUNK = 90;
+// Pixels from edge that trigger an extension
+const THRESHOLD_PX = 400;
 
 const ROW_H = 36;
 
@@ -46,10 +50,8 @@ function buildHeader(scale: string, timelineStart: Date, totalDays: number) {
     const date = addDays(timelineStart, d);
     const isToday = differenceInCalendarDays(date, today) === 0;
     const isWeekend = date.getDay() === 0 || date.getDay() === 6;
-    dayLabels.push({ label: format(date, scale === 'day' ? 'EEE d' : 'EEEEE'), isToday, isWeekend });
+    dayLabels.push({ label: format(date, 'EEEEE'), isToday, isWeekend });
   }
-
-  if (scale === 'day') return { groups: null, dayLabels };
 
   let cursor = 0;
   while (cursor < totalDays) {
@@ -81,31 +83,84 @@ function buildHeader(scale: string, timelineStart: Date, totalDays: number) {
 
 export const GanttTimeline = forwardRef<GanttTimelineHandle, GanttTimelineProps>(
   function GanttTimeline({ visibleRows, onScrollY, dragDelta }, ref) {
-    const { timelineScale, timelineStartDate, isVersionReadOnly } = useProjectStore();
+    const { timelineScale, timelineStartDate: storeStartDate, isVersionReadOnly, focusedBarId, setFocusedBarId } = useProjectStore();
     const scrollRef = useRef<HTMLDivElement>(null);
+
+    const pxPerDay = PX_PER_DAY[timelineScale];
+
+    // Local timeline state — independent from store so infinite scroll doesn't
+    // clash with the store's "reset on Today/scale" effect.
+    function initialTotalDays(ppd: number) {
+      return Math.ceil(1400 / ppd) + CHUNK;
+    }
+    const [localStartDate, setLocalStartDate] = useState(storeStartDate);
+    const [localTotalDays, setLocalTotalDays] = useState(() => initialTotalDays(pxPerDay));
+
+    // Tracks how many pixels we need to add to scrollLeft after a left-extension render
+    const pendingScrollAdjust = useRef(0);
+
+    // When store resets the origin (Today button, scale switch, search nav) → reset local state
+    useEffect(() => {
+      setLocalStartDate(storeStartDate);
+      setLocalTotalDays(initialTotalDays(PX_PER_DAY[timelineScale]));
+      pendingScrollAdjust.current = 0;
+      if (scrollRef.current) {
+        scrollRef.current.scrollLeft = 0;
+      }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [storeStartDate, timelineScale]);
+
+    // Apply scroll compensation for left extensions — must run before paint
+    useLayoutEffect(() => {
+      if (pendingScrollAdjust.current !== 0 && scrollRef.current) {
+        scrollRef.current.scrollLeft += pendingScrollAdjust.current;
+        pendingScrollAdjust.current = 0;
+      }
+    });
+
+    // Scroll vertically to a focused bar (triggered by search navigation)
+    useEffect(() => {
+      if (!focusedBarId || !scrollRef.current) return;
+      const rowIdx = visibleRows.findIndex((r) => r.bar?.id === focusedBarId);
+      if (rowIdx === -1) return;
+      scrollRef.current.scrollTop = Math.max(rowIdx * ROW_H - ROW_H * 2, 0);
+      setFocusedBarId(null);
+    }, [focusedBarId, visibleRows, setFocusedBarId]);
+
+    const handleScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
+      const el = e.currentTarget;
+      onScrollY(el.scrollTop);
+
+      const { scrollLeft, scrollWidth, clientWidth } = el;
+
+      // Near right edge → grow canvas to the right
+      if (scrollLeft + clientWidth > scrollWidth - THRESHOLD_PX) {
+        setLocalTotalDays((d) => d + CHUNK);
+      }
+
+      // Near left edge → shift origin backward and compensate scroll
+      if (scrollLeft < THRESHOLD_PX) {
+        pendingScrollAdjust.current = CHUNK * pxPerDay;
+        setLocalStartDate((d) => addDays(d, -CHUNK));
+        setLocalTotalDays((d) => d + CHUNK);
+      }
+    }, [onScrollY, pxPerDay]);
 
     useImperativeHandle(ref, () => ({
       scrollTo: (top: number) => { if (scrollRef.current) scrollRef.current.scrollTop = top; },
     }));
 
-    // Reset horizontal scroll whenever the timeline origin changes (Today button or scale switch)
-    useEffect(() => {
-      if (scrollRef.current) scrollRef.current.scrollLeft = 0;
-    }, [timelineStartDate]);
-
-    const pxPerDay = PX_PER_DAY[timelineScale];
-    const totalDays = Math.ceil(1400 / pxPerDay) + 40;
-    const totalWidth = totalDays * pxPerDay;
+    const totalWidth = localTotalDays * pxPerDay;
     const today = new Date();
-    const todayOffset = differenceInCalendarDays(today, timelineStartDate) * pxPerDay;
+    const todayOffset = differenceInCalendarDays(today, localStartDate) * pxPerDay;
 
-    const { groups, dayLabels } = buildHeader(timelineScale, timelineStartDate, totalDays);
+    const { groups, dayLabels } = buildHeader(timelineScale, localStartDate, localTotalDays);
     const HEADER_H = groups ? 48 : 32;
 
     function barLeft(start: string) {
       const d = toDate(start);
       if (!d) return 0;
-      return Math.max(differenceInCalendarDays(d, timelineStartDate) * pxPerDay, 0);
+      return Math.max(differenceInCalendarDays(d, localStartDate) * pxPerDay, 0);
     }
     function barWidth(start: string, end: string) {
       const s = toDate(start);
@@ -118,7 +173,7 @@ export const GanttTimeline = forwardRef<GanttTimelineHandle, GanttTimelineProps>
       <div
         ref={scrollRef}
         className="flex-1 overflow-auto relative gantt-scroll"
-        onScroll={(e) => onScrollY((e.target as HTMLDivElement).scrollTop)}
+        onScroll={handleScroll}
       >
         <div style={{ width: totalWidth, minWidth: '100%', position: 'relative' }}>
 

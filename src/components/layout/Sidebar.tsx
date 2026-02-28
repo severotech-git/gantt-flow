@@ -18,9 +18,10 @@ import {
 
 interface SidebarProps {
   onNewProject: () => void;
+  collapsed?: boolean;
 }
 
-export function Sidebar({ onNewProject }: SidebarProps) {
+export function Sidebar({ onNewProject, collapsed = false }: SidebarProps) {
   const pathname = usePathname();
   const { projects, fetchProjects } = useProjectStore();
 
@@ -31,7 +32,12 @@ export function Sidebar({ onNewProject }: SidebarProps) {
   const favorites = projects.slice(0, 3); // first 3 as "favorites" for now
 
   return (
-    <aside className="flex flex-col w-48 min-w-[192px] h-screen bg-[#0d1117] border-r border-white/[0.06] select-none overflow-y-auto">
+    <aside
+      className={cn(
+        'flex flex-col h-screen bg-[#0d1117] border-r border-white/[0.06] select-none overflow-hidden transition-all duration-200',
+        collapsed ? 'w-0 border-r-0' : 'w-48 min-w-[192px]',
+      )}
+    >
       {/* Logo */}
       <div className="flex items-center gap-2 px-4 h-12 border-b border-white/[0.06]">
         <span className="text-violet-400">

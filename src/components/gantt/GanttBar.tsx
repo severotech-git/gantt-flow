@@ -12,6 +12,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { AlertTriangle } from 'lucide-react';
 
 export interface GanttBarData {
   id: string;
@@ -27,6 +28,7 @@ export interface GanttBarData {
   label: string;
   pct: number;
   ownerName?: string;
+  hasWarning?: boolean;
 }
 
 interface GanttBarProps extends GanttBarData {
@@ -68,6 +70,7 @@ export function GanttBar({
   isOverlay = false,
   ownerName,
   dragDelta,
+  hasWarning,
 }: GanttBarProps) {
   // Move logic
   const { 
@@ -151,8 +154,9 @@ export function GanttBar({
         )}
 
         {finalWidth > 44 && (
-          <span className="relative px-2 text-[10px] font-semibold text-white/90 truncate leading-none pointer-events-none whitespace-nowrap">
-            {isDelayed && <span className="mr-1 opacity-90">⚠</span>}
+          <span className="relative px-2 text-[10px] font-semibold text-white/90 truncate leading-none pointer-events-none whitespace-nowrap flex items-center gap-1">
+            {hasWarning && !isOverlay && <AlertTriangle size={10} className="shrink-0 text-amber-400" />}
+            {isDelayed && <span className="opacity-90">⚠</span>}
             {label}
           </span>
         )}
@@ -163,6 +167,13 @@ export function GanttBar({
           return <div className="absolute top-0 bottom-0 w-0.5 bg-white/60 z-10 pointer-events-none" style={{ left: `${tickLeft}%` }} />;
         })()}
       </div>
+
+      {/* Diff label — shown to the left of the bar */}
+      {!isOverlay && isDelayed && (
+        <div className="absolute right-full top-1/2 -translate-y-1/2 pr-1.5 text-[10px] font-semibold whitespace-nowrap pointer-events-none text-red-400">
+          +{delayDays}d
+        </div>
+      )}
 
       {!isOverlay && !readonly && (
         <>

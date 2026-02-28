@@ -101,15 +101,6 @@ export function getTimelineColumns(
     let subLabel: string | undefined;
 
     switch (scale) {
-      case 'day': {
-        start = addDays(startDate, i);
-        end = addDays(start, 1);
-        label = start.toLocaleDateString('en-US', { weekday: 'short', day: 'numeric' });
-        const isWeekend = start.getDay() === 0 || start.getDay() === 6;
-        const isToday = differenceInCalendarDays(start, today) === 0;
-        cols.push({ label, start, end, isWeekend, isToday });
-        continue;
-      }
       case 'week': {
         start = addWeeks(startOfWeek(startDate, { weekStartsOn: 1 }), i);
         end = addDays(start, 7);
@@ -186,8 +177,6 @@ export function getDelayDays(plannedEnd: string, actualEnd?: string): number {
 export function getDefaultStartDate(scale: TimelineScale): Date {
   const today = new Date();
   switch (scale) {
-    case 'day':
-      return addDays(today, -3);
     case 'week':
       return startOfWeek(addWeeks(today, -1), { weekStartsOn: 1 });
     case 'month':
@@ -200,8 +189,6 @@ export function getDefaultStartDate(scale: TimelineScale): Date {
 /** Number of columns to render for a given scale (covers ~3 months). */
 export function getColumnCount(scale: TimelineScale): number {
   switch (scale) {
-    case 'day':
-      return 60;
     case 'week':
       return 16;
     case 'month':

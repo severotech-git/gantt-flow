@@ -20,8 +20,16 @@ import { AddItemDialog } from '@/components/dialogs/AddItemDialog';
 import { addDays, parseISO, isValid, differenceInCalendarDays } from 'date-fns';
 import { BarChart3 } from 'lucide-react';
 
-const PX_PER_DAY: Record<string, number> = { day: 40, week: 28, month: 10, quarter: 4 };
+const PX_PER_DAY: Record<string, number> = { week: 28, month: 10, quarter: 4 };
 const OVERLAY_BAR_H = 22;
+
+const today = new Date();
+function taskHasIssue(task: { status: string; plannedEnd: string }): boolean {
+  return (
+    task.status === 'blocked' ||
+    (task.status !== 'done' && task.status !== 'canceled' && parseISO(task.plannedEnd) < today)
+  );
+}
 
 function safeParseISO(s: string | undefined): Date | null {
   if (!s) return null;
@@ -82,6 +90,7 @@ export function GanttBoard() {
     const ADD_STUB = { name: '', status: 'todo' as const, completionPct: 0, plannedStart: '', plannedEnd: '' };
 
     for (const epic of project.epics) {
+      const epicHasIssue = epic.features.some((f) => f.tasks.some(taskHasIssue));
       rows.push({
         rowKey: `epic-${epic._id}`,
         epicId: epic._id,
@@ -94,6 +103,7 @@ export function GanttBoard() {
         actualStart: epic.actualStart,
         actualEnd: epic.actualEnd,
         isExpanded: expandedEpicIds.has(epic._id),
+        hasWarning: epicHasIssue,
         bar: {
           id: `bar-epic-${epic._id}`,
           epicId: epic._id,
@@ -104,12 +114,14 @@ export function GanttBoard() {
           actualEnd: epic.actualEnd,
           label: epic.name,
           pct: epic.completionPct,
+          hasWarning: epicHasIssue,
         },
       });
 
       if (!expandedEpicIds.has(epic._id)) continue;
 
       for (const feat of epic.features) {
+        const featHasIssue = feat.tasks.some(taskHasIssue);
         rows.push({
           rowKey: `feat-${feat._id}`,
           epicId: epic._id,
@@ -125,6 +137,7 @@ export function GanttBoard() {
           actualStart: feat.actualStart,
           actualEnd: feat.actualEnd,
           isExpanded: expandedFeatureIds.has(feat._id),
+          hasWarning: featHasIssue,
           bar: {
             id: `bar-feat-${feat._id}`,
             epicId: epic._id,
@@ -137,6 +150,7 @@ export function GanttBoard() {
             label: feat.name,
             pct: feat.completionPct,
             ownerName: feat.ownerName,
+            hasWarning: featHasIssue,
           },
         });
 
@@ -386,8 +400,6 @@ export function GanttBoard() {
             onAddFeature={(epicId) => setAddDialog({ mode: 'feature', epicId })}
             onAddTask={(epicId, featureId) => setAddDialog({ mode: 'task', epicId, featureId })}
           />
-
-          <div className="w-px bg-white/[0.06] shrink-0" />
 
           <GanttTimeline
             ref={timelineRef}

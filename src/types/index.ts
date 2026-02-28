@@ -6,7 +6,7 @@ export type StatusType =
   | 'canceled'
   | 'blocked';
 
-export type TimelineScale = 'day' | 'week' | 'month' | 'quarter';
+export type TimelineScale = 'week' | 'month' | 'quarter';
 
 export interface ITask {
   _id: string;

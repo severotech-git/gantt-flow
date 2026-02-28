@@ -31,6 +31,7 @@ interface ProjectState {
   expandedEpicIds: Set<string>;
   expandedFeatureIds: Set<string>;
   isSaving: boolean;
+  focusedBarId: string | null;
 }
 
 // ─── Actions ──────────────────────────────────────────────────────────────────
@@ -73,6 +74,7 @@ interface ProjectActions {
   // UI toggles
   toggleEpic: (epicId: string) => void;
   toggleFeature: (featureId: string) => void;
+  setFocusedBarId: (id: string | null) => void;
 
   // Persist to server
   persistProject: () => Promise<void>;
@@ -103,6 +105,7 @@ export const useProjectStore = create<ProjectStore>()(
     expandedEpicIds: new Set<string>(),
     expandedFeatureIds: new Set<string>(),
     isSaving: false,
+    focusedBarId: null,
 
     // ── Project list ────────────────────────────────────────────────────────
     fetchProjects: async () => {
@@ -369,6 +372,10 @@ export const useProjectStore = create<ProjectStore>()(
           s.expandedFeatureIds.add(featureId);
         }
       });
+    },
+
+    setFocusedBarId: (id) => {
+      set((s) => { s.focusedBarId = id; });
     },
 
     // ── Persist ──────────────────────────────────────────────────────────────
