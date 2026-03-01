@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { connectDB } from '@/lib/mongodb';
 import { requireAuth } from '@/lib/apiAuth';
 import WorkspaceSettings from '@/lib/models/WorkspaceSettings';
+import { seedWorkspaceForNewUser } from '@/lib/seedWorkspace';
 
 export const runtime = 'nodejs';
 
@@ -12,9 +13,11 @@ export async function GET() {
     const { userId } = authResult;
 
     await connectDB();
-    const doc = await WorkspaceSettings.findOne({ userId }).lean();
+    let doc = await WorkspaceSettings.findOne({ userId }).lean();
     if (!doc) {
-      return NextResponse.json({ error: 'Settings not found' }, { status: 404 });
+      // Auto-seed for users created before the seeding flow existed
+      await seedWorkspaceForNewUser(userId, 'User');
+      doc = await WorkspaceSettings.findOne({ userId }).lean();
     }
     return NextResponse.json(doc);
   } catch (err) {
@@ -41,12 +44,8 @@ export async function PATCH(request: Request) {
     const doc = await WorkspaceSettings.findOneAndUpdate(
       { userId },
       { $set },
-      { new: true, runValidators: false }
+      { new: true, upsert: true, runValidators: false }
     ).lean();
-
-    if (!doc) {
-      return NextResponse.json({ error: 'Settings not found' }, { status: 404 });
-    }
 
     return NextResponse.json(doc);
   } catch (err) {
