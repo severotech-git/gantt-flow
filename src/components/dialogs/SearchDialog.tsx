@@ -65,7 +65,8 @@ export function SearchDialog({ open, onClose }: SearchDialogProps) {
   const allItems = useMemo<SearchItem[]>(() => {
     if (!activeProject) return [];
     const items: SearchItem[] = [];
-    for (const epic of activeProject.epics) {
+    const epics = activeProject.epics || []; // Ensure epics is an array
+    for (const epic of epics) {
       items.push({
         barId: `bar-epic-${epic._id}`,
         epicId: epic._id,
@@ -75,7 +76,8 @@ export function SearchDialog({ open, onClose }: SearchDialogProps) {
         plannedStart: epic.plannedStart,
         plannedEnd: epic.plannedEnd,
       });
-      for (const feat of epic.features) {
+      const features = epic.features || []; // Ensure features is an array
+      for (const feat of features) {
         items.push({
           barId: `bar-feat-${feat._id}`,
           epicId: epic._id,
@@ -87,7 +89,8 @@ export function SearchDialog({ open, onClose }: SearchDialogProps) {
           plannedEnd: feat.plannedEnd,
           parentName: epic.name,
         });
-        for (const task of feat.tasks) {
+        const tasks = feat.tasks || []; // Ensure tasks is an array
+        for (const task of tasks) {
           items.push({
             barId: `bar-task-${task._id}`,
             epicId: epic._id,

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useProjectStore } from '@/store/useProjectStore';
 import {
   Dialog,
@@ -10,38 +10,78 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
+import type { IProject } from '@/types';
 
 const COLORS = [
   '#6366f1', '#8b5cf6', '#ec4899', '#ef4444',
   '#f97316', '#eab308', '#22c55e', '#06b6d4',
 ];
 
-interface NewProjectDialogProps {
+interface EditProjectDialogProps {
   open: boolean;
   onClose: () => void;
+  project?: Omit<IProject, 'epics'> | null;
 }
 
-export function NewProjectDialog({ open, onClose }: NewProjectDialogProps) {
+export function EditProjectDialog({ open, onClose, project: propProject }: EditProjectDialogProps) {
+  const { activeProject, persistProject } = useProjectStore();
+  
+  // Use prop project if provided, otherwise fallback to activeProject from store
+  const project = propProject || activeProject;
+
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [color, setColor] = useState(COLORS[0]);
   const [loading, setLoading] = useState(false);
-  const { createProject } = useProjectStore();
-  const router = useRouter();
+
+  useEffect(() => {
+    if (project && open) {
+      setName(project.name);
+      setDescription(project.description || '');
+      setColor(project.color || COLORS[0]);
+    }
+  }, [project, open]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!name.trim()) return;
+    if (!name.trim() || !project) return;
+    
     setLoading(true);
-    const project = await createProject(name.trim(), description.trim(), color);
-    setLoading(false);
-    if (project) {
-      onClose();
-      setName('');
-      setDescription('');
-      router.push(`/projects/${project._id}`);
+    
+    try {
+      // We perform a direct PATCH here because updateProject in the store 
+      // is designed for the active project. For the list view, we want 
+      // a more generic update that works for any project ID.
+      const res = await fetch(`/api/projects/${project._id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: name.trim(),
+          description: description.trim(),
+          color,
+        }),
+      });
+
+      if (res.ok) {
+        // Refresh the projects list in the store
+        useProjectStore.getState().fetchProjects();
+        // If we are editing the currently active project, update it too
+        if (activeProject?._id === project._id) {
+          useProjectStore.setState((s) => {
+            if (s.activeProject) {
+              s.activeProject.name = name.trim();
+              s.activeProject.description = description.trim();
+              s.activeProject.color = color;
+            }
+          });
+        }
+        onClose();
+      }
+    } catch (err) {
+      console.error('Failed to update project:', err);
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -49,7 +89,7 @@ export function NewProjectDialog({ open, onClose }: NewProjectDialogProps) {
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>Create New Project</DialogTitle>
+          <DialogTitle>Edit Project Settings</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="flex flex-col gap-4 mt-2">
           <div className="flex flex-col gap-1.5">
@@ -102,7 +142,7 @@ export function NewProjectDialog({ open, onClose }: NewProjectDialogProps) {
               disabled={loading || !name.trim()}
               className="bg-violet-600 hover:bg-violet-500 text-white"
             >
-              {loading ? 'Creating…' : 'Create Project'}
+              {loading ? 'Saving…' : 'Save Changes'}
             </Button>
           </div>
         </form>

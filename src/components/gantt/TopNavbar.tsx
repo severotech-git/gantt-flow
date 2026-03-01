@@ -23,6 +23,7 @@ const SCALES: { value: TimelineScale; label: string }[] = [
 ];
 
 interface TopNavbarProps {
+  onEditProject: () => void;
   onSaveVersion: () => void;
   onNewProject: () => void;
   onSearch: () => void;
@@ -30,7 +31,7 @@ interface TopNavbarProps {
   onToggleSidebar: () => void;
 }
 
-export function TopNavbar({ onSaveVersion, onNewProject, onSearch, sidebarOpen, onToggleSidebar }: TopNavbarProps) {
+export function TopNavbar({ onEditProject: _onEditProject, onSaveVersion, onNewProject, onSearch, sidebarOpen, onToggleSidebar }: TopNavbarProps) {
   const {
     timelineScale,
     setTimelineScale,
@@ -140,9 +141,9 @@ export function TopNavbar({ onSaveVersion, onNewProject, onSearch, sidebarOpen, 
               Live
             </DropdownMenuItem>
 
-            {versions.length > 0 && <DropdownMenuSeparator />}
+            {(versions && versions.length > 0) && <DropdownMenuSeparator />}
 
-            {versions.map((v) => (
+            {(versions || []).map((v) => (
               <DropdownMenuItem
                 key={v._id}
                 onSelect={(e) => e.preventDefault()}

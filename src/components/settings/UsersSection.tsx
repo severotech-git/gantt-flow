@@ -1,5 +1,6 @@
 'use client';
 
+import { useSession } from 'next-auth/react';
 import { useSettingsStore } from '@/store/useSettingsStore';
 import { IUserConfig } from '@/types';
 import { Input } from '@/components/ui/input';
@@ -14,6 +15,7 @@ function generateId(): string {
 
 export function UsersSection() {
   const { users, addUser, updateUser, deleteUser, persistSettings, isSaving } = useSettingsStore();
+  const { data: session } = useSession();
 
   function handleAdd() {
     addUser({ uid: generateId(), name: '', color: '#6366f1' });
@@ -36,6 +38,7 @@ export function UsersSection() {
           <UserRow
             key={user.uid}
             user={user}
+            isCurrentUser={session?.user?.id === user.uid}
             onUpdate={(patch) => updateUser(user.uid, patch)}
             onDelete={() => deleteUser(user.uid)}
           />
@@ -65,31 +68,43 @@ export function UsersSection() {
 
 interface UserRowProps {
   user: IUserConfig;
+  isCurrentUser?: boolean;
   onUpdate: (patch: Partial<IUserConfig>) => void;
   onDelete: () => void;
 }
 
-function UserRow({ user, onUpdate, onDelete }: UserRowProps) {
+function UserRow({ user, isCurrentUser = false, onUpdate, onDelete }: UserRowProps) {
   return (
-    <div className="flex items-center gap-3 p-2 rounded-lg bg-muted/30 border border-border group">
+    <div className={`flex items-center gap-3 p-2 rounded-lg bg-muted/30 border border-border ${!isCurrentUser ? 'group' : ''}`}>
       <OwnerAvatar name={user.name || '?'} color={user.color} size={28} />
 
-      <Input
-        value={user.name}
-        onChange={(e) => onUpdate({ name: e.target.value })}
-        placeholder="Name…"
-        className="flex-1 h-7 text-sm focus-visible:ring-violet-500"
-      />
+      <div className="flex-1 flex items-center">
+        <Input
+          value={user.name}
+          onChange={(e) => onUpdate({ name: e.target.value })}
+          placeholder="Name…"
+          disabled={isCurrentUser}
+          className="h-7 text-sm focus-visible:ring-violet-500"
+        />
+      </div>
 
-      <ColorSwatch color={user.color} onChange={(c) => onUpdate({ color: c })} size={24} />
+      <ColorSwatch color={user.color} onChange={(c) => !isCurrentUser && onUpdate({ color: c })} size={24} />
 
-      <button
-        onClick={onDelete}
-        className="text-muted-foreground/60 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100"
-        title="Remove"
-      >
-        <Trash2 size={14} />
-      </button>
+      {isCurrentUser && (
+        <span className="text-[11px] font-medium px-2 py-1 rounded bg-violet-500/20 text-violet-400 whitespace-nowrap">
+          You
+        </span>
+      )}
+
+      {!isCurrentUser && (
+        <button
+          onClick={onDelete}
+          className="text-muted-foreground/60 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100"
+          title="Remove"
+        >
+          <Trash2 size={14} />
+        </button>
+      )}
     </div>
   );
 }

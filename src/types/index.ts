@@ -2,6 +2,13 @@ export type StatusType = string;
 
 export type TimelineScale = 'week' | 'month' | 'quarter';
 
+export interface IAuthUser {
+  id: string;
+  email: string;
+  name: string;
+  image?: string;
+}
+
 export interface IStatusConfig {
   value: string;
   label: string;
@@ -16,6 +23,8 @@ export interface IUserConfig {
 }
 
 export interface IWorkspaceSettings {
+  _id?: string;
+  userId: string;
   users: IUserConfig[];
   theme: 'dark' | 'light' | 'system';
   levelNames: { epic: string; feature: string; task: string };
@@ -72,6 +81,7 @@ export interface IProject {
   color?: string;
   currentVersion: string;
   archived?: boolean;
+  createdBy: string;
   epics: IEpic[];
   createdAt: string;
   updatedAt: string;

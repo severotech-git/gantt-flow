@@ -1,15 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { connectDB } from '@/lib/mongodb';
+import { requireAuth } from '@/lib/apiAuth';
 import Project from '@/lib/models/Project';
+
+export const runtime = 'nodejs';
 
 type Params = { params: Promise<{ id: string }> };
 
 // GET /api/projects/[id] – fetch full project with epics
 export async function GET(_req: NextRequest, { params }: Params) {
   try {
+    const authResult = await requireAuth();
+    if (authResult instanceof NextResponse) return authResult;
+    const { userId } = authResult;
+
     await connectDB();
     const { id } = await params;
-    const project = await Project.findById(id).lean();
+    const project = await Project.findOne({ _id: id, createdBy: userId }).lean();
     if (!project) return NextResponse.json({ error: 'Not found' }, { status: 404 });
     return NextResponse.json(project);
   } catch (err) {
@@ -21,6 +28,10 @@ export async function GET(_req: NextRequest, { params }: Params) {
 // PATCH /api/projects/[id] – update project (name, description, color, epics, currentVersion)
 export async function PATCH(req: NextRequest, { params }: Params) {
   try {
+    const authResult = await requireAuth();
+    if (authResult instanceof NextResponse) return authResult;
+    const { userId } = authResult;
+
     await connectDB();
     const { id } = await params;
     const body = await req.json();
@@ -37,8 +48,8 @@ export async function PATCH(req: NextRequest, { params }: Params) {
       }
     }
 
-    const project = await Project.findByIdAndUpdate(
-      id,
+    const project = await Project.findOneAndUpdate(
+      { _id: id, createdBy: userId },
       { $set: update },
       { new: true, runValidators: true }
     ).lean();
@@ -71,9 +82,13 @@ function cleanTmpIds(obj: any): any {
 // DELETE /api/projects/[id]
 export async function DELETE(_req: NextRequest, { params }: Params) {
   try {
+    const authResult = await requireAuth();
+    if (authResult instanceof NextResponse) return authResult;
+    const { userId } = authResult;
+
     await connectDB();
     const { id } = await params;
-    const project = await Project.findByIdAndDelete(id);
+    const project = await Project.findOneAndDelete({ _id: id, createdBy: userId });
     if (!project) return NextResponse.json({ error: 'Not found' }, { status: 404 });
     return NextResponse.json({ success: true });
   } catch (err) {

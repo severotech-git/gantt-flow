@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation';
 import { useProjectStore } from '@/store/useProjectStore';
 import { useEffect } from 'react';
 import { cn } from '@/lib/utils';
-import { LayoutGrid, Settings, FolderKanban, Plus } from 'lucide-react';
+import { LayoutGrid, Settings, Plus } from 'lucide-react';
 import Image from 'next/image';
 
 interface SidebarProps {

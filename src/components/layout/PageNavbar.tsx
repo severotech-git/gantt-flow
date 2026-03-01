@@ -1,7 +1,18 @@
 'use client';
 
-import { PanelLeftClose, PanelLeftOpen } from 'lucide-react';
+import { PanelLeftClose, PanelLeftOpen, LogOut, User, Settings as SettingsIcon } from 'lucide-react';
 import type { ReactNode } from 'react';
+import { useSession, signOut } from 'next-auth/react';
+import { OwnerAvatar } from '@/components/shared/OwnerAvatar';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import Link from 'next/link';
 
 interface PageNavbarProps {
   title: string;
@@ -20,6 +31,8 @@ export function PageNavbar({
   titleActions,
   actions,
 }: PageNavbarProps) {
+  const { data: session } = useSession();
+
   return (
     <header className="flex items-center h-12 px-4 gap-3 border-b border-border bg-surface-2 shrink-0">
       {/* Sidebar toggle */}
@@ -46,11 +59,66 @@ export function PageNavbar({
       <div className="flex-1" />
 
       {/* Slot: right side */}
-      {actions && (
-        <div className="flex items-center gap-2 shrink-0">
-          {actions}
-        </div>
-      )}
+      <div className="flex items-center gap-4 shrink-0">
+        {actions && (
+          <div className="flex items-center gap-2">
+            {actions}
+          </div>
+        )}
+
+        {session?.user && (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button className="flex items-center gap-2.5 p-1 rounded-lg hover:bg-accent transition-colors focus:outline-none text-left">
+                <OwnerAvatar
+                  name={session.user.name || 'User'}
+                  size={28}
+                  className="shrink-0"
+                />
+                <div className="hidden sm:flex flex-col pr-1">
+                  <p className="text-[13px] font-medium leading-none text-foreground truncate max-w-[120px]">
+                    {session.user.name}
+                  </p>
+                  <p className="text-[11px] leading-none text-muted-foreground truncate max-w-[120px] mt-1">
+                    {session.user.email}
+                  </p>
+                </div>
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuLabel className="font-normal sm:hidden">
+                <div className="flex flex-col space-y-1">
+                  <p className="text-sm font-medium leading-none">{session.user.name}</p>
+                  <p className="text-xs leading-none text-muted-foreground">
+                    {session.user.email}
+                  </p>
+                </div>
+              </DropdownMenuLabel>
+              <DropdownMenuSeparator className="sm:hidden" />
+              <Link href="/settings?section=profile">
+                <DropdownMenuItem className="cursor-pointer">
+                  <User className="mr-2 h-4 w-4" />
+                  <span>My Account</span>
+                </DropdownMenuItem>
+              </Link>
+              <Link href="/settings">
+                <DropdownMenuItem className="cursor-pointer">
+                  <SettingsIcon className="mr-2 h-4 w-4" />
+                  <span>Settings</span>
+                </DropdownMenuItem>
+              </Link>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                className="cursor-pointer text-red-500 focus:text-red-500 focus:bg-red-500/10"
+                onClick={() => signOut({ callbackUrl: '/login' })}
+              >
+                <LogOut className="mr-2 h-4 w-4" />
+                <span>Log out</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
+      </div>
     </header>
   );
 }

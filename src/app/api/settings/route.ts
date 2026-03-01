@@ -1,15 +1,21 @@
 import { NextResponse } from 'next/server';
 import { connectDB } from '@/lib/mongodb';
+import { requireAuth } from '@/lib/apiAuth';
 import WorkspaceSettings from '@/lib/models/WorkspaceSettings';
+
+export const runtime = 'nodejs';
 
 export async function GET() {
   try {
+    const authResult = await requireAuth();
+    if (authResult instanceof NextResponse) return authResult;
+    const { userId } = authResult;
+
     await connectDB();
-    const doc = await WorkspaceSettings.findOneAndUpdate(
-      {},
-      {},
-      { upsert: true, new: true, setDefaultsOnInsert: true }
-    ).lean();
+    const doc = await WorkspaceSettings.findOne({ userId }).lean();
+    if (!doc) {
+      return NextResponse.json({ error: 'Settings not found' }, { status: 404 });
+    }
     return NextResponse.json(doc);
   } catch (err) {
     console.error('[settings GET]', err);
@@ -19,6 +25,10 @@ export async function GET() {
 
 export async function PATCH(request: Request) {
   try {
+    const authResult = await requireAuth();
+    if (authResult instanceof NextResponse) return authResult;
+    const { userId } = authResult;
+
     await connectDB();
     const body = await request.json();
 
@@ -29,10 +39,14 @@ export async function PATCH(request: Request) {
     }
 
     const doc = await WorkspaceSettings.findOneAndUpdate(
-      {},
+      { userId },
       { $set },
-      { upsert: true, new: true, setDefaultsOnInsert: true, runValidators: false }
+      { new: true, runValidators: false }
     ).lean();
+
+    if (!doc) {
+      return NextResponse.json({ error: 'Settings not found' }, { status: 404 });
+    }
 
     return NextResponse.json(doc);
   } catch (err) {

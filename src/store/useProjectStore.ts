@@ -19,6 +19,7 @@ interface ProjectState {
   // Active project (full, with epics)
   activeProject: IProject | null;
   isLoadingProject: boolean;
+  projectError: string | null;
 
   // Version control
   activeVersion: IProjectSnapshot | null; // null = live draft
@@ -51,6 +52,7 @@ interface ProjectActions {
 
   // Active project
   fetchProject: (id: string) => Promise<void>;
+  updateProject: (patch: { name?: string; description?: string; color?: string }) => Promise<void>;
   clearActiveProject: () => void;
 
   // Timeline
@@ -110,6 +112,7 @@ export const useProjectStore = create<ProjectStore>()(
     isLoadingProjects: false,
     activeProject: null,
     isLoadingProject: false,
+    projectError: null,
     activeVersion: null,
     isVersionReadOnly: false,
     versions: [],
@@ -198,19 +201,50 @@ export const useProjectStore = create<ProjectStore>()(
 
     // ── Active project ──────────────────────────────────────────────────────
     fetchProject: async (id) => {
-      set((s) => { s.isLoadingProject = true; });
+      set((s) => { 
+        s.isLoadingProject = true; 
+        s.activeProject = null; 
+        s.projectError = null; // Clear previous errors
+      });
       try {
         const res = await fetch(`/api/projects/${id}`);
+        if (!res.ok) {
+           const errorData = await res.json().catch(() => ({}));
+           set((s) => { 
+             s.activeProject = null;
+             s.isLoadingProject = false; 
+             s.projectError = errorData.error || (res.status === 404 ? 'Not Found' : 'Failed to fetch');
+           });
+           return;
+        }
         const data: IProject = await res.json();
         set((s) => {
           s.activeProject = data;
           s.isLoadingProject = false;
           s.activeVersion = null;
           s.isVersionReadOnly = false;
+          s.projectError = null;
         });
-      } catch {
-        set((s) => { s.isLoadingProject = false; });
+      } catch (err) {
+        set((s) => { 
+          s.activeProject = null;
+          s.isLoadingProject = false; 
+          s.projectError = 'Network error';
+        });
       }
+    },
+
+    updateProject: async (patch) => {
+      const project = get().activeProject;
+      if (!project) return;
+      const res = await fetch(`/api/projects/${project._id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(patch),
+      });
+      if (!res.ok) return;
+      const updated: IProject = await res.json();
+      set((s) => { s.activeProject = updated; });
     },
 
     clearActiveProject: () => {
@@ -252,7 +286,7 @@ export const useProjectStore = create<ProjectStore>()(
       try {
         const res = await fetch(`/api/projects/${projectId}/versions`);
         const data = await res.json();
-        set((s) => { s.versions = data; });
+        set((s) => { s.versions = Array.isArray(data) ? data : []; });
       } catch { /* swallow */ }
     },
 

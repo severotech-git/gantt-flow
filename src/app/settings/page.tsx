@@ -1,9 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, Suspense } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { useSettingsStore } from '@/store/useSettingsStore';
 import { SettingsSectionNav, SettingsSection } from '@/components/settings/SettingsSectionNav';
+import { ProfileSection } from '@/components/settings/ProfileSection';
 import { UsersSection } from '@/components/settings/UsersSection';
 import { ThemeSection } from '@/components/settings/ThemeSection';
 import { StatusConfigSection } from '@/components/settings/StatusConfigSection';
@@ -12,10 +14,22 @@ import { CalendarSection } from '@/components/settings/CalendarSection';
 import { Loader2 } from 'lucide-react';
 import { PageNavbar } from '@/components/layout/PageNavbar';
 
-export default function SettingsPage() {
-  const [section, setSection] = useState<SettingsSection>('theme');
+function SettingsContent() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const isSaving = useSettingsStore((s) => s.isSaving);
+
+  // Derive active section from URL (Source of Truth)
+  const querySection = searchParams.get('section') as SettingsSection;
+  const validSections: SettingsSection[] = ['theme', 'users', 'levels', 'statuses', 'calendar', 'profile'];
+  const activeSection = validSections.includes(querySection) ? querySection : 'theme';
+
+  const handleSectionChange = (newSection: SettingsSection) => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set('section', newSection);
+    router.replace(`/settings?${params.toString()}`);
+  };
 
   return (
     <div className="flex h-screen overflow-hidden bg-background">
@@ -37,17 +51,26 @@ export default function SettingsPage() {
         />
 
         <div className="flex flex-1 overflow-hidden">
-          <SettingsSectionNav active={section} onChange={setSection} />
+          <SettingsSectionNav active={activeSection} onChange={handleSectionChange} />
 
           <div className="flex-1 overflow-y-auto p-8">
-            {section === 'theme'    && <ThemeSection />}
-            {section === 'users'    && <UsersSection />}
-            {section === 'levels'   && <LevelNamesSection />}
-            {section === 'statuses' && <StatusConfigSection />}
-            {section === 'calendar' && <CalendarSection />}
+            {activeSection === 'theme'    && <ThemeSection />}
+            {activeSection === 'users'    && <UsersSection />}
+            {activeSection === 'levels'   && <LevelNamesSection />}
+            {activeSection === 'statuses' && <StatusConfigSection />}
+            {activeSection === 'calendar' && <CalendarSection />}
+            {activeSection === 'profile'  && <ProfileSection />}
           </div>
         </div>
       </main>
     </div>
+  );
+}
+
+export default function SettingsPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-background"><Loader2 className="animate-spin text-muted-foreground" /></div>}>
+      <SettingsContent />
+    </Suspense>
   );
 }

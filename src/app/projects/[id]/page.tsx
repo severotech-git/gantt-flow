@@ -2,13 +2,15 @@
 
 import { useEffect, useState } from 'react';
 import { use } from 'react';
-import { useProjectStore } from '@/store/useProjectStore';
+import { useProjectStore, selectDisplayProject } from '@/store/useProjectStore';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { TopNavbar } from '@/components/gantt/TopNavbar';
 import { GanttBoard } from '@/components/gantt/GanttBoard';
 import { NewProjectDialog } from '@/components/dialogs/NewProjectDialog';
+import { EditProjectDialog } from '@/components/dialogs/EditProjectDialog';
 import { SaveVersionDialog } from '@/components/dialogs/SaveVersionDialog';
 import { SearchDialog } from '@/components/dialogs/SearchDialog';
+import { useRouter } from 'next/navigation';
 
 interface ProjectPageProps {
   params: Promise<{ id: string }>;
@@ -16,8 +18,14 @@ interface ProjectPageProps {
 
 export default function ProjectPage({ params }: ProjectPageProps) {
   const { id } = use(params);
+  const router = useRouter();
   const { fetchProject, fetchVersions, clearActiveProject } = useProjectStore();
+  const project = useProjectStore(selectDisplayProject);
+  const isLoadingProject = useProjectStore((state) => state.isLoadingProject);
+  const projectError = useProjectStore((state) => state.projectError);
+
   const [newProjectOpen, setNewProjectOpen] = useState(false);
+  const [editProjectOpen, setEditProjectOpen] = useState(false);
   const [saveVersionOpen, setSaveVersionOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -27,6 +35,13 @@ export default function ProjectPage({ params }: ProjectPageProps) {
     fetchVersions(id);
     return () => clearActiveProject();
   }, [id, fetchProject, fetchVersions, clearActiveProject]);
+
+  useEffect(() => {
+    // Only redirect if loading is finished AND there's an explicit "Not Found" error
+    if (!isLoadingProject && projectError === 'Not found') {
+      router.push('/projects');
+    }
+  }, [isLoadingProject, projectError, router]);
 
   // Global Cmd+K / Ctrl+K shortcut
   useEffect(() => {
@@ -40,12 +55,45 @@ export default function ProjectPage({ params }: ProjectPageProps) {
     return () => window.removeEventListener('keydown', onKeyDown);
   }, []);
 
+  if (isLoadingProject) {
+    return (
+      <div className="flex h-screen items-center justify-center bg-background">
+        <div className="animate-pulse space-y-4 text-center">
+          <div className="h-12 w-12 bg-primary/20 rounded-full mx-auto" />
+          <p className="text-muted-foreground text-sm">Loading project...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // If there's an error that isn't a 404 (handled by redirect), show it here
+  if (projectError && projectError !== 'Not found') {
+    return (
+      <div className="flex h-screen items-center justify-center bg-background p-4">
+        <div className="text-center space-y-4">
+          <p className="text-red-500 font-medium">{projectError}</p>
+          <button 
+            onClick={() => fetchProject(id)}
+            className="text-sm text-primary hover:underline"
+          >
+            Try again
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // If project is null and no error yet, we might still be in a transition.
+  // The loading state above handles the initial load.
+  if (!project) return null;
+
   return (
     <div className="flex h-screen overflow-hidden">
       <Sidebar onNewProject={() => setNewProjectOpen(true)} collapsed={!sidebarOpen} />
 
       <div className="flex flex-col flex-1 overflow-hidden">
         <TopNavbar
+          onEditProject={() => setEditProjectOpen(true)}
           onSaveVersion={() => setSaveVersionOpen(true)}
           onNewProject={() => setNewProjectOpen(true)}
           onSearch={() => setSearchOpen(true)}
@@ -57,6 +105,7 @@ export default function ProjectPage({ params }: ProjectPageProps) {
       </div>
 
       <NewProjectDialog open={newProjectOpen} onClose={() => setNewProjectOpen(false)} />
+      <EditProjectDialog open={editProjectOpen} onClose={() => setEditProjectOpen(false)} />
       <SaveVersionDialog open={saveVersionOpen} onClose={() => setSaveVersionOpen(false)} />
       <SearchDialog open={searchOpen} onClose={() => setSearchOpen(false)} />
     </div>

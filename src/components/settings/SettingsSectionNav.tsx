@@ -1,9 +1,9 @@
 'use client';
 
 import { cn } from '@/lib/utils';
-import { Users, Sun, Tag, Layers2, CalendarDays } from 'lucide-react';
+import { Users, Sun, Tag, Layers2, CalendarDays, User } from 'lucide-react';
 
-type Section = 'users' | 'theme' | 'statuses' | 'levels' | 'calendar';
+type Section = 'profile' | 'users' | 'theme' | 'statuses' | 'levels' | 'calendar';
 
 const SECTIONS: { id: Section; label: string; icon: React.ReactNode }[] = [
   { id: 'theme',    label: 'Theme',         icon: <Sun size={15} /> },
@@ -11,6 +11,7 @@ const SECTIONS: { id: Section; label: string; icon: React.ReactNode }[] = [
   { id: 'levels',   label: 'Level Names',   icon: <Layers2 size={15} /> },
   { id: 'statuses', label: 'Status List',   icon: <Tag size={15} /> },
   { id: 'calendar', label: 'Calendar',      icon: <CalendarDays size={15} /> },
+  { id: 'profile',  label: 'My Account', icon: <User size={15} /> },
 ];
 
 export type SettingsSection = Section;

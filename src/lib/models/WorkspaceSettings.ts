@@ -11,6 +11,7 @@ export const DEFAULT_STATUSES: IStatusConfig[] = [
 ];
 
 export interface IWorkspaceSettingsDocument extends Document {
+  userId: string;
   users: IUserConfig[];
   theme: 'dark' | 'light' | 'system';
   levelNames: { epic: string; feature: string; task: string };
@@ -39,6 +40,7 @@ const StatusConfigSchema = new Schema(
 
 const WorkspaceSettingsSchema = new Schema<IWorkspaceSettingsDocument>(
   {
+    userId: { type: String, required: true, unique: true, index: true },
     users:  { type: [UserConfigSchema], default: [] },
     theme:  { type: String, enum: ['dark', 'light', 'system'], default: 'system' },
     allowWeekends: { type: Boolean, default: false },

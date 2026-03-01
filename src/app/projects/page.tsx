@@ -5,8 +5,9 @@ import { useProjectStore } from '@/store/useProjectStore';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { PageNavbar } from '@/components/layout/PageNavbar';
 import { NewProjectDialog } from '@/components/dialogs/NewProjectDialog';
+import { EditProjectDialog } from '@/components/dialogs/EditProjectDialog';
 import Link from 'next/link';
-import { FolderKanban, Plus, BarChart3, Archive, ArchiveRestore, ChevronDown, ChevronRight, Trash2 } from 'lucide-react';
+import { FolderKanban, Plus, BarChart3, Archive, ArchiveRestore, ChevronDown, ChevronRight, Trash2, Pencil } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { format } from 'date-fns';
 import type { IProject } from '@/types';
@@ -18,6 +19,7 @@ export default function ProjectsPage() {
     archiveProject, unarchiveProject, deleteProject,
   } = useProjectStore();
   const [newProjectOpen, setNewProjectOpen] = useState(false);
+  const [editProject, setEditProject] = useState<Omit<IProject, 'epics'> | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
@@ -67,6 +69,7 @@ export default function ProjectsPage() {
                   key={p._id}
                   project={p}
                   onArchive={() => archiveProject(p._id)}
+                  onEdit={() => setEditProject(p)}
                 />
               ))}
             </div>
@@ -111,11 +114,16 @@ export default function ProjectsPage() {
       </main>
 
       <NewProjectDialog open={newProjectOpen} onClose={() => setNewProjectOpen(false)} />
+      <EditProjectDialog
+        open={!!editProject}
+        project={editProject}
+        onClose={() => setEditProject(null)}
+      />
 
       {/* Delete confirmation */}
       {confirmDelete && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="bg-background border border-border rounded-xl p-6 max-w-sm w-full mx-4 space-y-4 shadow-xl">
+          <div className="bg-background border border-border rounded-xl p-6 max-sm w-full mx-4 space-y-4 shadow-xl">
             <h2 className="text-sm font-semibold text-foreground">Delete project permanently?</h2>
             <p className="text-xs text-muted-foreground">
               This will permanently delete the project and all its snapshots. This action cannot be undone.
@@ -141,7 +149,15 @@ export default function ProjectsPage() {
 
 // ─── Active project card ──────────────────────────────────────────────────────
 
-function ProjectCard({ project: p, onArchive }: { project: Omit<IProject, 'epics'>; onArchive: () => void }) {
+function ProjectCard({
+  project: p,
+  onArchive,
+  onEdit,
+}: {
+  project: Omit<IProject, 'epics'>;
+  onArchive: () => void;
+  onEdit: () => void;
+}) {
   return (
     <div className="relative group flex flex-col gap-3 p-4 rounded-lg border border-border bg-card hover:bg-accent/40 hover:border-border/80 transition-all">
       <Link href={`/projects/${p._id}`} className="absolute inset-0 rounded-lg" aria-label={p.name} />
@@ -153,13 +169,22 @@ function ProjectCard({ project: p, onArchive }: { project: Omit<IProject, 'epics
         >
           <FolderKanban size={16} className="text-white" />
         </div>
-        <button
-          onClick={(e) => { e.preventDefault(); onArchive(); }}
-          title="Archive project"
-          className="relative z-10 p-1 rounded text-muted-foreground hover:text-amber-600 dark:hover:text-amber-400 hover:bg-amber-500/10 transition-colors"
-        >
-          <Archive size={13} />
-        </button>
+        <div className="flex items-center gap-0.5 relative z-10">
+          <button
+            onClick={(e) => { e.preventDefault(); onEdit(); }}
+            title="Edit project"
+            className="p-2 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors cursor-pointer"
+          >
+            <Pencil size={14} />
+          </button>
+          <button
+            onClick={(e) => { e.preventDefault(); onArchive(); }}
+            title="Archive project"
+            className="p-2 rounded-md text-muted-foreground hover:text-amber-600 dark:hover:text-amber-400 hover:bg-amber-500/10 transition-colors cursor-pointer"
+          >
+            <Archive size={14} />
+          </button>
+        </div>
       </div>
 
       <div>

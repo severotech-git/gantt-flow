@@ -415,16 +415,17 @@ export function GanttBoard() {
     );
   }
 
-  const totalTasks = project.epics.reduce((s, e) => s + e.features.reduce((ss, f) => ss + f.tasks.length, 0), 0);
-  const overdueCount = project.epics.reduce(
-    (s, e) => s + e.features.reduce(
-      (ss, f) => ss + f.tasks.filter(
+  const epics = project.epics || []; // Ensure epics is an array
+  const totalTasks = epics.reduce((s, e) => s + (e.features || []).reduce((ss, f) => ss + (f.tasks || []).length, 0), 0);
+  const overdueCount = epics.reduce(
+    (s, e) => s + (e.features || []).reduce(
+      (ss, f) => ss + (f.tasks || []).filter(
         (t) => t.status !== 'done' && t.status !== 'canceled' && parseISO(t.plannedEnd) < new Date()
       ).length, 0
     ), 0
   );
-  const doneCount = project.epics.reduce(
-    (s, e) => s + e.features.reduce((ss, f) => ss + f.tasks.filter((t) => t.status === 'done').length, 0), 0
+  const doneCount = epics.reduce(
+    (s, e) => s + (e.features || []).reduce((ss, f) => ss + (f.tasks || []).filter((t) => t.status === 'done').length, 0), 0
   );
 
   return (
