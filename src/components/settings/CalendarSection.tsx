@@ -1,11 +1,14 @@
 'use client';
 
 import { useSettingsStore } from '@/store/useSettingsStore';
+import { useCanManage } from '@/hooks/useAccountRole';
+import { ReadOnlyBanner } from './ReadOnlyBanner';
 import { cn } from '@/lib/utils';
 import { CalendarDays } from 'lucide-react';
 
 export function CalendarSection() {
   const { allowWeekends, setAllowWeekends } = useSettingsStore();
+  const canManage = useCanManage();
 
   return (
     <div className="max-w-md space-y-6">
@@ -16,14 +19,19 @@ export function CalendarSection() {
         </p>
       </div>
 
+      {!canManage && <ReadOnlyBanner />}
+
       <button
         type="button"
-        onClick={() => setAllowWeekends(!allowWeekends)}
+        onClick={() => canManage && setAllowWeekends(!allowWeekends)}
+        disabled={!canManage}
         className={cn(
           'w-full flex items-start gap-4 p-4 rounded-lg border-2 text-left transition-all',
-          allowWeekends
-            ? 'border-violet-500 bg-violet-500/10'
-            : 'border-border bg-muted/20 hover:border-border/80'
+          !canManage && 'opacity-60 cursor-not-allowed',
+          canManage && allowWeekends  && 'border-violet-500 bg-violet-500/10',
+          canManage && !allowWeekends && 'border-border bg-muted/20 hover:border-border/80',
+          !canManage && allowWeekends  && 'border-violet-500/50 bg-violet-500/5',
+          !canManage && !allowWeekends && 'border-border bg-muted/20',
         )}
       >
         <div className={cn(
@@ -36,7 +44,6 @@ export function CalendarSection() {
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between gap-2">
             <span className="text-sm font-medium text-foreground">Allow weekend dates</span>
-            {/* Toggle pill */}
             <div className={cn(
               'relative shrink-0 w-9 h-5 rounded-full transition-colors',
               allowWeekends ? 'bg-violet-500' : 'bg-muted-foreground/30'

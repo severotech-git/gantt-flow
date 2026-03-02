@@ -13,13 +13,13 @@ export async function GET(_req: NextRequest, { params }: Params) {
   try {
     const authResult = await requireAuth();
     if (authResult instanceof NextResponse) return authResult;
-    const { userId } = authResult;
+    const { accountId } = authResult;
 
     await connectDB();
     const { id, versionId } = await params;
 
-    // Verify user owns this project
-    const project = await Project.findOne({ _id: id, createdBy: userId }).lean();
+    // Verify the project belongs to the active account
+    const project = await Project.findOne({ _id: id, accountId }).lean();
     if (!project) return NextResponse.json({ error: 'Not found' }, { status: 404 });
 
     const snapshot = await ProjectSnapshot.findOne({
@@ -40,13 +40,12 @@ export async function PATCH(_req: NextRequest, { params }: Params) {
   try {
     const authResult = await requireAuth();
     if (authResult instanceof NextResponse) return authResult;
-    const { userId } = authResult;
+    const { accountId } = authResult;
 
     await connectDB();
     const { id, versionId } = await params;
 
-    // Verify user owns this project
-    const project = await Project.findOne({ _id: id, createdBy: userId }).lean();
+    const project = await Project.findOne({ _id: id, accountId }).lean();
     if (!project) return NextResponse.json({ error: 'Not found' }, { status: 404 });
 
     const snapshot = await ProjectSnapshot.findOne({ _id: versionId, projectId: id }).lean();
@@ -67,13 +66,12 @@ export async function DELETE(_req: NextRequest, { params }: Params) {
   try {
     const authResult = await requireAuth();
     if (authResult instanceof NextResponse) return authResult;
-    const { userId } = authResult;
+    const { accountId } = authResult;
 
     await connectDB();
     const { id, versionId } = await params;
 
-    // Verify user owns this project
-    const project = await Project.findOne({ _id: id, createdBy: userId }).lean();
+    const project = await Project.findOne({ _id: id, accountId }).lean();
     if (!project) return NextResponse.json({ error: 'Not found' }, { status: 404 });
 
     const result = await ProjectSnapshot.deleteOne({ _id: versionId, projectId: id });

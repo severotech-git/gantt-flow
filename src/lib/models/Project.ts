@@ -58,6 +58,7 @@ export interface IProjectDocument extends Document {
   color?: string;
   currentVersion: string;
   archived: boolean;
+  accountId: mongoose.Types.ObjectId;
   createdBy: string;
   epics: mongoose.Types.DocumentArray<mongoose.Document>;
 }
@@ -69,6 +70,7 @@ const ProjectSchema = new Schema<IProjectDocument>(
     color:          { type: String, default: '#6366f1' },
     currentVersion: { type: String, default: 'Live' },
     archived:       { type: Boolean, default: false },
+    accountId:      { type: Schema.Types.ObjectId, ref: 'Account', required: true, index: true },
     createdBy:      { type: String, required: true, index: true },
     epics:          { type: [EpicSchema], default: [] },
   },

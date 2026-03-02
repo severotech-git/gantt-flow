@@ -5,17 +5,17 @@ import Project from '@/lib/models/Project';
 
 export const runtime = 'nodejs';
 
-// GET /api/projects – list projects (lightweight, no epics)
+// GET /api/projects – list projects for the active account (lightweight, no epics)
 // ?archived=true returns only archived; default returns only active
 export async function GET(req: NextRequest) {
   try {
     const authResult = await requireAuth();
     if (authResult instanceof NextResponse) return authResult;
-    const { userId } = authResult;
+    const { accountId } = authResult;
 
     await connectDB();
     const archived = new URL(req.url).searchParams.get('archived') === 'true';
-    const projects = await Project.find({ createdBy: userId, archived }, { epics: 0 }).sort({ updatedAt: -1 }).lean();
+    const projects = await Project.find({ accountId, archived }, { epics: 0 }).sort({ updatedAt: -1 }).lean();
     return NextResponse.json(projects);
   } catch (err) {
     console.error('[GET /api/projects]', err);
@@ -23,12 +23,12 @@ export async function GET(req: NextRequest) {
   }
 }
 
-// POST /api/projects – create a new project
+// POST /api/projects – create a new project in the active account
 export async function POST(req: NextRequest) {
   try {
     const authResult = await requireAuth();
     if (authResult instanceof NextResponse) return authResult;
-    const { userId } = authResult;
+    const { userId, accountId } = authResult;
 
     await connectDB();
     const body = await req.json();
@@ -42,6 +42,7 @@ export async function POST(req: NextRequest) {
       description: body.description ?? '',
       color: body.color ?? '#6366f1',
       currentVersion: 'Live',
+      accountId,
       createdBy: userId,
       epics: [],
     });

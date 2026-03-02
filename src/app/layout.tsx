@@ -4,6 +4,7 @@ import './globals.css';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { ThemeProvider } from '@/components/providers/ThemeProvider';
 import { AuthProvider } from '@/components/providers/AuthProvider';
+import { AccountProvider } from '@/components/providers/AccountProvider';
 
 const geist = Geist({ subsets: ['latin'], variable: '--font-geist' });
 
@@ -18,7 +19,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className={`${geist.variable} font-sans antialiased bg-background text-foreground`}>
         <AuthProvider>
           <ThemeProvider>
-            <TooltipProvider delayDuration={300}>{children}</TooltipProvider>
+            <AccountProvider>
+              <TooltipProvider delayDuration={300}>{children}</TooltipProvider>
+            </AccountProvider>
           </ThemeProvider>
         </AuthProvider>
       </body>

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, Suspense } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { signIn } from 'next-auth/react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
@@ -9,10 +9,14 @@ import { Input } from '@/components/ui/input';
 import Image from 'next/image';
 
 // Static imports for images to ensure reliable resolution
-import logoIcon from '../../../public/icon.png';
+import logoIcon from '../../../public/logo.png';
+import { PASSWORD_RULES, validatePassword } from '@/lib/passwordPolicy';
+import { Check, X } from 'lucide-react';
 
 function RegisterPageContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const inviteToken = searchParams.get('inviteToken');
 
   const [formData, setFormData] = useState({
     name: '',
@@ -23,6 +27,7 @@ function RegisterPageContent() {
 
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [passwordFocused, setPasswordFocused] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -35,6 +40,10 @@ function RegisterPageContent() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+
+    const pwError = validatePassword(formData.password);
+    if (pwError) { setError(pwError); return; }
+
     setLoading(true);
 
     try {
@@ -59,7 +68,12 @@ function RegisterPageContent() {
       });
 
       if (signInResult?.ok) {
-        router.push('/projects');
+        if (inviteToken) {
+          // Redirect to invite page with auto-accept flag
+          router.push(`/invite/${inviteToken}?auto=1`);
+        } else {
+          router.push('/projects');
+        }
       } else {
         setError('Registration succeeded, but auto-login failed. Please log in manually.');
       }
@@ -86,6 +100,11 @@ function RegisterPageContent() {
             GanttFlow
           </h1>
           <h2 className="text-2xl font-bold text-foreground mt-4">Create Account</h2>
+          {inviteToken && (
+            <p className="text-sm text-muted-foreground mt-1">
+              Create your account to accept the team invitation.
+            </p>
+          )}
         </div>
 
         {error && (
@@ -134,11 +153,24 @@ function RegisterPageContent() {
               name="password"
               value={formData.password}
               onChange={handleChange}
+              onFocus={() => setPasswordFocused(true)}
               placeholder="••••••••"
               disabled={loading}
               required
             />
-            <p className="text-xs text-muted-foreground mt-1">Min 8 characters</p>
+            {(passwordFocused || formData.password.length > 0) && (
+              <ul className="mt-2 space-y-1">
+                {PASSWORD_RULES.map((rule) => {
+                  const passed = rule.test(formData.password);
+                  return (
+                    <li key={rule.label} className={`flex items-center gap-1.5 text-xs ${passed ? 'text-green-600' : 'text-muted-foreground'}`}>
+                      {passed ? <Check size={11} /> : <X size={11} />}
+                      {rule.label}
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
           </div>
 
           <div>
@@ -161,13 +193,16 @@ function RegisterPageContent() {
             className="w-full"
             disabled={loading}
           >
-            {loading ? 'Creating account...' : 'Create Account'}
+            {loading ? 'Creating account...' : inviteToken ? 'Create Account & Accept Invite' : 'Create Account'}
           </Button>
         </form>
 
         <div className="text-center text-sm">
           <span className="text-muted-foreground">Already have an account? </span>
-          <Link href="/login" className="text-primary hover:underline font-medium">
+          <Link
+            href={inviteToken ? `/login?callbackUrl=${encodeURIComponent(`/invite/${inviteToken}`)}` : '/login'}
+            className="text-primary hover:underline font-medium"
+          >
             Sign in
           </Link>
         </div>

@@ -11,12 +11,6 @@ function applyTheme(resolved: 'dark' | 'light') {
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const theme = useSettingsStore((s) => s.theme);
-  const fetchSettings = useSettingsStore((s) => s.fetchSettings);
-
-  useEffect(() => {
-    fetchSettings();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   useEffect(() => {
     if (theme === 'system') {

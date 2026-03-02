@@ -23,22 +23,36 @@ interface OwnerAvatarProps {
   name?: string;
   avatar?: string;
   size?: 'sm' | 'md' | number;
-  color?: string; // override hex color
+  color?: string;
   className?: string;
 }
 
 export function OwnerAvatar({ name, avatar, size = 'sm', color, className }: OwnerAvatarProps) {
   const isNumeric = typeof size === 'number';
-  const dimClass = isNumeric ? '' : (size === 'sm' ? 'w-6 h-6 text-[10px]' : 'w-8 h-8 text-xs');
-  const dimStyle = isNumeric ? { width: size, height: size, fontSize: Math.max(10, size * 0.35) } : undefined;
+
+  // Pixel size for numeric, or lookup for named sizes
+  const px = isNumeric ? size : (size === 'sm' ? 24 : 32);
+
+  // Single initial for small avatars (< 22 px), two for larger
+  const maxInitials = px < 22 ? 1 : 2;
+
+  const dimClass = isNumeric ? '' : (size === 'sm' ? 'w-6 h-6' : 'w-8 h-8');
+  const dimStyle: React.CSSProperties = isNumeric
+    ? { width: px, height: px, fontSize: Math.round(px * 0.42), lineHeight: `${px}px` }
+    : { fontSize: size === 'sm' ? 11 : 13 };
 
   if (!name) {
     return (
       <span
-        className={cn('rounded-full bg-slate-700 flex items-center justify-center', dimClass, className)}
-        style={dimStyle}
+        className={cn('rounded-full bg-slate-700 flex items-center justify-center shrink-0', dimClass, className)}
+        style={isNumeric ? { width: px, height: px } : undefined}
       >
-        <svg className="w-3 h-3 text-slate-500" fill="currentColor" viewBox="0 0 20 20">
+        <svg
+          style={{ width: Math.max(10, px * 0.55), height: Math.max(10, px * 0.55) }}
+          className="text-slate-500"
+          fill="currentColor"
+          viewBox="0 0 20 20"
+        >
           <path d="M10 10a4 4 0 100-8 4 4 0 000 8zm-7 8a7 7 0 1114 0H3z" />
         </svg>
       </span>
@@ -48,7 +62,8 @@ export function OwnerAvatar({ name, avatar, size = 'sm', color, className }: Own
   const initials = name
     .split(' ')
     .map((w) => w[0])
-    .slice(0, 2)
+    .filter(Boolean)
+    .slice(0, maxInitials)
     .join('')
     .toUpperCase();
 
@@ -57,7 +72,7 @@ export function OwnerAvatar({ name, avatar, size = 'sm', color, className }: Own
   return (
     <span
       className={cn(
-        'rounded-full flex items-center justify-center font-semibold text-white',
+        'rounded-full flex items-center justify-center font-semibold text-white shrink-0 leading-none',
         bgClass,
         dimClass,
         className

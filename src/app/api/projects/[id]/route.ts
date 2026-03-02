@@ -12,11 +12,11 @@ export async function GET(_req: NextRequest, { params }: Params) {
   try {
     const authResult = await requireAuth();
     if (authResult instanceof NextResponse) return authResult;
-    const { userId } = authResult;
+    const { accountId } = authResult;
 
     await connectDB();
     const { id } = await params;
-    const project = await Project.findOne({ _id: id, createdBy: userId }).lean();
+    const project = await Project.findOne({ _id: id, accountId }).lean();
     if (!project) return NextResponse.json({ error: 'Not found' }, { status: 404 });
     return NextResponse.json(project);
   } catch (err) {
@@ -30,7 +30,7 @@ export async function PATCH(req: NextRequest, { params }: Params) {
   try {
     const authResult = await requireAuth();
     if (authResult instanceof NextResponse) return authResult;
-    const { userId } = authResult;
+    const { accountId } = authResult;
 
     await connectDB();
     const { id } = await params;
@@ -49,7 +49,7 @@ export async function PATCH(req: NextRequest, { params }: Params) {
     }
 
     const project = await Project.findOneAndUpdate(
-      { _id: id, createdBy: userId },
+      { _id: id, accountId },
       { $set: update },
       { new: true, runValidators: true }
     ).lean();
@@ -84,11 +84,11 @@ export async function DELETE(_req: NextRequest, { params }: Params) {
   try {
     const authResult = await requireAuth();
     if (authResult instanceof NextResponse) return authResult;
-    const { userId } = authResult;
+    const { accountId } = authResult;
 
     await connectDB();
     const { id } = await params;
-    const project = await Project.findOneAndDelete({ _id: id, createdBy: userId });
+    const project = await Project.findOneAndDelete({ _id: id, accountId });
     if (!project) return NextResponse.json({ error: 'Not found' }, { status: 404 });
     return NextResponse.json({ success: true });
   } catch (err) {

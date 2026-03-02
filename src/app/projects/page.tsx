@@ -27,7 +27,7 @@ export default function ProjectsPage() {
 
   return (
     <div className="flex h-screen overflow-hidden">
-      <Sidebar onNewProject={() => setNewProjectOpen(true)} collapsed={sidebarCollapsed} />
+      <Sidebar collapsed={sidebarCollapsed} />
 
       <main className="flex-1 flex flex-col overflow-hidden">
         <PageNavbar

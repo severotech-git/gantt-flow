@@ -13,13 +13,13 @@ export async function GET(_req: NextRequest, { params }: Params) {
   try {
     const authResult = await requireAuth();
     if (authResult instanceof NextResponse) return authResult;
-    const { userId } = authResult;
+    const { accountId } = authResult;
 
     await connectDB();
     const { id } = await params;
 
-    // Verify user owns this project
-    const project = await Project.findOne({ _id: id, createdBy: userId }).lean();
+    // Verify the project belongs to the active account
+    const project = await Project.findOne({ _id: id, accountId }).lean();
     if (!project) return NextResponse.json({ error: 'Not found' }, { status: 404 });
 
     const snapshots = await ProjectSnapshot.find(
@@ -41,7 +41,7 @@ export async function POST(req: NextRequest, { params }: Params) {
   try {
     const authResult = await requireAuth();
     if (authResult instanceof NextResponse) return authResult;
-    const { userId } = authResult;
+    const { accountId } = authResult;
 
     await connectDB();
     const { id } = await params;
@@ -51,7 +51,7 @@ export async function POST(req: NextRequest, { params }: Params) {
       return NextResponse.json({ error: 'versionName is required' }, { status: 400 });
     }
 
-    const project = await Project.findOne({ _id: id, createdBy: userId }).lean();
+    const project = await Project.findOne({ _id: id, accountId }).lean();
     if (!project) return NextResponse.json({ error: 'Project not found' }, { status: 404 });
 
     // Create the snapshot (lean() returns a plain object, safe for Mixed field)

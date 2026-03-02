@@ -2,6 +2,8 @@
 
 import { useState } from 'react';
 import { useSettingsStore } from '@/store/useSettingsStore';
+import { useCanManage } from '@/hooks/useAccountRole';
+import { ReadOnlyBanner } from './ReadOnlyBanner';
 import { IStatusConfig } from '@/types';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -15,6 +17,7 @@ function generateValue(label: string): string {
 
 export function StatusConfigSection() {
   const { statuses, addStatus, updateStatus, deleteStatus, reorderStatuses, persistSettings, isSaving } = useSettingsStore();
+  const canManage = useCanManage();
 
   function handleMoveUp(idx: number) {
     if (idx === 0) return;
@@ -47,6 +50,8 @@ export function StatusConfigSection() {
         <p className="text-sm text-muted-foreground">Define the statuses available for tasks, features, and epics.</p>
       </div>
 
+      {!canManage && <ReadOnlyBanner />}
+
       <div className="space-y-2">
         {statuses.map((st, idx) => (
           <StatusRow
@@ -54,6 +59,7 @@ export function StatusConfigSection() {
             status={st}
             idx={idx}
             total={statuses.length}
+            readonly={!canManage}
             onMoveUp={() => handleMoveUp(idx)}
             onMoveDown={() => handleMoveDown(idx)}
             onDelete={() => deleteStatus(st.value)}
@@ -62,23 +68,27 @@ export function StatusConfigSection() {
         ))}
       </div>
 
-      <button
-        onClick={handleAdd}
-        className="flex items-center gap-2 text-sm text-muted-foreground hover:text-violet-500 transition-colors group"
-      >
-        <span className="flex items-center justify-center w-5 h-5 rounded border border-dashed border-border group-hover:border-violet-500 transition-colors">
-          <Plus size={11} />
-        </span>
-        Add Status
-      </button>
+      {canManage && (
+        <>
+          <button
+            onClick={handleAdd}
+            className="flex items-center gap-2 text-sm text-muted-foreground hover:text-violet-500 transition-colors group"
+          >
+            <span className="flex items-center justify-center w-5 h-5 rounded border border-dashed border-border group-hover:border-violet-500 transition-colors">
+              <Plus size={11} />
+            </span>
+            Add Status
+          </button>
 
-      <Button
-        onClick={persistSettings}
-        disabled={isSaving}
-        className="bg-violet-600 hover:bg-violet-500 text-white"
-      >
-        {isSaving ? 'Saving…' : 'Save Statuses'}
-      </Button>
+          <Button
+            onClick={() => persistSettings('statuses')}
+            disabled={isSaving}
+            className="bg-violet-600 hover:bg-violet-500 text-white"
+          >
+            {isSaving ? 'Saving…' : 'Save Statuses'}
+          </Button>
+        </>
+      )}
     </div>
   );
 }
@@ -87,66 +97,60 @@ interface StatusRowProps {
   status: IStatusConfig;
   idx: number;
   total: number;
+  readonly: boolean;
   onMoveUp: () => void;
   onMoveDown: () => void;
   onDelete: () => void;
   onUpdate: (patch: Partial<IStatusConfig>) => void;
 }
 
-function StatusRow({ status, idx, total, onMoveUp, onMoveDown, onDelete, onUpdate }: StatusRowProps) {
+function StatusRow({ status, idx, total, readonly, onMoveUp, onMoveDown, onDelete, onUpdate }: StatusRowProps) {
   return (
     <div className="flex items-center gap-2 p-2 rounded-lg bg-muted/30 border border-border group">
-      {/* Color */}
-      <ColorSwatch color={status.color} onChange={(c) => onUpdate({ color: c })} size={24} />
+      <ColorSwatch color={status.color} onChange={readonly ? () => {} : (c) => onUpdate({ color: c })} size={24} />
 
-      {/* Label */}
       <Input
         value={status.label}
-        onChange={(e) => onUpdate({ label: e.target.value })}
+        onChange={(e) => !readonly && onUpdate({ label: e.target.value })}
+        disabled={readonly}
         className="flex-1 h-7 text-xs focus-visible:ring-violet-500"
       />
 
-      {/* isFinal toggle */}
       <button
-        onClick={() => onUpdate({ isFinal: !status.isFinal })}
+        onClick={() => !readonly && onUpdate({ isFinal: !status.isFinal })}
+        disabled={readonly}
         title={status.isFinal ? 'Terminal state (no overdue)' : 'Non-terminal state'}
         className={cn(
           'px-2 py-0.5 rounded text-[10px] font-medium border transition-colors shrink-0',
           status.isFinal
             ? 'border-emerald-500/40 text-emerald-400 bg-emerald-500/10'
-            : 'border-border text-muted-foreground/60 hover:text-muted-foreground'
+            : 'border-border text-muted-foreground/60 hover:text-muted-foreground',
+          readonly && 'cursor-default'
         )}
       >
         {status.isFinal ? 'Final' : 'Active'}
       </button>
 
-      {/* Reorder */}
-      <div className="flex flex-col gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
-        <button
-          onClick={onMoveUp}
-          disabled={idx === 0}
-          className="text-muted-foreground hover:text-foreground disabled:opacity-20 transition-colors"
-        >
-          <ChevronUp size={12} />
-        </button>
-        <button
-          onClick={onMoveDown}
-          disabled={idx === total - 1}
-          className="text-muted-foreground hover:text-foreground disabled:opacity-20 transition-colors"
-        >
-          <ChevronDown size={12} />
-        </button>
-      </div>
-
-      {/* Delete */}
-      <button
-        onClick={onDelete}
-        disabled={total <= 1}
-        className="text-muted-foreground/60 hover:text-red-500 disabled:opacity-20 transition-colors opacity-0 group-hover:opacity-100"
-        title="Delete status"
-      >
-        <Trash2 size={14} />
-      </button>
+      {!readonly && (
+        <>
+          <div className="flex flex-col gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+            <button onClick={onMoveUp} disabled={idx === 0} className="text-muted-foreground hover:text-foreground disabled:opacity-20 transition-colors">
+              <ChevronUp size={12} />
+            </button>
+            <button onClick={onMoveDown} disabled={idx === total - 1} className="text-muted-foreground hover:text-foreground disabled:opacity-20 transition-colors">
+              <ChevronDown size={12} />
+            </button>
+          </div>
+          <button
+            onClick={onDelete}
+            disabled={total <= 1}
+            className="text-muted-foreground/60 hover:text-red-500 disabled:opacity-20 transition-colors opacity-0 group-hover:opacity-100"
+            title="Delete status"
+          >
+            <Trash2 size={14} />
+          </button>
+        </>
+      )}
     </div>
   );
 }

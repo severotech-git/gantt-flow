@@ -4,17 +4,16 @@ import Google from 'next-auth/providers/google';
 import GitHub from 'next-auth/providers/github';
 import { connectDB } from '@/lib/mongodb';
 import User from '@/lib/models/User';
-import { seedWorkspaceForNewUser } from '@/lib/seedWorkspace';
+import Account from '@/lib/models/Account';
+import { seedAccountForNewUser } from '@/lib/seedWorkspace';
+import { authConfig } from '@/auth.config';
 
 // next-auth v5 beta type resolution doesn't fully align with bundler moduleResolution;
 // the runtime call is correct, only the TS default-import signature is missing.
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-expect-error – next-auth default export callable mismatch with Next.js 16 bundler resolution
 export const { handlers, auth, signIn, signOut } = NextAuth({
-  session: {
-    strategy: 'jwt',
-    maxAge: 30 * 24 * 60 * 60, // 30 days
-  },
+  ...authConfig,
   providers: [
     Credentials({
       id: 'credentials',
@@ -27,25 +26,15 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         if (!credentials?.email || !credentials?.password) {
           throw new Error('Invalid credentials');
         }
-
-        // Dynamically import bcrypt only in Node.js runtime
         const bcrypt = await import('bcryptjs');
-
         await connectDB();
-
         const user = await User.findOne({ email: credentials.email }).select('+passwordHash');
-        if (!user) {
-          throw new Error('User not found');
-        }
-
+        if (!user) throw new Error('User not found');
         const passwordMatch = await bcrypt.default.compare(
           credentials.password as string,
           user.passwordHash || ''
         );
-        if (!passwordMatch) {
-          throw new Error('Invalid password');
-        }
-
+        if (!passwordMatch) throw new Error('Invalid password');
         return {
           id: user._id.toString(),
           email: user.email,
@@ -63,42 +52,48 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       clientSecret: process.env.GITHUB_CLIENT_SECRET,
     }),
   ],
-  pages: {
-    signIn: '/login',
-    error: '/login',
-  },
   callbacks: {
+    ...authConfig.callbacks,
+    // Override jwt to also resolve activeAccountId from DB on first login
     jwt: async ({ token, user, trigger, session }: {
       token: Record<string, unknown>;
       user?: { id?: string | null } | null;
       trigger?: string;
       session?: Record<string, unknown> | null;
     }) => {
-      if (user) {
-        token.uid = user.id;
+      // Apply base callback first (handles update trigger + uid)
+      const base = await authConfig.callbacks.jwt({ token, user, trigger, session });
+
+      // On first login: resolve activeAccountId from DB
+      if (user?.id && !base.activeAccountId) {
+        try {
+          await connectDB();
+          const dbUser = await User.findById(user.id);
+          if (dbUser?.mainAccountId) {
+            base.activeAccountId = dbUser.mainAccountId;
+          } else {
+            // Fall back to the first account the user is a member of
+            const account = await Account.findOne(
+              { 'members.userId': user.id },
+              { _id: 1 }
+            ).sort({ createdAt: 1 });
+            if (account) {
+              base.activeAccountId = account._id.toString();
+            }
+          }
+        } catch (err) {
+          console.error('[auth jwt] Failed to resolve activeAccountId', err);
+        }
       }
-      if (trigger === 'update' && session) {
-        token = { ...token, ...session };
-      }
-      return token;
-    },
-    session: async ({ session, token }: {
-      session: { user?: { id?: string } } & Record<string, unknown>;
-      token: Record<string, unknown>;
-    }) => {
-      if (session.user) {
-        session.user.id = (token.uid as string) || '';
-      }
-      return session;
+
+      return base;
     },
   },
   events: {
     async createUser({ user }: { user: { id?: string | null; name?: string | null } }) {
       if (user.id && user.name) {
-        await seedWorkspaceForNewUser(user.id, user.name);
+        await seedAccountForNewUser(user.id, user.name);
       }
     },
   },
-  // Trust host in development (localhost) and when NEXTAUTH_URL is set
-  trustHost: !!process.env.NEXTAUTH_URL || process.env.NODE_ENV !== 'production',
 });

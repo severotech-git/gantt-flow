@@ -11,6 +11,8 @@ export const DEFAULT_STATUSES: IStatusConfig[] = [
   { value: 'blocked',     label: 'Blocked',     color: '#c2410c', isFinal: false },
 ];
 
+type SettingsKey = 'users' | 'theme' | 'levelNames' | 'statuses' | 'allowWeekends';
+
 interface SettingsState {
   users: IUserConfig[];
   theme: 'dark' | 'light' | 'system';
@@ -23,7 +25,8 @@ interface SettingsState {
 
 interface SettingsActions {
   fetchSettings: () => Promise<void>;
-  persistSettings: () => Promise<void>;
+  /** Persist only the specified keys — avoids sending managed fields when the user lacks permission. */
+  persistSettings: (...keys: SettingsKey[]) => Promise<void>;
   setTheme: (t: 'dark' | 'light' | 'system') => void;
   setAllowWeekends: (v: boolean) => void;
   setLevelName: (level: 'epic' | 'feature' | 'task', v: string) => void;
@@ -66,14 +69,17 @@ export const useSettingsStore = create<SettingsState & SettingsActions>()(
       }
     },
 
-    persistSettings: async () => {
+    persistSettings: async (...keys: SettingsKey[]) => {
       set((s) => { s.isSaving = true; });
       try {
-        const { users, theme, levelNames, statuses, allowWeekends } = get();
+        const state = get();
+        const body: Partial<Record<SettingsKey, unknown>> = {};
+        for (const k of keys) body[k] = state[k];
+
         const res = await fetch('/api/settings', {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ users, theme, levelNames, statuses, allowWeekends }),
+          body: JSON.stringify(body),
         });
         if (!res.ok) {
           const err = await res.json().catch(() => ({}));
@@ -88,12 +94,12 @@ export const useSettingsStore = create<SettingsState & SettingsActions>()(
 
     setTheme: (t) => {
       set((s) => { s.theme = t; });
-      setTimeout(() => get().persistSettings(), 0);
+      setTimeout(() => get().persistSettings('theme'), 0);
     },
 
     setAllowWeekends: (v) => {
       set((s) => { s.allowWeekends = v; });
-      setTimeout(() => get().persistSettings(), 0);
+      setTimeout(() => get().persistSettings('allowWeekends'), 0);
     },
 
     setLevelName: (level, v) => set((s) => { s.levelNames[level] = v; }),

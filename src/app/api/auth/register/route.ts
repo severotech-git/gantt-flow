@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
 import { connectDB } from '@/lib/mongodb';
 import User from '@/lib/models/User';
-import { seedWorkspaceForNewUser } from '@/lib/seedWorkspace';
+import { seedAccountForNewUser } from '@/lib/seedWorkspace';
+import { validatePassword } from '@/lib/passwordPolicy';
 
 export const runtime = 'nodejs';
 
@@ -26,11 +27,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (password.length < 8) {
-      return NextResponse.json(
-        { error: 'Password must be at least 8 characters' },
-        { status: 400 }
-      );
+    const passwordError = validatePassword(password);
+    if (passwordError) {
+      return NextResponse.json({ error: passwordError }, { status: 400 });
     }
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -63,7 +62,7 @@ export async function POST(request: NextRequest) {
       emailVerified: null,
     });
 
-    await seedWorkspaceForNewUser(newUser._id.toString(), name);
+    await seedAccountForNewUser(newUser._id.toString(), name);
 
     return NextResponse.json(
       {

@@ -1,9 +1,8 @@
-import WorkspaceSettings, { DEFAULT_STATUSES } from './models/WorkspaceSettings';
+import { connectDB } from './mongodb';
+import Account, { DEFAULT_STATUSES } from './models/Account';
+import User from './models/User';
 import { IUserConfig } from '@/types';
 
-/**
- * Hash a string to a number for consistent color generation
- */
 function hashStringToNumber(str: string): number {
   let hash = 0;
   for (let i = 0; i < str.length; i++) {
@@ -14,41 +13,59 @@ function hashStringToNumber(str: string): number {
   return Math.abs(hash);
 }
 
-/**
- * Generate a deterministic color from a userId
- */
 function colorFromUserId(userId: string): string {
   const hue = hashStringToNumber(userId) % 360;
   return `hsl(${hue}, 70%, 50%)`;
 }
 
+function slugify(name: string): string {
+  return name
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '');
+}
+
 /**
- * Idempotent workspace seeding on first login
+ * Creates an Account (with owner + embedded settings),
+ * and sets mainAccountId on the User.
+ * Idempotent: skips if the user already has a mainAccountId.
  */
-export async function seedWorkspaceForNewUser(userId: string, userName: string): Promise<void> {
+export async function seedAccountForNewUser(userId: string, userName: string): Promise<void> {
   try {
-    const existing = await WorkspaceSettings.findOne({ userId });
-    if (existing) {
-      return;
-    }
+    await connectDB();
 
+    const existingUser = await User.findById(userId);
+    if (existingUser?.mainAccountId) return;
+
+    const accountName = `${userName}'s Workspace`;
+    let slug = slugify(accountName) || 'workspace';
+    const existing = await Account.findOne({ slug });
+    if (existing) slug = `${slug}-${Date.now()}`;
+
+    const trialEndsAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
     const userColor = colorFromUserId(userId);
-    const firstUser: IUserConfig = {
-      uid: userId,
-      name: userName || 'You',
-      color: userColor,
-    };
+    const firstUser: IUserConfig = { uid: userId, name: userName || 'You', color: userColor };
 
-    await WorkspaceSettings.create({
-      userId,
-      users: [firstUser],
-      theme: 'system',
-      statuses: DEFAULT_STATUSES,
-      levelNames: { epic: 'Epic', feature: 'Feature', task: 'Task' },
-      allowWeekends: false,
+    const account = await Account.create({
+      name: accountName,
+      slug,
+      plan: 'trial',
+      trialEndsAt,
+      status: 'active',
+      createdBy: userId,
+      members: [{ userId, role: 'owner', joinedAt: new Date() }],
+      settings: {
+        users: [firstUser],
+        statuses: DEFAULT_STATUSES,
+        levelNames: { epic: 'Epic', feature: 'Feature', task: 'Task' },
+        allowWeekends: false,
+      },
     });
+
+    await User.findByIdAndUpdate(userId, { mainAccountId: account._id.toString() });
   } catch (error) {
-    console.error(`Failed to seed workspace for user ${userId}:`, error);
+    console.error(`Failed to seed account for user ${userId}:`, error);
     throw error;
   }
 }

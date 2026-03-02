@@ -1,14 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { connectDB } from '@/lib/mongodb';
 import User from '@/lib/models/User';
-import WorkspaceSettings from '@/lib/models/WorkspaceSettings';
+import Account from '@/lib/models/Account';
 import { requireAuth } from '@/lib/apiAuth';
 
 export async function PATCH(req: NextRequest) {
   try {
     const auth = await requireAuth();
     if (auth instanceof NextResponse) return auth;
-    const { userId } = auth;
+    const { userId, accountId } = auth;
 
     const { name } = await req.json();
 
@@ -29,10 +29,10 @@ export async function PATCH(req: NextRequest) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    // 2. Update name in WorkspaceSettings (used for displaying user in various places)
-    await WorkspaceSettings.updateOne(
-      { userId, 'users.uid': userId },
-      { $set: { 'users.$.name': name.trim() } }
+    // 2. Update name in embedded settings.users for this account
+    await Account.updateOne(
+      { _id: accountId, 'settings.users.uid': userId },
+      { $set: { 'settings.users.$.name': name.trim() } }
     );
 
     return NextResponse.json({

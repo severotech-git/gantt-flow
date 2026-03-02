@@ -11,6 +11,8 @@ import { ThemeSection } from '@/components/settings/ThemeSection';
 import { StatusConfigSection } from '@/components/settings/StatusConfigSection';
 import { LevelNamesSection } from '@/components/settings/LevelNamesSection';
 import { CalendarSection } from '@/components/settings/CalendarSection';
+import { TeamSection } from '@/components/settings/TeamSection';
+import { AccountsSection } from '@/components/settings/AccountsSection';
 import { Loader2 } from 'lucide-react';
 import { PageNavbar } from '@/components/layout/PageNavbar';
 
@@ -22,8 +24,8 @@ function SettingsContent() {
 
   // Derive active section from URL (Source of Truth)
   const querySection = searchParams.get('section') as SettingsSection;
-  const validSections: SettingsSection[] = ['theme', 'users', 'levels', 'statuses', 'calendar', 'profile'];
-  const activeSection = validSections.includes(querySection) ? querySection : 'theme';
+  const validSections: SettingsSection[] = ['accounts', 'team', 'users', 'levels', 'statuses', 'calendar', 'profile', 'theme'];
+  const activeSection = validSections.includes(querySection) ? querySection : 'accounts';
 
   const handleSectionChange = (newSection: SettingsSection) => {
     const params = new URLSearchParams(searchParams.toString());
@@ -33,7 +35,7 @@ function SettingsContent() {
 
   return (
     <div className="flex h-screen overflow-hidden bg-background">
-      <Sidebar onNewProject={() => {}} collapsed={sidebarCollapsed} />
+      <Sidebar collapsed={sidebarCollapsed} />
 
       <main className="flex flex-col flex-1 overflow-hidden">
         <PageNavbar
@@ -54,12 +56,14 @@ function SettingsContent() {
           <SettingsSectionNav active={activeSection} onChange={handleSectionChange} />
 
           <div className="flex-1 overflow-y-auto p-8">
-            {activeSection === 'theme'    && <ThemeSection />}
+            {activeSection === 'team'     && <TeamSection />}
             {activeSection === 'users'    && <UsersSection />}
             {activeSection === 'levels'   && <LevelNamesSection />}
             {activeSection === 'statuses' && <StatusConfigSection />}
             {activeSection === 'calendar' && <CalendarSection />}
             {activeSection === 'profile'  && <ProfileSection />}
+            {activeSection === 'theme'    && <ThemeSection />}
+            {activeSection === 'accounts' && <AccountsSection />}
           </div>
         </div>
       </main>

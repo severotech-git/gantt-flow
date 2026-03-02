@@ -98,7 +98,7 @@ export function PageNavbar({
               <Link href="/settings?section=profile">
                 <DropdownMenuItem className="cursor-pointer">
                   <User className="mr-2 h-4 w-4" />
-                  <span>My Account</span>
+                  <span>My Profile</span>
                 </DropdownMenuItem>
               </Link>
               <Link href="/settings">

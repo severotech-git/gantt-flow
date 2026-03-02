@@ -2,6 +2,43 @@ export type StatusType = string;
 
 export type TimelineScale = 'week' | 'month' | 'quarter';
 
+// ─── Account / Multi-tenant ───────────────────────────────────────────────────
+
+export interface IAccountMember {
+  userId: string;
+  role: 'owner' | 'admin' | 'member';
+  joinedAt: string;
+}
+
+export interface IAccount {
+  _id: string;
+  name: string;
+  slug: string;
+  plan: 'trial' | 'monthly' | 'yearly';
+  trialEndsAt: string;
+  status: 'active' | 'suspended' | 'cancelled';
+  createdBy: string;
+  members: IAccountMember[];
+  settings: IWorkspaceSettings;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface IInvitation {
+  _id: string;
+  accountId: string;
+  invitedByUserId: string;
+  email: string;
+  token: string;
+  role: 'admin' | 'member';
+  status: 'pending' | 'accepted' | 'rejected' | 'canceled';
+  expiresAt: string;
+  createdAt: string;
+  // Populated fields (optional, returned by API)
+  accountName?: string;
+  inviterName?: string;
+}
+
 export interface IAuthUser {
   id: string;
   email: string;
@@ -23,8 +60,6 @@ export interface IUserConfig {
 }
 
 export interface IWorkspaceSettings {
-  _id?: string;
-  userId: string;
   users: IUserConfig[];
   theme: 'dark' | 'light' | 'system';
   levelNames: { epic: string; feature: string; task: string };
@@ -81,6 +116,7 @@ export interface IProject {
   color?: string;
   currentVersion: string;
   archived?: boolean;
+  accountId: string;
   createdBy: string;
   epics: IEpic[];
   createdAt: string;
