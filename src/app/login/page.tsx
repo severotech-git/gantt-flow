@@ -11,6 +11,23 @@ import Image from 'next/image';
 // Static imports for images to ensure reliable resolution
 import logoIcon from '../../../public/icon.png';
 
+const AUTH_ERROR_MESSAGES: Record<string, string> = {
+  CredentialsSignin: 'Invalid email or password.',
+  OAuthSignin: 'Could not sign in with that provider. Please try again.',
+  OAuthCallback: 'Could not sign in with that provider. Please try again.',
+  OAuthCreateAccount: 'Could not create account with that provider.',
+  EmailCreateAccount: 'Could not create account. Please try again.',
+  Callback: 'Sign-in callback failed. Please try again.',
+  OAuthAccountNotLinked: 'This email is already registered with a different sign-in method.',
+  SessionRequired: 'Please sign in to continue.',
+  Default: 'An error occurred. Please try again.',
+};
+
+function friendlyAuthError(code: string | null | undefined): string {
+  if (!code) return '';
+  return AUTH_ERROR_MESSAGES[code] ?? AUTH_ERROR_MESSAGES.Default;
+}
+
 function LoginPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -20,7 +37,7 @@ function LoginPageContent() {
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState(errorParam || '');
+  const [error, setError] = useState(friendlyAuthError(errorParam));
   const [loading, setLoading] = useState(false);
   const { data: session, status } = useSession();
 
@@ -43,7 +60,7 @@ function LoginPageContent() {
       });
 
       if (result?.error) {
-        setError(result.error);
+        setError(friendlyAuthError(result.error));
       } else if (result?.ok) {
         router.push(callbackUrl);
       }

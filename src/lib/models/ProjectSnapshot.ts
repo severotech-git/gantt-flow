@@ -20,9 +20,12 @@ const ProjectSnapshotSchema = new Schema<IProjectSnapshotDocument>(
   }
 );
 
-delete (mongoose.models as Record<string, unknown>).ProjectSnapshot;
+if (process.env.NODE_ENV !== 'production') {
+  delete (mongoose.models as Record<string, unknown>).ProjectSnapshot;
+}
 
 const ProjectSnapshot: Model<IProjectSnapshotDocument> =
+  (mongoose.models.ProjectSnapshot as Model<IProjectSnapshotDocument>) ||
   mongoose.model<IProjectSnapshotDocument>('ProjectSnapshot', ProjectSnapshotSchema);
 
 export default ProjectSnapshot;

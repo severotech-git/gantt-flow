@@ -35,17 +35,17 @@ export async function POST(_req: NextRequest, { params }: Params) {
     const account = await Account.findById(accountId);
     if (!account) return NextResponse.json({ error: 'Account not found' }, { status: 404 });
 
-    const alreadyMember = account.members.some((m) => m.userId === userId);
-    if (!alreadyMember) {
-      account.members.push({ userId, role: invitation.role, joinedAt: new Date() });
-      await account.save();
+    // Atomically add member only if not already present (prevents duplicates under any race condition)
+    await Account.updateOne(
+      { _id: accountId, 'members.userId': { $ne: userId } },
+      { $push: { members: { userId, role: invitation.role, joinedAt: new Date() } } }
+    );
 
-      // Add user to embedded settings.users if not already present
-      await Account.updateOne(
-        { _id: accountId, 'settings.users.uid': { $ne: userId } },
-        { $push: { 'settings.users': { uid: userId, name: user.name, color: '#6366f1' } } }
-      );
-    }
+    // Add user to embedded settings.users if not already present
+    await Account.updateOne(
+      { _id: accountId, 'settings.users.uid': { $ne: userId } },
+      { $push: { 'settings.users': { uid: userId, name: user.name, color: '#6366f1' } } }
+    );
 
     await Invitation.findByIdAndUpdate(invitation._id, { status: 'accepted' });
 

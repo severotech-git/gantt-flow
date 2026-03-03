@@ -6,6 +6,7 @@ import Invitation from '@/lib/models/Invitation';
 import Account from '@/lib/models/Account';
 import User from '@/lib/models/User';
 import { sendInvitationEmail } from '@/lib/email';
+import { checkRateLimit } from '@/lib/rateLimit';
 
 export const runtime = 'nodejs';
 
@@ -56,6 +57,15 @@ export async function POST(req: NextRequest) {
     const posterRole = accountDoc?.members?.[0]?.role;
     if (!posterRole || !['owner', 'admin'].includes(posterRole)) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+
+    // Rate limit: 20 invitations per account per hour
+    const rl = checkRateLimit(`invite:${accountId}`, 20, 60 * 60 * 1000);
+    if (!rl.ok) {
+      return NextResponse.json(
+        { error: 'Too many invitations sent. Please try again later.' },
+        { status: 429, headers: { 'Retry-After': String(rl.retryAfterSeconds) } }
+      );
     }
 
     const body = await req.json();

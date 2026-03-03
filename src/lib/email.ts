@@ -1,5 +1,14 @@
 import nodemailer from 'nodemailer';
 
+function escapeHtml(str: string): string {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 const transporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST,
   port: Number(process.env.SMTP_PORT ?? 587),
@@ -35,9 +44,9 @@ export async function sendInvitationEmail(
     ].join('\n'),
     html: `
       <p>Hi,</p>
-      <p><strong>${inviterName}</strong> has invited you to join <strong>${accountName}</strong> on GanttFlow.</p>
+      <p><strong>${escapeHtml(inviterName)}</strong> has invited you to join <strong>${escapeHtml(accountName)}</strong> on GanttFlow.</p>
       <p>
-        <a href="${inviteUrl}" style="display:inline-block;padding:10px 20px;background:#6366f1;color:#fff;border-radius:6px;text-decoration:none;font-weight:600;">
+        <a href="${escapeHtml(inviteUrl)}" style="display:inline-block;padding:10px 20px;background:#6366f1;color:#fff;border-radius:6px;text-decoration:none;font-weight:600;">
           Accept Invitation
         </a>
       </p>

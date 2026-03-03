@@ -4,11 +4,22 @@ import { connectDB } from '@/lib/mongodb';
 import User from '@/lib/models/User';
 import { seedAccountForNewUser } from '@/lib/seedWorkspace';
 import { validatePassword } from '@/lib/passwordPolicy';
+import { checkRateLimit, getClientIp } from '@/lib/rateLimit';
 
 export const runtime = 'nodejs';
 
 export async function POST(request: NextRequest) {
   try {
+    // Rate limit: 10 registrations per IP per hour
+    const ip = getClientIp(request.headers);
+    const rl = checkRateLimit(`register:${ip}`, 10, 60 * 60 * 1000);
+    if (!rl.ok) {
+      return NextResponse.json(
+        { error: 'Too many requests. Please try again later.' },
+        { status: 429, headers: { 'Retry-After': String(rl.retryAfterSeconds) } }
+      );
+    }
+
     const body = await request.json();
     const { name, email, password, confirmPassword } = body;
 
@@ -18,6 +29,12 @@ export async function POST(request: NextRequest) {
         { error: 'Missing required fields' },
         { status: 400 }
       );
+    }
+    if (typeof name !== 'string' || name.trim().length > 100) {
+      return NextResponse.json({ error: 'name must be 100 characters or fewer' }, { status: 400 });
+    }
+    if (typeof email !== 'string' || email.length > 254) {
+      return NextResponse.json({ error: 'Invalid email format' }, { status: 400 });
     }
 
     if (password !== confirmPassword) {
@@ -65,10 +82,7 @@ export async function POST(request: NextRequest) {
     await seedAccountForNewUser(newUser._id.toString(), name);
 
     return NextResponse.json(
-      {
-        message: 'User created successfully',
-        userId: newUser._id.toString(),
-      },
+      { message: 'User created successfully' },
       { status: 201 }
     );
   } catch (error) {

@@ -23,9 +23,12 @@ const InvitationSchema = new Schema<IInvitationDocument>(
   { timestamps: true }
 );
 
-delete (mongoose.models as Record<string, unknown>).Invitation;
+if (process.env.NODE_ENV !== 'production') {
+  delete (mongoose.models as Record<string, unknown>).Invitation;
+}
 
 const Invitation: Model<IInvitationDocument> =
+  (mongoose.models.Invitation as Model<IInvitationDocument>) ||
   mongoose.model<IInvitationDocument>('Invitation', InvitationSchema);
 
 export default Invitation;

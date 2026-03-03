@@ -50,6 +50,9 @@ export async function POST(req: NextRequest, { params }: Params) {
     if (!body.versionName || typeof body.versionName !== 'string') {
       return NextResponse.json({ error: 'versionName is required' }, { status: 400 });
     }
+    if (body.versionName.trim().length > 255) {
+      return NextResponse.json({ error: 'versionName must be 255 characters or fewer' }, { status: 400 });
+    }
 
     const project = await Project.findOne({ _id: id, accountId }).lean();
     if (!project) return NextResponse.json({ error: 'Project not found' }, { status: 404 });

@@ -24,14 +24,12 @@ export async function GET() {
     });
   } catch (err) {
     console.error('[settings GET]', err);
-    return NextResponse.json({ error: String(err) }, { status: 500 });
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
 
-// Fields only owner/admin may change
-const MANAGED_FIELDS = ['levelNames', 'statuses', 'allowWeekends'] as const;
-// Fields any authenticated member may change (account-level)
-const MEMBER_ACCOUNT_FIELDS = ['users'] as const;
+// Fields only owner/admin may change (account-level)
+const MANAGED_FIELDS = ['levelNames', 'statuses', 'allowWeekends', 'users'] as const;
 
 export async function PATCH(request: Request) {
   try {
@@ -51,14 +49,15 @@ export async function PATCH(request: Request) {
 
     // theme → User document
     if ('theme' in body) {
-      ops.push(User.findByIdAndUpdate(userId, { $set: { theme: body.theme } }));
+      const VALID_THEMES = ['dark', 'light', 'system'] as const;
+      if (!VALID_THEMES.includes(body.theme)) {
+        return NextResponse.json({ error: 'Invalid theme value' }, { status: 400 });
+      }
+      ops.push(User.findByIdAndUpdate(userId, { $set: { theme: body.theme } }, { runValidators: true }));
     }
 
-    // account-level fields
+    // account-level fields (owner/admin only)
     const $set: Record<string, unknown> = {};
-    for (const key of MEMBER_ACCOUNT_FIELDS) {
-      if (key in body) $set[`settings.${key}`] = body[key];
-    }
     if (needsManage) {
       for (const key of MANAGED_FIELDS) {
         if (key in body) $set[`settings.${key}`] = body[key];
@@ -66,7 +65,7 @@ export async function PATCH(request: Request) {
     }
     if (Object.keys($set).length > 0) {
       ops.push(
-        Account.findByIdAndUpdate(accountId, { $set }, { new: true, runValidators: false })
+        Account.findByIdAndUpdate(accountId, { $set }, { new: true, runValidators: true })
       );
     }
 
@@ -84,6 +83,6 @@ export async function PATCH(request: Request) {
     });
   } catch (err) {
     console.error('[settings PATCH]', err);
-    return NextResponse.json({ error: String(err) }, { status: 500 });
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

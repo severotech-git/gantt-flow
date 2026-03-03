@@ -4,7 +4,6 @@ import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { useSettingsStore } from '@/store/useSettingsStore';
 import { useAccountStore } from '@/store/useAccountStore';
-import { useCanManage } from '@/hooks/useAccountRole';
 import { IUserConfig } from '@/types';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -23,7 +22,6 @@ export function UsersSection() {
   const accounts = useAccountStore((s) => s.accounts);
   const { users, addUser, updateUser, deleteUser, persistSettings, isSaving } = useSettingsStore();
 
-  const canManage = useCanManage();
   const activeAccountId = session?.user?.activeAccountId;
   const activeAccount = accounts.find((a) => a._id === activeAccountId);
   const accountMemberIds = new Set(activeAccount?.members.map((m) => m.userId) ?? []);
@@ -73,10 +71,7 @@ export function UsersSection() {
                 key={user.uid}
                 user={user}
                 isYou={isYou}
-                canEdit={canManage && !isYou}
                 role={memberRole}
-                onNameChange={(name) => updateUser(user.uid, { name })}
-                onColorChange={(color) => updateUser(user.uid, { color })}
               />
             );
           })}
@@ -131,55 +126,40 @@ export function UsersSection() {
   );
 }
 
-// ── Account member row (name locked, color editable) ─────────────────────────
+// ── Account member row (fully read-only — edit name via Profile, manage roles via Team) ──
 
 function AccountMemberRow({
   user,
   isYou,
-  canEdit,
   role,
-  onNameChange,
-  onColorChange,
 }: {
   user: IUserConfig;
   isYou: boolean;
-  canEdit: boolean;
   role?: string;
-  onNameChange: (name: string) => void;
-  onColorChange: (color: string) => void;
 }) {
   return (
-    <div className="flex items-center gap-3 p-2 rounded-lg bg-muted/30 border border-border group">
+    <div className="flex items-center gap-3 p-2 rounded-lg bg-muted/30 border border-border">
       <OwnerAvatar name={user.name || '?'} color={user.color} size={28} />
 
       <div className="flex-1 flex items-center gap-2 min-w-0">
-        {canEdit ? (
-          <Input
-            value={user.name}
-            onChange={(e) => onNameChange(e.target.value)}
-            placeholder="Name…"
-            className="h-7 text-sm focus-visible:ring-violet-500"
-          />
-        ) : (
-          <span className="text-sm truncate">{user.name || <span className="text-muted-foreground italic">Unnamed</span>}</span>
-        )}
-        {role && !canEdit && (
-          <Badge variant="outline" className="text-[10px] shrink-0">{role}</Badge>
-        )}
+        <span className="text-sm truncate">
+          {user.name || <span className="text-muted-foreground italic">Unnamed</span>}
+        </span>
         {isYou && (
           <span className="text-[11px] font-medium px-2 py-0.5 rounded bg-violet-500/20 text-violet-400 shrink-0">
             You
           </span>
         )}
+      {role && <Badge variant="outline" className="text-[10px] shrink-0">{role}</Badge>}
       </div>
 
-      <ColorSwatch color={user.color} onChange={onColorChange} size={24} />
+      {/* Static color dot — not interactive */}
+      <span
+        className="rounded-md border border-white/[0.12] shrink-0"
+        style={{ width: 24, height: 24, backgroundColor: user.color, display: 'inline-block' }}
+      />
 
-      {canEdit ? (
-        role && <Badge variant="outline" className="text-[10px] shrink-0">{role}</Badge>
-      ) : (
-        <Lock size={13} className="text-muted-foreground/40 shrink-0" />
-      )}
+      <Lock size={13} className="text-muted-foreground/40 shrink-0" />
     </div>
   );
 }

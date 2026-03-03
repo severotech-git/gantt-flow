@@ -83,9 +83,12 @@ const ProjectSchema = new Schema<IProjectDocument>(
 
 // ─── Model ───────────────────────────────────────────────────────────────────
 
-delete (mongoose.models as Record<string, unknown>).Project;
+if (process.env.NODE_ENV !== 'production') {
+  delete (mongoose.models as Record<string, unknown>).Project;
+}
 
 const Project: Model<IProjectDocument> =
+  (mongoose.models.Project as Model<IProjectDocument>) ||
   mongoose.model<IProjectDocument>('Project', ProjectSchema);
 
 export default Project;

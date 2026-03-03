@@ -28,10 +28,18 @@ export async function GET(_req: NextRequest, { params }: Params) {
     const users = await User.find({ _id: { $in: userIds } }, { name: 1, email: 1, image: 1 }).lean();
     const userMap = Object.fromEntries(users.map((u) => [u._id.toString(), u]));
 
-    const result = account.members.map((m) => ({
-      ...m,
-      user: userMap[m.userId] ?? null,
-    }));
+    // Deduplicate by userId — keeps first occurrence (handles stale bad data in DB)
+    const seen = new Set<string>();
+    const result = account.members
+      .filter((m) => {
+        if (seen.has(m.userId)) return false;
+        seen.add(m.userId);
+        return true;
+      })
+      .map((m) => ({
+        ...m,
+        user: userMap[m.userId] ?? null,
+      }));
 
     return NextResponse.json(result);
   } catch (err) {

@@ -41,7 +41,7 @@ export async function PATCH(req: NextRequest, { params }: Params) {
     for (const key of allowedFields) {
       if (key in body) {
         if (key === 'epics' && Array.isArray(body[key])) {
-          update[key] = cleanTmpIds(body[key]);
+          update[key] = cleanTmpIds(body[key] as unknown[]);
         } else {
           update[key] = body[key];
         }
@@ -62,17 +62,19 @@ export async function PATCH(req: NextRequest, { params }: Params) {
   }
 }
 
-/** Recursively removes _id fields that start with 'tmp_' */
-function cleanTmpIds(obj: any): any {
+/** Recursively removes _id fields that start with 'tmp_'. Max depth: 10 (epic→feature→task tree). */
+function cleanTmpIds(obj: unknown, depth = 0): unknown {
+  if (depth > 10) return obj;
   if (Array.isArray(obj)) {
-    return obj.map(cleanTmpIds);
+    return obj.map((item) => cleanTmpIds(item, depth + 1));
   } else if (obj !== null && typeof obj === 'object') {
-    const newObj: any = {};
-    for (const key in obj) {
-      if (key === '_id' && typeof obj[key] === 'string' && obj[key].startsWith('tmp_')) {
+    const newObj: Record<string, unknown> = {};
+    for (const key in obj as Record<string, unknown>) {
+      const val = (obj as Record<string, unknown>)[key];
+      if (key === '_id' && typeof val === 'string' && val.startsWith('tmp_')) {
         continue;
       }
-      newObj[key] = cleanTmpIds(obj[key]);
+      newObj[key] = cleanTmpIds(val, depth + 1);
     }
     return newObj;
   }

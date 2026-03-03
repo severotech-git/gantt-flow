@@ -36,6 +36,12 @@ export async function POST(req: NextRequest) {
     if (!body.name || typeof body.name !== 'string') {
       return NextResponse.json({ error: 'name is required' }, { status: 400 });
     }
+    if (body.name.trim().length > 255) {
+      return NextResponse.json({ error: 'name must be 255 characters or fewer' }, { status: 400 });
+    }
+    if (body.description && typeof body.description === 'string' && body.description.length > 5000) {
+      return NextResponse.json({ error: 'description must be 5000 characters or fewer' }, { status: 400 });
+    }
 
     const project = await Project.create({
       name: body.name.trim(),

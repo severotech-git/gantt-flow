@@ -50,10 +50,13 @@ const UserSchema = new Schema<IUserDocument>(
   }
 );
 
-// Force schema reload on hot-reload so new fields (e.g. theme) are always picked up
-delete (mongoose.models as Record<string, unknown>).User;
+// Force schema reload on hot-reload in development only
+if (process.env.NODE_ENV !== 'production') {
+  delete (mongoose.models as Record<string, unknown>).User;
+}
 
 const User: Model<IUserDocument> =
+  (mongoose.models.User as Model<IUserDocument>) ||
   mongoose.model<IUserDocument>('User', UserSchema);
 
 export default User;

@@ -92,9 +92,12 @@ const AccountSchema = new Schema<IAccountDocument>(
 
 AccountSchema.index({ 'members.userId': 1 });
 
-delete (mongoose.models as Record<string, unknown>).Account;
+if (process.env.NODE_ENV !== 'production') {
+  delete (mongoose.models as Record<string, unknown>).Account;
+}
 
 const Account: Model<IAccountDocument> =
+  (mongoose.models.Account as Model<IAccountDocument>) ||
   mongoose.model<IAccountDocument>('Account', AccountSchema);
 
 export default Account;

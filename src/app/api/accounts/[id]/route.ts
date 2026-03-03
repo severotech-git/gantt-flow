@@ -17,7 +17,8 @@ export async function PATCH(req: NextRequest, { params }: Params) {
     await connectDB();
     const { id } = await params;
 
-    const account = await Account.findById(id);
+    // Query with membership filter to prevent account ID enumeration
+    const account = await Account.findOne({ _id: id, 'members.userId': userId });
     if (!account) return NextResponse.json({ error: 'Not found' }, { status: 404 });
 
     const member = (account.members ?? []).find((m) => m.userId === userId);
@@ -29,8 +30,12 @@ export async function PATCH(req: NextRequest, { params }: Params) {
     if (!body.name || typeof body.name !== 'string') {
       return NextResponse.json({ error: 'name is required' }, { status: 400 });
     }
+    const trimmedName = body.name.trim();
+    if (trimmedName.length > 100) {
+      return NextResponse.json({ error: 'name must be 100 characters or fewer' }, { status: 400 });
+    }
 
-    account.name = body.name.trim();
+    account.name = trimmedName;
     await account.save();
 
     return NextResponse.json(account.toObject());
@@ -50,7 +55,8 @@ export async function DELETE(_req: NextRequest, { params }: Params) {
     await connectDB();
     const { id } = await params;
 
-    const account = await Account.findById(id);
+    // Query with membership filter to prevent account ID enumeration
+    const account = await Account.findOne({ _id: id, 'members.userId': userId });
     if (!account) return NextResponse.json({ error: 'Not found' }, { status: 404 });
 
     const member = (account.members ?? []).find((m) => m.userId === userId);

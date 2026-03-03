@@ -1,3 +1,7 @@
+// next-auth v5 beta type resolution doesn't fully align with bundler moduleResolution.
+// The runtime behaviour is correct; only the TS import path is unresolvable in this mode.
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-expect-error – next-auth type export unresolvable under moduleResolution:bundler
 import type { NextAuthConfig } from 'next-auth';
 
 /**
@@ -29,9 +33,8 @@ export const authConfig = {
         // activeAccountId is populated by auth.ts on first login (Node.js)
         // and already present in subsequent JWT reads
       }
-      if (trigger === 'update' && session?.activeAccountId) {
-        token.activeAccountId = session.activeAccountId;
-      }
+      // activeAccountId on update is validated server-side in auth.ts (Node.js)
+      // Do not write it here (edge runtime cannot query DB for membership).
       return token;
     },
     session: async ({ session, token }: {
@@ -45,5 +48,6 @@ export const authConfig = {
       return session;
     },
   },
-  trustHost: true,
+  // Only trust X-Forwarded-Host in development; in production set NEXTAUTH_URL explicitly.
+  trustHost: process.env.NODE_ENV !== 'production',
 } satisfies NextAuthConfig;

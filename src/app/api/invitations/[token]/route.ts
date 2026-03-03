@@ -30,8 +30,11 @@ export async function GET(_req: NextRequest, { params }: Params) {
       User.findById(invitation.invitedByUserId, { name: 1 }).lean(),
     ]);
 
+    // Return only the fields needed for the accept-invitation UI.
+    // Intentionally omit email, invitedByUserId, and other internal fields.
     return NextResponse.json({
-      ...invitation,
+      role: invitation.role,
+      expiresAt: invitation.expiresAt,
       accountName: account?.name ?? 'Unknown account',
       inviterName: inviter?.name ?? 'A teammate',
     });
