@@ -247,11 +247,6 @@ export default function LandingPage() {
                     Start 30-Day Free Trial <ArrowRight className="w-4 h-4" />
                   </Button>
                 </Link>
-                <Link href="/login">
-                  <Button variant="outline" size="lg" className="h-12 px-8 text-base font-semibold">
-                    View Demo
-                  </Button>
-                </Link>
               </div>
               <p className="text-xs text-muted-foreground font-medium italic">
                 No credit card required. Setup in 2 minutes.
