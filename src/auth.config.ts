@@ -38,12 +38,13 @@ export const authConfig = {
       return token;
     },
     session: async ({ session, token }: {
-      session: { user?: { id?: string; activeAccountId?: string } } & Record<string, unknown>;
+      session: { user?: { id?: string; activeAccountId?: string; emailVerified?: boolean } } & Record<string, unknown>;
       token: Record<string, unknown>;
     }) => {
       if (session.user) {
         session.user.id = (token.uid as string) || '';
         session.user.activeAccountId = (token.activeAccountId as string) || '';
+        session.user.emailVerified = (token.emailVerified as boolean) ?? false;
       }
       return session;
     },

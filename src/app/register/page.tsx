@@ -60,20 +60,25 @@ function RegisterPageContent() {
         return;
       }
 
-      // Auto-login with credentials
+      // Auto-login using bypassToken so MFA is skipped for fresh registration
       const signInResult = await signIn('credentials', {
         email: formData.email,
         password: formData.password,
+        bypassToken: data.bypassToken ?? '',
         redirect: false,
       });
 
       if (signInResult?.ok) {
         if (inviteToken) {
-          // Redirect to invite page with auto-accept flag
           router.push(`/invite/${inviteToken}?auto=1`);
         } else {
+          // Proxy will send unverified users to /verify-email
           router.push('/projects');
         }
+      } else if (signInResult?.code === 'MFARequired') {
+        // Unlikely (bypassToken expired in <1s), but handle gracefully
+        sessionStorage.setItem('mfa_pending_email', formData.email);
+        router.push(`/verify-mfa?email=${encodeURIComponent(formData.email)}`);
       } else {
         setError('Registration succeeded, but auto-login failed. Please log in manually.');
       }

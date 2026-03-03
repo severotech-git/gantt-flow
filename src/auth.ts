@@ -1,13 +1,22 @@
-import NextAuth from 'next-auth';
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-expect-error – next-auth re-exports CredentialsSignin from @auth/core/errors; TS resolves it at runtime
+import NextAuth, { CredentialsSignin } from 'next-auth';
 import Credentials from 'next-auth/providers/credentials';
 import Google from 'next-auth/providers/google';
 import GitHub from 'next-auth/providers/github';
 import { connectDB } from '@/lib/mongodb';
 import User from '@/lib/models/User';
 import Account from '@/lib/models/Account';
+import EmailVerification from '@/lib/models/EmailVerification';
+import EmailOTP from '@/lib/models/EmailOTP';
 import { seedAccountForNewUser } from '@/lib/seedWorkspace';
 import { authConfig } from '@/auth.config';
 import { checkRateLimit, getClientIp } from '@/lib/rateLimit';
+import { sendMFACode } from '@/lib/email';
+
+class MFARequiredError extends CredentialsSignin {
+  code = 'MFARequired';
+}
 
 // next-auth v5 beta type resolution doesn't fully align with bundler moduleResolution;
 // the runtime call is correct, only the TS default-import signature is missing.
@@ -22,33 +31,124 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       credentials: {
         email: { label: 'Email', type: 'email' },
         password: { label: 'Password', type: 'password' },
+        mfaCode: { label: 'MFA Code', type: 'text' },
+        bypassToken: { label: 'Bypass Token', type: 'text' },
       },
       async authorize(credentials, request) {
-        // Rate limit: 10 attempts per IP per 15 minutes
+        // Rate limit per IP
         const ip = getClientIp((request as Request).headers);
         const rl = checkRateLimit(`login:${ip}`, 10, 15 * 60 * 1000);
         if (!rl.ok) {
           throw new Error('Too many login attempts. Please try again later.');
         }
 
-        if (!credentials?.email || !credentials?.password) {
+        if (!credentials?.email) {
           throw new Error('Invalid credentials');
         }
+
         const bcrypt = await import('bcryptjs');
         await connectDB();
-        const user = await User.findOne({ email: credentials.email }).select('+passwordHash');
+
+        // ── Branch A: MFA code verification ──────────────────────────────────
+        if (credentials.mfaCode) {
+          const email = (credentials.email as string).toLowerCase();
+
+          // Rate-limit MFA attempts per email
+          const mfaRl = checkRateLimit(`mfa:${email}`, 5, 10 * 60 * 1000);
+          if (!mfaRl.ok) {
+            throw new Error('Too many code attempts. Please try again later.');
+          }
+
+          const otp = await EmailOTP.findOne({ email });
+          if (!otp) return null;
+
+          // Check expiry
+          if (otp.expiresAt < new Date()) {
+            await EmailOTP.deleteOne({ email });
+            return null;
+          }
+
+          // Check attempt limit
+          if (otp.attempts >= 5) return null;
+
+          const codeMatch = await bcrypt.default.compare(
+            credentials.mfaCode as string,
+            otp.codeHash
+          );
+
+          if (!codeMatch) {
+            await EmailOTP.findByIdAndUpdate(otp._id, { $inc: { attempts: 1 } });
+            return null;
+          }
+
+          // Valid code — delete OTP and return user
+          await EmailOTP.deleteOne({ email });
+          const user = await User.findOne({ email });
+          if (!user) return null;
+
+          return {
+            id: user._id.toString(),
+            email: user.email,
+            name: user.name,
+            image: user.image,
+          };
+        }
+
+        if (!credentials?.password) {
+          throw new Error('Invalid credentials');
+        }
+
+        const email = (credentials.email as string).toLowerCase();
+        const user = await User.findOne({ email }).select('+passwordHash');
         if (!user) throw new Error('Invalid email or password');
+
         const passwordMatch = await bcrypt.default.compare(
           credentials.password as string,
           user.passwordHash || ''
         );
         if (!passwordMatch) throw new Error('Invalid email or password');
-        return {
-          id: user._id.toString(),
-          email: user.email,
-          name: user.name,
-          image: user.image,
-        };
+
+        // ── Branch B: bypassToken (post-registration auto-login) ──────────────
+        if (credentials.bypassToken) {
+          const verification = await EmailVerification.findOne({
+            userId: user._id.toString(),
+            bypassToken: credentials.bypassToken as string,
+          });
+
+          if (verification && verification.bypassExpiresAt && verification.bypassExpiresAt > new Date()) {
+            // Single-use: clear bypassToken fields
+            await EmailVerification.findByIdAndUpdate(verification._id, {
+              $unset: { bypassToken: '', bypassExpiresAt: '' },
+            });
+            return {
+              id: user._id.toString(),
+              email: user.email,
+              name: user.name,
+              image: user.image,
+            };
+          }
+          // Expired bypassToken — fall through to Branch C (MFA)
+        }
+
+        // ── Branch C: Normal login → generate OTP ────────────────────────────
+        const crypto = await import('crypto');
+        const code = String(crypto.randomInt(100000, 999999));
+        const codeHash = await bcrypt.default.hash(code, 10);
+
+        await EmailOTP.deleteOne({ email });
+        await EmailOTP.create({
+          email,
+          codeHash,
+          expiresAt: new Date(Date.now() + 10 * 60 * 1000),
+        });
+
+        try {
+          await sendMFACode(email, code);
+        } catch (err) {
+          console.error('[auth] Failed to send MFA code:', err);
+        }
+
+        throw new MFARequiredError();
       },
     }),
     ...(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET
@@ -60,7 +160,21 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   ],
   callbacks: {
     ...authConfig.callbacks,
-    // Override jwt to also resolve activeAccountId from DB on first login
+    signIn: async ({ user, account }: { user: { id?: string | null }; account: { provider?: string } | null }) => {
+      // Auto-verify OAuth users (Google/GitHub handle their own auth)
+      if (account?.provider && account.provider !== 'credentials') {
+        try {
+          await connectDB();
+          if (user?.id) {
+            await User.findByIdAndUpdate(user.id, { $set: { emailVerified: new Date() } });
+          }
+        } catch (err) {
+          console.error('[auth signIn] Failed to auto-verify OAuth user:', err);
+        }
+      }
+      return true;
+    },
+    // Override jwt to also resolve activeAccountId and emailVerified from DB on first login
     jwt: async ({ token, user, trigger, session }: {
       token: Record<string, unknown>;
       user?: { id?: string | null } | null;
@@ -87,25 +201,42 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         }
       }
 
-      // On first login: resolve activeAccountId from DB
-      if (user?.id && !base.activeAccountId) {
+      // On update trigger with emailVerified: re-validate from DB
+      if (trigger === 'update' && session?.emailVerified === true) {
+        try {
+          await connectDB();
+          const uid = (base.uid ?? token.uid) as string;
+          const dbUser = await User.findById(uid);
+          if (dbUser?.emailVerified) {
+            base.emailVerified = true;
+          }
+        } catch (err) {
+          console.error('[auth jwt] Failed to validate emailVerified:', err);
+        }
+      }
+
+      // On first login: resolve activeAccountId and emailVerified from DB
+      if (user?.id) {
         try {
           await connectDB();
           const dbUser = await User.findById(user.id);
-          if (dbUser?.mainAccountId) {
-            base.activeAccountId = dbUser.mainAccountId;
-          } else {
-            // Fall back to the first account the user is a member of
-            const account = await Account.findOne(
-              { 'members.userId': user.id },
-              { _id: 1 }
-            ).sort({ createdAt: 1 });
-            if (account) {
-              base.activeAccountId = account._id.toString();
+          if (dbUser) {
+            base.emailVerified = !!dbUser.emailVerified;
+            if (dbUser.mainAccountId) {
+              base.activeAccountId = dbUser.mainAccountId;
+            } else if (!base.activeAccountId) {
+              // Fall back to the first account the user is a member of
+              const account = await Account.findOne(
+                { 'members.userId': user.id },
+                { _id: 1 }
+              ).sort({ createdAt: 1 });
+              if (account) {
+                base.activeAccountId = account._id.toString();
+              }
             }
           }
         } catch (err) {
-          console.error('[auth jwt] Failed to resolve activeAccountId', err);
+          console.error('[auth jwt] Failed to resolve user data', err);
         }
       }
 

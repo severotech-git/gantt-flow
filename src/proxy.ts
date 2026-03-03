@@ -1,30 +1,52 @@
 import { NextRequest, NextResponse } from 'next/server';
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-expect-error – next-auth/jwt re-exports from @auth/core/jwt; TS resolves it at runtime
+import { getToken } from 'next-auth/jwt';
 
-const PUBLIC_PATHS = ['/', '/login', '/register', '/api/auth', '/invite', '/api/invitations'];
+// Fully public — no session required
+const PUBLIC_PATHS = ['/', '/login', '/register', '/api/auth', '/invite', '/api/invitations', '/verify-mfa'];
 
-export function proxy(request: NextRequest) {
-  const pathname = request.nextUrl.pathname;
+// Accessible with a valid session even when email is not yet verified
+const UNVERIFIED_OK_PATHS = [
+  ...PUBLIC_PATHS,
+  '/verify-email',
+  '/api/auth/verify-email',
+];
 
-  // Check if the path is public
-  const isPublic = PUBLIC_PATHS.some((path) =>
-    pathname === path || pathname.startsWith(path + '/')
+export async function proxy(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+
+  // Always allow public paths
+  const isPublic = PUBLIC_PATHS.some(
+    (p) => pathname === p || pathname.startsWith(p + '/')
   );
+  if (isPublic) return NextResponse.next();
 
-  if (isPublic) {
-    return NextResponse.next();
-  }
+  // Decode JWT to check auth + emailVerified (edge-safe — no DB call)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const token = await (getToken as any)({
+    req: request,
+    secret: process.env.AUTH_SECRET!,
+    cookieName:
+      request.cookies.get('__Secure-authjs.session-token') !== undefined
+        ? '__Secure-authjs.session-token'
+        : 'authjs.session-token',
+  }).catch(() => null);
 
-  // For protected routes, check for NextAuth session cookie
-  // The cookie name is __Secure-authjs.session-token in production or authjs.session-token in development
-  const sessionToken =
-    request.cookies.get('__Secure-authjs.session-token')?.value ||
-    request.cookies.get('authjs.session-token')?.value;
-
-  if (!sessionToken) {
+  if (!token) {
     const callbackUrl = encodeURIComponent(pathname + request.nextUrl.search);
     return NextResponse.redirect(
       new URL(`/login?callbackUrl=${callbackUrl}`, request.url)
     );
+  }
+
+  if (!token.emailVerified) {
+    const isUnverifiedOk = UNVERIFIED_OK_PATHS.some(
+      (p) => pathname === p || pathname.startsWith(p + '/')
+    );
+    if (!isUnverifiedOk) {
+      return NextResponse.redirect(new URL('/verify-email', request.url));
+    }
   }
 
   return NextResponse.next();
@@ -33,6 +55,6 @@ export function proxy(request: NextRequest) {
 export const config = {
   matcher: [
     // Run on all routes except next internals and static assets
-    '/((?!_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt).*)',
+    '/((?!_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt|.*\\.png|.*\\.svg|.*\\.ico).*)',
   ],
 };

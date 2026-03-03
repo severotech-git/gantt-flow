@@ -13,6 +13,7 @@ import logoIcon from '../../../public/icon.png';
 
 const AUTH_ERROR_MESSAGES: Record<string, string> = {
   CredentialsSignin: 'Invalid email or password.',
+  MFARequired: 'Verification code required.',
   OAuthSignin: 'Could not sign in with that provider. Please try again.',
   OAuthCallback: 'Could not sign in with that provider. Please try again.',
   OAuthCreateAccount: 'Could not create account with that provider.',
@@ -59,7 +60,10 @@ function LoginPageContent() {
         redirect: false,
       });
 
-      if (result?.error) {
+      if (result?.code === 'MFARequired') {
+        sessionStorage.setItem('mfa_pending_email', email);
+        router.push(`/verify-mfa?email=${encodeURIComponent(email)}`);
+      } else if (result?.error) {
         setError(friendlyAuthError(result.error));
       } else if (result?.ok) {
         router.push(callbackUrl);

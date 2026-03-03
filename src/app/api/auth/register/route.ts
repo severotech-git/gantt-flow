@@ -1,10 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
+import crypto from 'crypto';
 import { connectDB } from '@/lib/mongodb';
 import User from '@/lib/models/User';
+import EmailVerification from '@/lib/models/EmailVerification';
 import { seedAccountForNewUser } from '@/lib/seedWorkspace';
 import { validatePassword } from '@/lib/passwordPolicy';
 import { checkRateLimit, getClientIp } from '@/lib/rateLimit';
+import { sendVerificationEmail } from '@/lib/email';
 
 export const runtime = 'nodejs';
 
@@ -81,8 +84,30 @@ export async function POST(request: NextRequest) {
 
     await seedAccountForNewUser(newUser._id.toString(), name);
 
+    // Generate verification token (24h) and bypass token (60s)
+    const verificationToken = crypto.randomBytes(32).toString('hex');
+    const bypassToken = crypto.randomBytes(16).toString('hex');
+    const now = Date.now();
+
+    await EmailVerification.create({
+      userId: newUser._id.toString(),
+      token: verificationToken,
+      expiresAt: new Date(now + 24 * 60 * 60 * 1000),
+      bypassToken,
+      bypassExpiresAt: new Date(now + 60 * 1000),
+    });
+
+    // Send verification email (failure doesn't fail registration)
+    const baseUrl = process.env.NEXTAUTH_URL ?? 'http://localhost:3000';
+    const verifyUrl = `${baseUrl}/api/auth/verify-email?token=${verificationToken}`;
+    try {
+      await sendVerificationEmail(email.toLowerCase(), verifyUrl);
+    } catch (err) {
+      console.error('[register] Failed to send verification email:', err);
+    }
+
     return NextResponse.json(
-      { message: 'User created successfully' },
+      { message: 'User created successfully', bypassToken },
       { status: 201 }
     );
   } catch (error) {
