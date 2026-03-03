@@ -5,6 +5,8 @@ import { TooltipProvider } from '@/components/ui/tooltip';
 import { ThemeProvider } from '@/components/providers/ThemeProvider';
 import { AuthProvider } from '@/components/providers/AuthProvider';
 import { AccountProvider } from '@/components/providers/AccountProvider';
+import { NextIntlClientProvider } from 'next-intl';
+import { getMessages, getLocale } from 'next-intl/server';
 
 const geist = Geist({ subsets: ['latin'], variable: '--font-geist' });
 
@@ -13,17 +15,22 @@ export const metadata: Metadata = {
   description: 'Personal Gantt chart and project management tool',
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const locale = await getLocale();
+  const messages = await getMessages();
+
   return (
-    <html lang="en" className="dark">
+    <html lang={locale} className="dark">
       <body className={`${geist.variable} font-sans antialiased bg-background text-foreground`}>
-        <AuthProvider>
-          <ThemeProvider>
-            <AccountProvider>
-              <TooltipProvider delayDuration={300}>{children}</TooltipProvider>
-            </AccountProvider>
-          </ThemeProvider>
-        </AuthProvider>
+        <NextIntlClientProvider locale={locale} messages={messages}>
+          <AuthProvider>
+            <ThemeProvider>
+              <AccountProvider>
+                <TooltipProvider delayDuration={300}>{children}</TooltipProvider>
+              </AccountProvider>
+            </ThemeProvider>
+          </AuthProvider>
+        </NextIntlClientProvider>
       </body>
     </html>
   );

@@ -8,6 +8,7 @@ export interface IUserDocument extends Document {
   image?: string;
   mainAccountId?: string | null;
   theme: 'dark' | 'light' | 'system';
+  locale: 'en' | 'pt-BR' | 'es';
 }
 
 const UserSchema = new Schema<IUserDocument>(
@@ -43,6 +44,11 @@ const UserSchema = new Schema<IUserDocument>(
       type: String,
       enum: ['dark', 'light', 'system'],
       default: 'system',
+    },
+    locale: {
+      type: String,
+      enum: ['en', 'pt-BR', 'es'],
+      default: 'en',
     },
   },
   {

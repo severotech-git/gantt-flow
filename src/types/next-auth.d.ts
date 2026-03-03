@@ -5,6 +5,7 @@ declare module '@auth/core/types' {
       id: string;
       activeAccountId: string;
       emailVerified: boolean;
+      locale?: string;
       email?: string | null;
       name?: string | null;
       image?: string | null;
@@ -14,6 +15,7 @@ declare module '@auth/core/types' {
   interface User {
     activeAccountId?: string;
     emailVerified?: boolean;
+    locale?: string;
   }
 }
 
@@ -24,6 +26,7 @@ declare module 'next-auth' {
       id: string;
       activeAccountId: string;
       emailVerified: boolean;
+      locale?: string;
       email?: string | null;
       name?: string | null;
       image?: string | null;
@@ -36,5 +39,6 @@ declare module 'next-auth/jwt' {
     uid?: string;
     activeAccountId?: string;
     emailVerified?: boolean;
+    locale?: string;
   }
 }

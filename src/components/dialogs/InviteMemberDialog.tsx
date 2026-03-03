@@ -20,6 +20,7 @@ import {
 } from '@/components/ui/select';
 import { useAccountStore } from '@/store/useAccountStore';
 import { Loader2 } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 interface InviteMemberDialogProps {
   open: boolean;
@@ -27,6 +28,7 @@ interface InviteMemberDialogProps {
 }
 
 export function InviteMemberDialog({ open, onOpenChange }: InviteMemberDialogProps) {
+  const t = useTranslations('dialogs.inviteMember');
   const sendInvitation = useAccountStore((s) => s.sendInvitation);
   const [email, setEmail] = useState('');
   const [role, setRole] = useState('member');
@@ -48,7 +50,7 @@ export function InviteMemberDialog({ open, onOpenChange }: InviteMemberDialogPro
         onOpenChange(false);
       }, 1500);
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Failed to send invitation');
+      setError(err instanceof Error ? err.message : t('failedError'));
     } finally {
       setLoading(false);
     }
@@ -58,18 +60,16 @@ export function InviteMemberDialog({ open, onOpenChange }: InviteMemberDialogPro
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>Invite a Team Member</DialogTitle>
-          <DialogDescription>
-            They will receive an email with a link to join your workspace.
-          </DialogDescription>
+          <DialogTitle>{t('title')}</DialogTitle>
+          <DialogDescription>{t('description')}</DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium mb-1">Email address</label>
+            <label className="block text-sm font-medium mb-1">{t('emailLabel')}</label>
             <Input
               type="email"
-              placeholder="colleague@example.com"
+              placeholder={t('emailPlaceholder')}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               disabled={loading || success}
@@ -78,14 +78,14 @@ export function InviteMemberDialog({ open, onOpenChange }: InviteMemberDialogPro
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-1">Role</label>
+            <label className="block text-sm font-medium mb-1">{t('roleLabel')}</label>
             <Select value={role} onValueChange={setRole} disabled={loading || success}>
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="member">Member</SelectItem>
-                <SelectItem value="admin">Admin</SelectItem>
+                <SelectItem value="member">{t('roleMember')}</SelectItem>
+                <SelectItem value="admin">{t('roleAdmin')}</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -95,15 +95,15 @@ export function InviteMemberDialog({ open, onOpenChange }: InviteMemberDialogPro
           )}
 
           {success && (
-            <p className="text-sm text-green-600">Invitation sent!</p>
+            <p className="text-sm text-green-600">{t('successMessage')}</p>
           )}
 
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={loading}>
-              Cancel
+              {t('cancel')}
             </Button>
             <Button type="submit" disabled={loading || success}>
-              {loading ? <><Loader2 size={14} className="mr-1.5 animate-spin" />Sending…</> : 'Send Invitation'}
+              {loading ? <><Loader2 size={14} className="mr-1.5 animate-spin" />{t('sending')}</> : t('sendButton')}
             </Button>
           </DialogFooter>
         </form>

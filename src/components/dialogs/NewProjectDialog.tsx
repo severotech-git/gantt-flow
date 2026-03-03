@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
+import { useTranslations } from 'next-intl';
 
 const COLORS = [
   '#6366f1', '#8b5cf6', '#ec4899', '#ef4444',
@@ -30,6 +31,8 @@ export function NewProjectDialog({ open, onClose }: NewProjectDialogProps) {
   const [loading, setLoading] = useState(false);
   const { createProject } = useProjectStore();
   const router = useRouter();
+  const t = useTranslations('dialogs.newProject');
+  const tCommon = useTranslations('common');
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -49,30 +52,30 @@ export function NewProjectDialog({ open, onClose }: NewProjectDialogProps) {
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>Create New Project</DialogTitle>
+          <DialogTitle>{t('title')}</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="flex flex-col gap-4 mt-2">
           <div className="flex flex-col gap-1.5">
-            <label className="text-xs text-muted-foreground">Project name</label>
+            <label className="text-xs text-muted-foreground">{t('nameLabel')}</label>
             <Input
               autoFocus
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="e.g. Q4 Roadmap 2025"
+              placeholder={t('namePlaceholder')}
               className="focus-visible:ring-violet-500"
             />
           </div>
           <div className="flex flex-col gap-1.5">
-            <label className="text-xs text-muted-foreground">Description (optional)</label>
+            <label className="text-xs text-muted-foreground">{t('descriptionLabel')}</label>
             <Input
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="Short description…"
+              placeholder={t('descriptionPlaceholder')}
               className="focus-visible:ring-violet-500"
             />
           </div>
           <div className="flex flex-col gap-1.5">
-            <label className="text-xs text-muted-foreground">Color</label>
+            <label className="text-xs text-muted-foreground">{t('colorLabel')}</label>
             <div className="flex gap-2">
               {COLORS.map((c) => (
                 <button
@@ -95,14 +98,14 @@ export function NewProjectDialog({ open, onClose }: NewProjectDialogProps) {
               onClick={onClose}
               className="text-muted-foreground hover:text-foreground"
             >
-              Cancel
+              {tCommon('cancel')}
             </Button>
             <Button
               type="submit"
               disabled={loading || !name.trim()}
               className="bg-violet-600 hover:bg-violet-500 text-white"
             >
-              {loading ? 'Creating…' : 'Create Project'}
+              {loading ? t('creating') : t('createButton')}
             </Button>
           </div>
         </form>

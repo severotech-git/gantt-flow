@@ -5,18 +5,18 @@ import { useCanManage } from '@/hooks/useAccountRole';
 import { ReadOnlyBanner } from './ReadOnlyBanner';
 import { cn } from '@/lib/utils';
 import { CalendarDays } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 export function CalendarSection() {
+  const t = useTranslations('settings.calendar');
   const { allowWeekends, setAllowWeekends } = useSettingsStore();
   const canManage = useCanManage();
 
   return (
     <div className="max-w-md space-y-6">
       <div>
-        <h2 className="text-lg font-semibold text-foreground mb-1">Calendar</h2>
-        <p className="text-sm text-muted-foreground">
-          Configure scheduling rules that apply when creating or moving items.
-        </p>
+        <h2 className="text-lg font-semibold text-foreground mb-1">{t('title')}</h2>
+        <p className="text-sm text-muted-foreground">{t('subtitle')}</p>
       </div>
 
       {!canManage && <ReadOnlyBanner />}
@@ -43,7 +43,7 @@ export function CalendarSection() {
 
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between gap-2">
-            <span className="text-sm font-medium text-foreground">Allow weekend dates</span>
+            <span className="text-sm font-medium text-foreground">{t('allowWeekends')}</span>
             <div className={cn(
               'relative shrink-0 w-9 h-5 rounded-full transition-colors',
               allowWeekends ? 'bg-violet-500' : 'bg-muted-foreground/30'
@@ -55,9 +55,7 @@ export function CalendarSection() {
             </div>
           </div>
           <p className="text-xs text-muted-foreground mt-1">
-            {allowWeekends
-              ? 'Tasks can start and end on Saturdays and Sundays.'
-              : 'Start dates snap to Monday, end dates snap to Friday when a weekend is selected or dragged to.'}
+            {allowWeekends ? t('weekendsEnabled') : t('weekendsDisabled')}
           </p>
         </div>
       </button>

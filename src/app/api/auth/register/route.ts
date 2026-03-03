@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { name, email, password, confirmPassword } = body;
+    const { name, email, password, confirmPassword, locale } = body;
 
     // Validation
     if (!name || !email || !password || !confirmPassword) {
@@ -74,12 +74,17 @@ export async function POST(request: NextRequest) {
     // Hash password
     const passwordHash = await bcrypt.hash(password, 12);
 
+    // Validate and resolve locale
+    const VALID_LOCALES = ['en', 'pt-BR', 'es'];
+    const resolvedLocale = VALID_LOCALES.includes(locale) ? locale : 'en';
+
     // Create user
     const newUser = await User.create({
       email: email.toLowerCase(),
       name,
       passwordHash,
       emailVerified: null,
+      locale: resolvedLocale,
     });
 
     await seedAccountForNewUser(newUser._id.toString(), name);
@@ -119,6 +124,13 @@ export async function POST(request: NextRequest) {
       sameSite: 'strict',
       maxAge: 65, // slightly longer than the 60 s DB validity window
       path: '/api/auth/callback/credentials',
+    });
+    response.cookies.set('NEXT_LOCALE', resolvedLocale, {
+      httpOnly: false,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 60 * 60 * 24 * 365,
+      path: '/',
     });
     return response;
   } catch (error) {

@@ -8,6 +8,7 @@ import { cn } from '@/lib/utils';
 import { parseISO, format, isValid, addDays } from 'date-fns';
 import { Search, Layers, Box, CheckSquare } from 'lucide-react';
 import { StatusType } from '@/types';
+import { useTranslations } from 'next-intl';
 
 interface SearchItem {
   barId: string;
@@ -29,7 +30,6 @@ interface SearchDialogProps {
 }
 
 const LEVEL_ICONS = { epic: Layers, feature: Box, task: CheckSquare };
-const LEVEL_LABELS = { epic: 'Epics', feature: 'Features', task: 'Tasks' };
 
 function fmtDate(iso: string) {
   const d = parseISO(iso);
@@ -37,6 +37,7 @@ function fmtDate(iso: string) {
 }
 
 export function SearchDialog({ open, onClose }: SearchDialogProps) {
+  const t = useTranslations('gantt.search');
   const [query, setQuery] = useState('');
   const [activeIdx, setActiveIdx] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -174,7 +175,7 @@ export function SearchDialog({ open, onClose }: SearchDialogProps) {
         showCloseButton={false}
         className="p-0 gap-0 max-w-lg overflow-hidden"
       >
-        <DialogTitle className="sr-only">Search</DialogTitle>
+        <DialogTitle className="sr-only">{t('title')}</DialogTitle>
 
         {/* Search input */}
         <div className="flex items-center gap-3 px-4 py-3 border-b border-border">
@@ -184,7 +185,7 @@ export function SearchDialog({ open, onClose }: SearchDialogProps) {
             value={query}
             onChange={(e) => { setQuery(e.target.value); }}
             onKeyDown={handleKeyDown}
-            placeholder="Search items..."
+            placeholder={t('placeholder')}
             className="flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground outline-none"
           />
           {query && (
@@ -200,25 +201,25 @@ export function SearchDialog({ open, onClose }: SearchDialogProps) {
         {/* Results */}
         <div ref={listRef} className="overflow-y-auto max-h-[420px]">
           {!activeProject && (
-            <p className="px-4 py-8 text-center text-xs text-muted-foreground">No project selected</p>
+            <p className="px-4 py-8 text-center text-xs text-muted-foreground">{t('noProjectSelected')}</p>
           )}
 
           {activeProject && filtered.length === 0 && query && (
             <p className="px-4 py-8 text-center text-xs text-muted-foreground">
-              No results for &ldquo;{query}&rdquo;
+              {t('noResults', { query })}
             </p>
           )}
 
           {activeProject && !query && (
             <p className="px-4 py-4 text-center text-[11px] text-muted-foreground/70">
-              {allItems.length} items — type to search
+              {t('itemsTotal', { count: allItems.length })}
             </p>
           )}
 
           {groups.map((group) => (
             <div key={group.level}>
               <div className="px-4 py-1.5 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider bg-muted/30 border-b border-border/50 sticky top-0">
-                {LEVEL_LABELS[group.level]}
+                {t(`levels.${group.level}s` as Parameters<typeof t>[0])}
               </div>
               {group.items.map((item) => {
                 const Icon = LEVEL_ICONS[item.level];
@@ -260,9 +261,9 @@ export function SearchDialog({ open, onClose }: SearchDialogProps) {
 
         {/* Footer */}
         <div className="px-4 py-2 border-t border-border flex items-center gap-4 text-[11px] text-muted-foreground">
-          <span><kbd className="font-sans">↑↓</kbd> navigate</span>
-          <span><kbd className="font-sans">↵</kbd> jump to item</span>
-          <span><kbd className="font-sans">Esc</kbd> close</span>
+          <span><kbd className="font-sans">↑↓</kbd> {t('navigate')}</span>
+          <span><kbd className="font-sans">↵</kbd> {t('jumpToItem')}</span>
+          <span><kbd className="font-sans">Esc</kbd> {t('close')}</span>
         </div>
       </DialogContent>
     </Dialog>

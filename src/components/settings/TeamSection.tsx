@@ -16,14 +16,10 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { InviteMemberDialog } from '@/components/dialogs/InviteMemberDialog';
 import { UserPlus, Trash2, Loader2, ChevronDown, Check } from 'lucide-react';
-
-const ROLE_LABELS: Record<string, string> = {
-  owner: 'Owner',
-  admin: 'Admin',
-  member: 'Member',
-};
+import { useTranslations } from 'next-intl';
 
 export function TeamSection() {
+  const t = useTranslations('settings.team');
   const router = useRouter();
   const { data: session } = useSession();
   const activeAccountId = session?.user?.activeAccountId;
@@ -96,28 +92,29 @@ export function TeamSection() {
   return (
     <div className="max-w-2xl space-y-8">
       <div>
-        <h2 className="text-lg font-semibold">Team &amp; Access</h2>
+        <h2 className="text-lg font-semibold">{t('title')}</h2>
         <p className="text-sm text-muted-foreground mt-1">
-          Manage who can log in to this workspace and their permissions.
-          To customise assignee colors or add virtual assignees, go to{' '}
-          <button
-            className="text-primary hover:underline"
-            onClick={() => router.push('/settings?section=users')}
-          >
-            Assignees
-          </button>
-          .
+          {t.rich('subtitle', {
+            link: (chunks) => (
+              <button
+                className="text-primary hover:underline"
+                onClick={() => router.push('/settings?section=users')}
+              >
+                {chunks}
+              </button>
+            ),
+          })}
         </p>
       </div>
 
       {/* Members */}
       <section className="space-y-3">
         <div className="flex items-center justify-between">
-          <h3 className="text-sm font-medium">Members</h3>
+          <h3 className="text-sm font-medium">{t('membersTitle')}</h3>
           {canManage && (
             <Button size="sm" onClick={() => setShowInvite(true)} className="bg-violet-600 hover:bg-violet-500 text-white">
               <UserPlus size={14} className="mr-1.5" />
-              Invite
+              {t('inviteButton')}
             </Button>
           )}
         </div>
@@ -138,7 +135,7 @@ export function TeamSection() {
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium truncate">
                     {displayName}
-                    {isYou && <span className="ml-2 text-[10px] text-muted-foreground">(You)</span>}
+                    {isYou && <span className="ml-2 text-[10px] text-muted-foreground">{t('youLabel')}</span>}
                   </p>
                   <p className="text-xs text-muted-foreground truncate">{m.user?.email}</p>
                 </div>
@@ -154,7 +151,7 @@ export function TeamSection() {
                         {isUpdatingRole
                           ? <Loader2 size={10} className="animate-spin mr-1" />
                           : null}
-                        {ROLE_LABELS[m.role] ?? m.role}
+                        {t(`roles.${m.role}` as Parameters<typeof t>[0]) ?? m.role}
                         <ChevronDown size={10} className="ml-0.5 opacity-60" />
                       </button>
                     </DropdownMenuTrigger>
@@ -166,14 +163,14 @@ export function TeamSection() {
                           className="flex items-center gap-2"
                         >
                           <Check size={12} className={r === m.role ? 'opacity-100' : 'opacity-0'} />
-                          {ROLE_LABELS[r]}
+                          {t(`roles.${r}`)}
                         </DropdownMenuItem>
                       ))}
                     </DropdownMenuContent>
                   </DropdownMenu>
                 ) : (
                   <Badge variant="outline" className="text-[10px] shrink-0">
-                    {ROLE_LABELS[m.role] ?? m.role}
+                    {t(`roles.${m.role}` as Parameters<typeof t>[0]) ?? m.role}
                   </Badge>
                 )}
 
@@ -182,7 +179,7 @@ export function TeamSection() {
                     onClick={() => handleRemove(m.userId)}
                     disabled={isRemoving}
                     className="text-muted-foreground hover:text-red-500 transition-colors"
-                    title="Remove member"
+                    title={t('removeMemberTitle')}
                   >
                     {isRemoving ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
                   </button>
@@ -191,7 +188,7 @@ export function TeamSection() {
             );
           })}
           {members.length === 0 && (
-            <p className="px-4 py-6 text-sm text-muted-foreground text-center">No members yet.</p>
+            <p className="px-4 py-6 text-sm text-muted-foreground text-center">{t('noMembers')}</p>
           )}
         </div>
       </section>
@@ -199,7 +196,7 @@ export function TeamSection() {
       {/* Pending invitations */}
       {invitations.length > 0 && (
         <section className="space-y-3">
-          <h3 className="text-sm font-medium">Pending Invitations</h3>
+          <h3 className="text-sm font-medium">{t('pendingInvitations')}</h3>
           <div className="divide-y divide-border rounded-md border border-border">
             {invitations.map((inv) => {
               const isCancelling = cancellingToken === inv.token;
@@ -210,14 +207,14 @@ export function TeamSection() {
                   </div>
                   <Badge variant="outline" className="text-[10px] shrink-0">{inv.role}</Badge>
                   <Badge className="text-[10px] shrink-0 bg-yellow-100 text-yellow-800 border-yellow-200">
-                    pending
+                    {t('pendingBadge')}
                   </Badge>
                   {canManage && (
                     <button
                       onClick={() => handleCancelInvitation(inv.token)}
                       disabled={isCancelling}
                       className="text-muted-foreground hover:text-red-500 transition-colors"
-                      title="Cancel invitation"
+                      title={t('cancelInvitationTitle')}
                     >
                       {isCancelling ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
                     </button>

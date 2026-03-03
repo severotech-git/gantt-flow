@@ -5,8 +5,11 @@ import { useSession } from 'next-auth/react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Mail, CheckCircle, Loader2 } from 'lucide-react';
+import { useTranslations } from 'next-intl';
+import { LanguageSwitcher } from '@/components/shared/LanguageSwitcher';
 
 function VerifyEmailContent() {
+  const t = useTranslations('auth.verifyEmail');
   const { data: session, update, status } = useSession();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -40,12 +43,12 @@ function VerifyEmailContent() {
       const res = await fetch('/api/auth/verify-email/resend', { method: 'POST' });
       const data = await res.json();
       if (res.ok) {
-        setResendMessage('Verification email sent! Check your inbox.');
+        setResendMessage(t('resendSuccess'));
       } else {
-        setResendMessage(data.error ?? 'Failed to resend. Please try again.');
+        setResendMessage(data.error ?? t('resendFailed'));
       }
     } catch {
-      setResendMessage('An error occurred. Please try again.');
+      setResendMessage(t('errorOccurred'));
     } finally {
       setResendLoading(false);
     }
@@ -56,7 +59,7 @@ function VerifyEmailContent() {
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center space-y-4">
           <CheckCircle className="mx-auto h-12 w-12 text-green-500" />
-          <p className="text-lg font-medium text-foreground">Email verified! Redirecting…</p>
+          <p className="text-lg font-medium text-foreground">{t('verifiedRedirecting')}</p>
         </div>
       </div>
     );
@@ -65,20 +68,26 @@ function VerifyEmailContent() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-background">
       <div className="w-full max-w-md p-8 space-y-6 bg-card border border-border rounded-lg shadow-lg text-center">
+        <div className="flex justify-end">
+          <LanguageSwitcher />
+        </div>
+
         <Mail className="mx-auto h-12 w-12 text-primary" />
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Check your inbox</h1>
+          <h1 className="text-2xl font-bold text-foreground">{t('title')}</h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            We sent a verification link to{' '}
-            <span className="font-medium text-foreground">
-              {session?.user?.email ?? 'your email address'}
-            </span>
-            . Click the link to activate your account.
+            {t.rich('body', {
+              email: () => (
+                <span className="font-medium text-foreground">
+                  {session?.user?.email ?? t('emailFallback')}
+                </span>
+              ),
+            })}
           </p>
         </div>
 
         {resendMessage && (
-          <p className={`text-sm ${resendMessage.startsWith('Verification') ? 'text-green-600' : 'text-red-600'}`}>
+          <p className={`text-sm ${resendMessage === t('resendSuccess') ? 'text-green-600' : 'text-red-600'}`}>
             {resendMessage}
           </p>
         )}
@@ -92,16 +101,14 @@ function VerifyEmailContent() {
           {resendLoading ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Sending…
+              {t('resending')}
             </>
           ) : (
-            'Resend verification email'
+            t('resendButton')
           )}
         </Button>
 
-        <p className="text-xs text-muted-foreground">
-          Resend is rate-limited to 3 times per 15 minutes.
-        </p>
+        <p className="text-xs text-muted-foreground">{t('rateLimited')}</p>
       </div>
     </div>
   );

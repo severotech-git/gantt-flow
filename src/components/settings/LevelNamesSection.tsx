@@ -7,15 +7,17 @@ import { ReadOnlyBanner } from './ReadOnlyBanner';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { RotateCcw } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 const DEFAULTS = { epic: 'Epic', feature: 'Feature', task: 'Task' };
-const LEVELS = [
-  { key: 'epic' as const,    label: 'Level 1 (top-level)' },
-  { key: 'feature' as const, label: 'Level 2 (mid-level)' },
-  { key: 'task' as const,    label: 'Level 3 (leaf)' },
+const LEVEL_KEYS = [
+  { key: 'epic' as const,    labelKey: 'level1' },
+  { key: 'feature' as const, labelKey: 'level2' },
+  { key: 'task' as const,    labelKey: 'level3' },
 ];
 
 export function LevelNamesSection() {
+  const t = useTranslations('settings.levels');
   const { levelNames, setLevelName, persistSettings, isSaving } = useSettingsStore();
   const canManage = useCanManage();
   const [local, setLocal] = useState({ ...levelNames });
@@ -30,25 +32,25 @@ export function LevelNamesSection() {
   return (
     <div className="max-w-md space-y-6">
       <div>
-        <h2 className="text-lg font-semibold text-foreground mb-1">Level Names</h2>
-        <p className="text-sm text-muted-foreground">Rename the three hierarchy levels to match your team&apos;s terminology.</p>
+        <h2 className="text-lg font-semibold text-foreground mb-1">{t('title')}</h2>
+        <p className="text-sm text-muted-foreground">{t('subtitle')}</p>
       </div>
 
       {!canManage && <ReadOnlyBanner />}
 
       <div className="space-y-4">
-        {LEVELS.map(({ key, label }) => (
+        {LEVEL_KEYS.map(({ key, labelKey }) => (
           <div key={key} className="flex flex-col gap-1.5">
             <div className="flex items-center justify-between">
-              <label className="text-xs text-muted-foreground">{label}</label>
+              <label className="text-xs text-muted-foreground">{t(labelKey)}</label>
               {canManage && local[key] !== DEFAULTS[key] && (
                 <button
                   onClick={() => setLocal((p) => ({ ...p, [key]: DEFAULTS[key] }))}
                   className="flex items-center gap-1 text-[10px] text-muted-foreground hover:text-foreground transition-colors"
-                  title={`Reset to "${DEFAULTS[key]}"`}
+                  title={`${t('reset')} "${DEFAULTS[key]}"`}
                 >
                   <RotateCcw size={10} />
-                  Reset
+                  {t('reset')}
                 </button>
               )}
             </div>
@@ -59,7 +61,7 @@ export function LevelNamesSection() {
               disabled={!canManage}
               className="focus-visible:ring-violet-500"
             />
-            <p className="text-[10px] text-muted-foreground/50">Default: &quot;{DEFAULTS[key]}&quot;</p>
+            <p className="text-[10px] text-muted-foreground/50">{t('default', { value: DEFAULTS[key] })}</p>
           </div>
         ))}
       </div>
@@ -70,7 +72,7 @@ export function LevelNamesSection() {
           disabled={isSaving}
           className="bg-violet-600 hover:bg-violet-500 text-white"
         >
-          {isSaving ? 'Saving…' : 'Save Level Names'}
+          {isSaving ? t('saving') : t('saveButton')}
         </Button>
       )}
     </div>

@@ -21,6 +21,7 @@ import { addDays, parseISO, isValid, differenceInCalendarDays } from 'date-fns';
 import { snapToWorkday } from '@/lib/dateUtils';
 import { useSettingsStore } from '@/store/useSettingsStore';
 import { BarChart3, ZoomIn, ZoomOut } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 const BASE_PX_PER_DAY: Record<string, number> = { week: 28, month: 10, quarter: 4 };
 const OVERLAY_BAR_H = 22;
@@ -47,6 +48,7 @@ function safeParseISO(s: string | undefined): Date | null {
 }
 
 export function GanttBoard() {
+  const t = useTranslations('gantt');
   const project = useProjectStore(selectDisplayProject);
   const {
     timelineScale, timelineStartDate,
@@ -410,7 +412,7 @@ export function GanttBoard() {
     return (
       <div className="flex flex-col flex-1 items-center justify-center gap-4 text-muted-foreground">
         <BarChart3 size={48} strokeWidth={1} />
-        <p className="text-sm">Select a project from the sidebar</p>
+        <p className="text-sm">{t('taskPanel.selectProject')}</p>
       </div>
     );
   }
@@ -457,12 +459,12 @@ export function GanttBoard() {
 
         {/* Footer */}
         <div className="flex items-center gap-3 px-4 py-1.5 border-t border-border text-[11px] text-muted-foreground bg-surface-2 shrink-0">
-          <span className="tabular-nums">{totalTasks} tasks</span>
+          <span className="tabular-nums">{t('footer.tasks', { count: totalTasks })}</span>
           {doneCount > 0 && (
-            <span className="text-emerald-500">• {doneCount} done</span>
+            <span className="text-emerald-500">{t('footer.done', { count: doneCount })}</span>
           )}
           {overdueCount > 0 && (
-            <span className="text-red-500 font-medium animate-pulse">• {overdueCount} overdue</span>
+            <span className="text-red-500 font-medium animate-pulse">{t('footer.overdue', { count: overdueCount })}</span>
           )}
 
           {/* Zoom controls */}
@@ -470,14 +472,14 @@ export function GanttBoard() {
             <button
               onClick={() => setZoomLevel(stepZoom(zoomLevel, 'out'))}
               disabled={zoomLevel <= ZOOM_STEPS[0]}
-              title="Zoom out (Ctrl −)"
+              title={t('zoom.zoomOut')}
               className="p-1 rounded text-muted-foreground hover:text-foreground hover:bg-accent disabled:opacity-30 transition-colors"
             >
               <ZoomOut size={13} />
             </button>
             <button
               onClick={() => setZoomLevel(1)}
-              title="Reset zoom (Ctrl 0)"
+              title={t('zoom.resetZoom')}
               className="px-2 py-0.5 rounded text-[11px] tabular-nums text-muted-foreground hover:text-foreground hover:bg-accent transition-colors min-w-[42px] text-center"
             >
               {Math.round(zoomLevel * 100)}%
@@ -485,7 +487,7 @@ export function GanttBoard() {
             <button
               onClick={() => setZoomLevel(stepZoom(zoomLevel, 'in'))}
               disabled={zoomLevel >= ZOOM_STEPS[ZOOM_STEPS.length - 1]}
-              title="Zoom in (Ctrl =)"
+              title={t('zoom.zoomIn')}
               className="p-1 rounded text-muted-foreground hover:text-foreground hover:bg-accent disabled:opacity-30 transition-colors"
             >
               <ZoomIn size={13} />

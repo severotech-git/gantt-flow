@@ -1,0 +1,468 @@
+{
+  "common": {
+    "cancel": "Cancelar",
+    "save": "Guardar",
+    "delete": "Eliminar",
+    "edit": "Editar",
+    "loading": "Cargando...",
+    "error": "Error",
+    "success": "Éxito",
+    "confirm": "Confirmar",
+    "close": "Cerrar",
+    "add": "Agregar",
+    "create": "Crear",
+    "restore": "Restaurar",
+    "archived": "Archivado",
+    "unassigned": "sin asignar",
+    "noItemsYet": "Sin elementos aún.",
+    "updatedAt": "Actualizado {date}"
+  },
+  "sidebar": {
+    "recent": "Recientes",
+    "workspace": "Workspace",
+    "allProjects": "Todos los Proyectos",
+    "settings": "Configuración",
+    "newProject": "Nuevo proyecto",
+    "noProjectsYet": "Sin proyectos aún"
+  },
+  "landing": {
+    "nav": {
+      "features": "Funcionalidades",
+      "pricing": "Precios",
+      "login": "Iniciar sesión",
+      "tryForFree": "Prueba Gratis"
+    },
+    "hero": {
+      "badge": "Prueba Gratuita de 30 Días Disponible Ahora",
+      "headline": "Domina tu Cronograma con",
+      "subtitle": "La herramienta profesional de gestión de proyectos diseñada para equipos que necesitan más que una lista. Visualiza, rastrea y entrega roadmaps complejos con facilidad.",
+      "cta": "Iniciar Prueba Gratuita de 30 Días",
+      "noCreditCard": "Sin tarjeta de crédito. Configura en 2 minutos."
+    },
+    "features": {
+      "sectionTitle": "Construido para la Entrega Seria de Proyectos",
+      "sectionSubtitle": "Todo lo que necesitas para gestionar jerarquías complejas y plazos estrictos en una interfaz potente.",
+      "bulletSingleSource": "Mantén una única fuente de verdad para el equipo",
+      "bulletNoSpreadsheets": "Elimina las actualizaciones manuales de hojas de cálculo",
+      "hierarchicalStructure": {
+        "title": "Estructura Jerárquica de Proyectos",
+        "description": "Organiza tu trabajo en tres niveles: Épicos, Funcionalidades y Tareas. Mantén claridad perfecta en proyectos complejos."
+      },
+      "automatedRollups": {
+        "title": "Actualizaciones Automáticas de Fechas",
+        "description": "Ahorra tiempo ya que las tareas hijas actualizan automáticamente las fechas y porcentajes de sus padres. La sincronización es sin esfuerzo."
+      },
+      "versionSnapshots": {
+        "title": "Snapshots de Versión",
+        "description": "Captura el estado completo de tu proyecto en cualquier momento. Navega por el historial y restaura versiones anteriores con un solo clic."
+      },
+      "delayTracking": {
+        "title": "Seguimiento Proactivo de Retrasos",
+        "description": "Ve inmediatamente los elementos atrasados y conteos de retrasos. Nuestros indicadores visuales te mantienen adelante de cada fecha límite."
+      },
+      "customization": {
+        "title": "Personalización Profunda",
+        "description": "Adapta tu workspace con estados, colores y nombres de niveles personalizados para el flujo de trabajo específico de tu equipo."
+      },
+      "flexibleTimelines": {
+        "title": "Cronogramas Flexibles",
+        "description": "Visualiza tu roadmap en múltiples escalas, desde tareas diarias hasta metas estratégicas trimestrales."
+      }
+    },
+    "pricing": {
+      "sectionTitle": "Precios Simples y Transparentes",
+      "sectionSubtitle": "Elige el plan que se adapte a tu equipo. Todos los planes incluyen 30 días de prueba gratuita sin compromiso.",
+      "monthly": {
+        "title": "Plan Mensual",
+        "price": "R$ 20,00",
+        "period": "/mes"
+      },
+      "yearly": {
+        "title": "Plan Anual",
+        "price": "R$ 200,00",
+        "period": "/año",
+        "badge": "Mejor Valor — Ahorra 16%"
+      },
+      "features": {
+        "unlimitedProjects": "Proyectos Ilimitados",
+        "freeTrial": "30 Días de Prueba Gratuita",
+        "versionSnapshots": "Snapshots de Versión",
+        "hierarchical": "Soporte Jerárquico Completo",
+        "customStatuses": "Estados y Flujos Personalizados",
+        "support": "Soporte Prioritario 24/7",
+        "everythingMonthly": "Todo del Plan Mensual",
+        "annualSavings": "Ahorros Anuales Significativos",
+        "priorityFeatures": "Acceso Prioritario a Funcionalidades",
+        "teamControls": "Controles Avanzados de Equipo",
+        "dataExport": "Exportación de Datos y Acceso a API"
+      },
+      "startFreeTrial": "Iniciar Prueba Gratuita",
+      "getStartedYearly": "Comenzar Plan Anual",
+      "disclaimer": "Precios en Reales Brasileños (BRL). Cancela en cualquier momento durante tu prueba de 30 días."
+    },
+    "cta": {
+      "title": "¿Listo para Tomar el Control de tus Proyectos?",
+      "subtitle": "Únete a miles de equipos que confían en GanttFlow para visualizar su éxito y cumplir sus objetivos a tiempo.",
+      "button": "Iniciar tu Prueba Gratuita de 30 Días"
+    },
+    "footer": {
+      "privacyPolicy": "Política de Privacidad",
+      "termsOfService": "Términos de Servicio",
+      "contactUs": "Contáctanos",
+      "copyright": "© {year} GanttFlow. Todos los derechos reservados."
+    }
+  },
+  "auth": {
+    "verifyEmail": {
+      "verifiedRedirecting": "¡Correo verificado! Redirigiendo…",
+      "title": "Revisa tu bandeja de entrada",
+      "body": "Enviamos un enlace de verificación a {email}. Haz clic en el enlace para activar tu cuenta.",
+      "emailFallback": "tu dirección de correo",
+      "resendButton": "Reenviar correo de verificación",
+      "resending": "Enviando…",
+      "resendSuccess": "¡Correo de verificación enviado! Revisa tu bandeja.",
+      "resendFailed": "Error al reenviar. Intenta de nuevo.",
+      "errorOccurred": "Ocurrió un error. Intenta de nuevo.",
+      "rateLimited": "El reenvío está limitado a 3 veces por 15 minutos."
+    },
+    "verifyMfa": {
+      "title": "Verificación en dos pasos",
+      "body": "Ingresa el código de 6 dígitos que enviamos a {email}.",
+      "emailFallback": "tu correo",
+      "codePlaceholder": "000000",
+      "verify": "Verificar",
+      "verifying": "Verificando…",
+      "invalidCode": "Ingresa el código de 6 dígitos.",
+      "invalidOrExpired": "Código inválido o expirado. Intenta de nuevo.",
+      "unexpectedError": "Ocurrió un error inesperado.",
+      "noCode": "¿No recibiste el código?",
+      "goBack": "Volver e intentar de nuevo"
+    },
+    "login": {
+      "title": "GanttFlow",
+      "emailLabel": "Correo electrónico",
+      "emailPlaceholder": "tu@ejemplo.com",
+      "passwordLabel": "Contraseña",
+      "passwordPlaceholder": "••••••••",
+      "signInButton": "Iniciar sesión",
+      "signingIn": "Iniciando sesión...",
+      "orContinueWith": "O continúa con",
+      "google": "Google",
+      "github": "GitHub",
+      "noAccount": "¿No tienes una cuenta?",
+      "createOne": "Crear una",
+      "errors": {
+        "CredentialsSignin": "Correo o contraseña inválidos.",
+        "MFARequired": "Se requiere código de verificación.",
+        "OAuthSignin": "No se pudo iniciar sesión con ese proveedor. Intenta de nuevo.",
+        "OAuthCallback": "No se pudo iniciar sesión con ese proveedor. Intenta de nuevo.",
+        "OAuthCreateAccount": "No se pudo crear una cuenta con ese proveedor.",
+        "EmailCreateAccount": "No se pudo crear la cuenta. Intenta de nuevo.",
+        "Callback": "Error en el callback de inicio de sesión. Intenta de nuevo.",
+        "OAuthAccountNotLinked": "Este correo ya está registrado con otro método de inicio de sesión.",
+        "SessionRequired": "Inicia sesión para continuar.",
+        "Default": "Ocurrió un error. Intenta de nuevo."
+      }
+    },
+    "register": {
+      "title": "GanttFlow",
+      "heading": "Crear Cuenta",
+      "inviteSubtitle": "Crea tu cuenta para aceptar la invitación del equipo.",
+      "nameLabel": "Nombre Completo",
+      "namePlaceholder": "Juan García",
+      "emailLabel": "Correo electrónico",
+      "emailPlaceholder": "tu@ejemplo.com",
+      "passwordLabel": "Contraseña",
+      "passwordPlaceholder": "••••••••",
+      "confirmPasswordLabel": "Confirmar Contraseña",
+      "confirmPasswordPlaceholder": "••••••••",
+      "createButton": "Crear Cuenta",
+      "createAndAcceptButton": "Crear Cuenta y Aceptar Invitación",
+      "creating": "Creando cuenta...",
+      "autoLoginFailed": "Registro exitoso, pero el inicio de sesión automático falló. Inicia sesión manualmente.",
+      "unexpectedError": "Ocurrió un error inesperado",
+      "alreadyHaveAccount": "¿Ya tienes una cuenta?",
+      "signIn": "Iniciar sesión"
+    }
+  },
+  "projects": {
+    "pageTitle": "Todos los Proyectos",
+    "newProject": "Nuevo Proyecto",
+    "noProjectsYet": "Sin proyectos aún. ¡Crea el primero!",
+    "archiveProject": "Archivar proyecto",
+    "editProject": "Editar proyecto",
+    "archivedProjects": "Proyectos archivados",
+    "noArchivedProjects": "Sin proyectos archivados.",
+    "deleteConfirmTitle": "¿Eliminar proyecto permanentemente?",
+    "deleteConfirmBody": "Esto eliminará permanentemente el proyecto y todos sus snapshots. Esta acción no se puede deshacer.",
+    "deleteForever": "Eliminar para siempre"
+  },
+  "gantt": {
+    "taskPanel": {
+      "name": "Nombre",
+      "owner": "Responsable",
+      "status": "Estado",
+      "pct": "%",
+      "noItems": "Sin elementos aún.",
+      "addItem": "Nuevo {level}",
+      "unassigned": "Sin asignar",
+      "delay": "+{days}d de retraso",
+      "selectProject": "Selecciona un proyecto de la barra lateral",
+      "addFeature": "Agregar funcionalidad",
+      "addTask": "Agregar tarea",
+      "deleteTitle": "Eliminar"
+    },
+    "footer": {
+      "tasks": "{count} tareas",
+      "done": "• {count} completadas",
+      "overdue": "• {count} atrasadas"
+    },
+    "zoom": {
+      "zoomOut": "Alejar (Ctrl −)",
+      "zoomIn": "Acercar (Ctrl =)",
+      "resetZoom": "Restablecer zoom (Ctrl 0)"
+    },
+    "topnav": {
+      "scales": {
+        "week": "Semana",
+        "month": "Mes",
+        "quarter": "Trimestre"
+      },
+      "backToLive": "Volver al vivo",
+      "jumpToToday": "Ir a hoy",
+      "today": "Hoy",
+      "saving": "Guardando…",
+      "searchPlaceholder": "Buscar...",
+      "versions": "Versiones",
+      "live": "En vivo",
+      "restoreAsLive": "Restaurar como activo",
+      "deleteSnapshot": "Eliminar snapshot",
+      "saveSnapshot": "Guardar Snapshot",
+      "newProject": "Nuevo Proyecto"
+    },
+    "search": {
+      "title": "Buscar",
+      "placeholder": "Buscar elementos...",
+      "noProjectSelected": "Ningún proyecto seleccionado",
+      "noResults": "Sin resultados para \"{query}\"",
+      "itemsTotal": "{count} elementos — escribe para buscar",
+      "navigate": "navegar",
+      "jumpToItem": "ir al elemento",
+      "close": "cerrar",
+      "levels": {
+        "epics": "Épicos",
+        "features": "Funcionalidades",
+        "tasks": "Tareas"
+      }
+    }
+  },
+  "dialogs": {
+    "newProject": {
+      "title": "Crear Nuevo Proyecto",
+      "namePlaceholder": "ej.: Roadmap Q4 2025",
+      "nameLabel": "Nombre del proyecto",
+      "descriptionLabel": "Descripción (opcional)",
+      "descriptionPlaceholder": "Descripción corta…",
+      "colorLabel": "Color",
+      "creating": "Creando…",
+      "createButton": "Crear Proyecto"
+    },
+    "saveVersion": {
+      "title": "Guardar Snapshot",
+      "subtitle": "Crea una copia de solo lectura del estado actual del proyecto. Puedes restaurarla más tarde.",
+      "namePlaceholder": "ej.: v2.4, Sprint 12, Q3 Final",
+      "nameLabel": "Nombre de versión",
+      "saving": "Guardando…",
+      "saveButton": "Guardar Snapshot"
+    },
+    "addItem": {
+      "title": "Agregar {levelLabel}",
+      "nameLabel": "Nombre",
+      "namePlaceholder": "Nombre del {levelLabel}…",
+      "ownerLabel": "Responsable",
+      "plannedStartLabel": "Inicio Planificado",
+      "plannedEndLabel": "Fin Planificado",
+      "statusLabel": "Estado",
+      "adding": "Agregando…",
+      "addButton": "Agregar {levelLabel}"
+    },
+    "editProject": {
+      "title": "Editar Configuración del Proyecto",
+      "nameLabel": "Nombre del proyecto",
+      "namePlaceholder": "ej.: Roadmap Q4 2025",
+      "descriptionLabel": "Descripción (opcional)",
+      "descriptionPlaceholder": "Descripción corta…",
+      "colorLabel": "Color",
+      "cancel": "Cancelar",
+      "saving": "Guardando…",
+      "saveButton": "Guardar Cambios"
+    },
+    "inviteMember": {
+      "title": "Invitar a un Miembro del Equipo",
+      "description": "Recibirán un correo con un enlace para unirse a tu workspace.",
+      "emailLabel": "Dirección de correo",
+      "emailPlaceholder": "colega@ejemplo.com",
+      "roleLabel": "Rol",
+      "roleMember": "Miembro",
+      "roleAdmin": "Admin",
+      "successMessage": "¡Invitación enviada!",
+      "cancel": "Cancelar",
+      "sending": "Enviando…",
+      "sendButton": "Enviar Invitación",
+      "failedError": "Error al enviar la invitación"
+    }
+  },
+  "layout": {
+    "navbar": {
+      "hideSidebar": "Ocultar barra lateral",
+      "showSidebar": "Mostrar barra lateral",
+      "myProfile": "Mi Perfil",
+      "settings": "Configuración",
+      "logOut": "Cerrar sesión"
+    },
+    "accountSwitcher": {
+      "selectWorkspace": "Seleccionar workspace",
+      "workspaces": "Workspaces",
+      "manageWorkspaces": "Gestionar workspaces",
+      "defaultWorkspaceTitle": "Workspace predeterminado"
+    }
+  },
+  "settings": {
+    "profile": {
+      "title": "Perfil Personal",
+      "subtitle": "Gestiona la información de tu cuenta y cómo apareces para los demás.",
+      "displayNameLabel": "Nombre para Mostrar",
+      "displayNamePlaceholder": "Tu nombre",
+      "emailLabel": "Dirección de Correo",
+      "emailNote": "El correo no puede cambiarse. Contacta soporte si necesitas actualizarlo.",
+      "saving": "Guardando...",
+      "saveButton": "Guardar Perfil",
+      "successMessage": "Perfil actualizado exitosamente",
+      "languageTitle": "Idioma",
+      "languageSubtitle": "Elige tu idioma preferido.",
+      "languages": {
+        "en": "English",
+        "pt-BR": "Português",
+        "es": "Español"
+      }
+    },
+    "theme": {
+      "title": "Tema",
+      "subtitle": "Elige tu esquema de colores preferido.",
+      "system": "Sistema",
+      "dark": "Oscuro",
+      "light": "Claro"
+    },
+    "nav": {
+      "groups": {
+        "account": "Cuenta",
+        "customization": "Personalización",
+        "user": "Usuario"
+      },
+      "items": {
+        "workspaces": "Workspaces",
+        "team": "Equipo y Acceso",
+        "assignees": "Responsables",
+        "levels": "Nombres de Nivel",
+        "statuses": "Lista de Estados",
+        "calendar": "Calendario",
+        "profile": "Mi Perfil",
+        "theme": "Tema"
+      }
+    },
+    "readOnly": "Solo los propietarios y admins pueden cambiar esta configuración.",
+    "statuses": {
+      "title": "Lista de Estados",
+      "subtitle": "Define los estados disponibles para tareas, funcionalidades y épicos.",
+      "addStatus": "Agregar Estado",
+      "saving": "Guardando…",
+      "saveButton": "Guardar Estados",
+      "terminalTitle": "Estado terminal (sin retraso)",
+      "nonTerminalTitle": "Estado no-terminal",
+      "finalBadge": "Final",
+      "activeBadge": "Activo",
+      "deleteTitle": "Eliminar estado",
+      "newStatusLabel": "Nuevo Estado"
+    },
+    "levels": {
+      "title": "Nombres de Nivel",
+      "subtitle": "Renombra los tres niveles jerárquicos para que coincidan con la terminología de tu equipo.",
+      "level1": "Nivel 1 (superior)",
+      "level2": "Nivel 2 (intermedio)",
+      "level3": "Nivel 3 (hoja)",
+      "reset": "Restablecer",
+      "default": "Predeterminado: \"{value}\"",
+      "saving": "Guardando…",
+      "saveButton": "Guardar Nombres de Nivel"
+    },
+    "assignees": {
+      "title": "Responsables",
+      "subtitle": "Todos los listados aquí pueden ser asignados como responsables de épicos, funcionalidades y tareas.",
+      "accountMembers": "Miembros de la Cuenta",
+      "syncedBadge": "sincronizado",
+      "teamAccessLink": "Equipo y Acceso",
+      "accountMembersNote": "Son personas con cuentas reales. Gestiona el acceso en {link}.",
+      "noAccountMembers": "Sin miembros de cuenta aún.",
+      "guestAssignees": "Responsables Invitados",
+      "virtualBadge": "virtual",
+      "guestNote": "Personas que pueden asignarse a tareas pero no tienen una cuenta. Útil para contratistas o colaboradores externos.",
+      "noGuestAssignees": "Sin responsables invitados aún.",
+      "addGuest": "Agregar Responsable Invitado",
+      "saving": "Guardando…",
+      "saveButton": "Guardar",
+      "unnamed": "Sin nombre",
+      "youBadge": "Tú",
+      "removeTitle": "Eliminar",
+      "namePlaceholder": "Nombre…"
+    },
+    "team": {
+      "title": "Equipo y Acceso",
+      "subtitle": "Gestiona quién puede acceder a este workspace y sus permisos. Para personalizar colores de responsables o agregar responsables virtuales, ve a {link}.",
+      "assigneesLink": "Responsables",
+      "membersTitle": "Miembros",
+      "inviteButton": "Invitar",
+      "youLabel": "(Tú)",
+      "noMembers": "Sin miembros aún.",
+      "pendingInvitations": "Invitaciones Pendientes",
+      "pendingBadge": "pendiente",
+      "cancelInvitationTitle": "Cancelar invitación",
+      "removeMemberTitle": "Eliminar miembro",
+      "roles": {
+        "owner": "Propietario",
+        "admin": "Admin",
+        "member": "Miembro"
+      }
+    },
+    "accounts": {
+      "title": "Workspaces",
+      "memberOfSingular": "Eres miembro de {count} workspace.",
+      "memberOfPlural": "Eres miembro de {count} workspaces.",
+      "defaultLabel": "workspace predeterminado",
+      "defaultAutoOpen": "Tu {defaultLabel} se abre automáticamente cada vez que inicias sesión.",
+      "explainerTitle": "¿Qué es el workspace predeterminado?",
+      "explainerBody": "Cuando inicias sesión, GanttFlow abre tu workspace predeterminado automáticamente — sin clics extra. Aún puedes cambiar a cualquier workspace al que pertenezcas en cualquier momento desde la barra lateral.",
+      "defaultBadge": "Predeterminado",
+      "activeBadge": "Activo ahora",
+      "opensAutomatically": "Se abre automáticamente cuando inicias sesión",
+      "renameTitle": "Renombrar workspace",
+      "renameButton": "Renombrar",
+      "switchTitle": "Cambiar a este workspace",
+      "switchButton": "Cambiar",
+      "setDefaultTitle": "Establecer como workspace predeterminado",
+      "setDefaultButton": "Establecer predeterminado",
+      "joinNote": "Para unirte a un nuevo workspace, pide al propietario o admin que te envíe una invitación.",
+      "renameDialogTitle": "Renombrar workspace",
+      "workspaceNamePlaceholder": "Nombre del workspace",
+      "nameTooShort": "El nombre debe tener al menos 2 caracteres.",
+      "cancel": "Cancelar",
+      "save": "Guardar"
+    },
+    "calendar": {
+      "title": "Calendario",
+      "subtitle": "Configura reglas de programación que se aplican al crear o mover elementos.",
+      "allowWeekends": "Permitir fechas de fin de semana",
+      "weekendsEnabled": "Las tareas pueden comenzar y terminar los sábados y domingos.",
+      "weekendsDisabled": "Las fechas de inicio se ajustan al lunes y las de fin al viernes cuando se selecciona o arrastra a un fin de semana."
+    }
+  }
+}

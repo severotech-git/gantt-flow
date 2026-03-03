@@ -10,6 +10,7 @@ import { LayoutGrid, Settings, Plus } from 'lucide-react';
 import { AccountSwitcher } from './AccountSwitcher';
 import { NewProjectDialog } from '@/components/dialogs/NewProjectDialog';
 import logoIcon from '../../../public/icon.png';
+import { useTranslations } from 'next-intl';
 
 interface SidebarProps {
   collapsed?: boolean;
@@ -19,6 +20,7 @@ export function Sidebar({ collapsed = false }: SidebarProps) {
   const pathname = usePathname();
   const { projects, fetchProjects } = useProjectStore();
   const [newProjectOpen, setNewProjectOpen] = useState(false);
+  const t = useTranslations('sidebar');
 
   useEffect(() => {
     fetchProjects();
@@ -52,12 +54,12 @@ export function Sidebar({ collapsed = false }: SidebarProps) {
       <div className="mt-5">
         <div className="flex items-center justify-between px-4 mb-1">
           <span className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
-            Recent
+            {t('recent')}
           </span>
           <button
             onClick={() => setNewProjectOpen(true)}
             className="text-muted-foreground hover:text-foreground transition-colors"
-            title="New project"
+            title={t('newProject')}
           >
             <Plus size={13} />
           </button>
@@ -72,7 +74,7 @@ export function Sidebar({ collapsed = false }: SidebarProps) {
           />
         ))}
         {recent.length === 0 && (
-          <p className="px-4 text-[11px] text-muted-foreground/60 italic">No projects yet</p>
+          <p className="px-4 text-[11px] text-muted-foreground/60 italic">{t('noProjectsYet')}</p>
         )}
       </div>
 
@@ -80,14 +82,14 @@ export function Sidebar({ collapsed = false }: SidebarProps) {
       <div className="mt-5">
         <div className="px-4 mb-1">
           <span className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
-            Workspace
+            {t('workspace')}
           </span>
         </div>
         <SidebarLink
           href="/projects"
           active={pathname === '/projects'}
           icon={<LayoutGrid size={14} />}
-          label="All Projects"
+          label={t('allProjects')}
         />
       </div>
 
@@ -95,7 +97,7 @@ export function Sidebar({ collapsed = false }: SidebarProps) {
 
       {/* Bottom: workspace switcher + settings */}
       <div className="border-t border-border pt-1 pb-2">
-        <SidebarLink href="/settings" active={pathname === '/settings'} icon={<Settings size={14} />} label="Settings" />
+        <SidebarLink href="/settings" active={pathname === '/settings'} icon={<Settings size={14} />} label={t('settings')} />
       </div>
     </aside>
 

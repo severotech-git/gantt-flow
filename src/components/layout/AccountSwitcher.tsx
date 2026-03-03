@@ -12,8 +12,10 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { ChevronDown, Star, Settings, Loader2 } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 export function AccountSwitcher({ side = 'bottom' }: { side?: 'top' | 'bottom' }) {
+  const t = useTranslations('layout.accountSwitcher');
   const { data: session, update } = useSession();
   const router = useRouter();
   const accounts = useAccountStore((s) => s.accounts);
@@ -25,7 +27,7 @@ export function AccountSwitcher({ side = 'bottom' }: { side?: 'top' | 'bottom' }
 
   const activeAccountId = session?.user?.activeAccountId;
   const activeAccount = accounts.find((a) => a._id === activeAccountId);
-  const displayName = activeAccount?.name ?? 'Select workspace';
+  const displayName = activeAccount?.name ?? t('selectWorkspace');
 
   const handleSwitch = async (accountId: string) => {
     if (accountId === activeAccountId) { setOpen(false); return; }
@@ -54,7 +56,7 @@ export function AccountSwitcher({ side = 'bottom' }: { side?: 'top' | 'bottom' }
 
       <PopoverContent className="w-64 p-1" align="start" side={side}>
         <div className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground px-3 py-1.5">
-          Workspaces
+          {t('workspaces')}
         </div>
 
         {accounts.map((acc) => {
@@ -82,7 +84,7 @@ export function AccountSwitcher({ side = 'bottom' }: { side?: 'top' | 'bottom' }
               <span className="flex-1 truncate">{acc.name}</span>
               <Badge variant="outline" className="text-[10px] shrink-0">{acc.role}</Badge>
               {isMain && (
-                <span title="Default workspace">
+                <span title={t('defaultWorkspaceTitle')}>
                   <Star size={11} className="shrink-0 fill-yellow-400 text-yellow-400" />
                 </span>
               )}
@@ -96,7 +98,7 @@ export function AccountSwitcher({ side = 'bottom' }: { side?: 'top' | 'bottom' }
             className="flex items-center gap-2 w-full rounded px-3 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors"
           >
             <Settings size={13} />
-            Manage workspaces
+            {t('manageWorkspaces')}
           </button>
         </div>
       </PopoverContent>

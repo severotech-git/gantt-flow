@@ -15,12 +15,9 @@ import { Camera, ChevronDown, History, Search, Plus, Crosshair, Loader2, Eye, Ro
 import { cn } from '@/lib/utils';
 import { useState } from 'react';
 import { PageNavbar } from '@/components/layout/PageNavbar';
+import { useTranslations } from 'next-intl';
 
-const SCALES: { value: TimelineScale; label: string }[] = [
-  { value: 'week',    label: 'Week'    },
-  { value: 'month',   label: 'Month'   },
-  { value: 'quarter', label: 'Quarter' },
-];
+const SCALE_VALUES: TimelineScale[] = ['week', 'month', 'quarter'];
 
 interface TopNavbarProps {
   onEditProject: () => void;
@@ -32,6 +29,7 @@ interface TopNavbarProps {
 }
 
 export function TopNavbar({ onEditProject: _onEditProject, onSaveVersion, onNewProject, onSearch, sidebarOpen, onToggleSidebar }: TopNavbarProps) {
+  const t = useTranslations('gantt.topnav');
   const {
     timelineScale,
     setTimelineScale,
@@ -54,18 +52,18 @@ export function TopNavbar({ onEditProject: _onEditProject, onSaveVersion, onNewP
     <>
       {/* Scale toggles */}
       <div className="flex items-center bg-accent/60 rounded-md p-0.5 gap-0">
-        {SCALES.map((s) => (
+        {SCALE_VALUES.map((value) => (
           <button
-            key={s.value}
-            onClick={() => setTimelineScale(s.value)}
+            key={value}
+            onClick={() => setTimelineScale(value)}
             className={cn(
               'px-3 py-1 text-xs font-medium rounded transition-colors',
-              timelineScale === s.value
+              timelineScale === value
                 ? 'bg-background text-foreground shadow-sm'
                 : 'text-muted-foreground hover:text-foreground'
             )}
           >
-            {s.label}
+            {t(`scales.${value}`)}
           </button>
         ))}
       </div>
@@ -82,7 +80,7 @@ export function TopNavbar({ onEditProject: _onEditProject, onSaveVersion, onNewP
             className="flex items-center gap-1.5 px-2.5 py-1 rounded-r-md bg-emerald-500/10 border border-emerald-500/30 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-500/20 transition-colors"
           >
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shrink-0" />
-            Back to live
+            {t('backToLive')}
           </button>
         </div>
       )}
@@ -90,11 +88,11 @@ export function TopNavbar({ onEditProject: _onEditProject, onSaveVersion, onNewP
       {/* Jump to today */}
       <button
         onClick={jumpToToday}
-        title="Jump to today"
+        title={t('jumpToToday')}
         className="flex items-center gap-1.5 px-2 py-1.5 text-xs text-muted-foreground hover:text-foreground bg-accent/40 border border-border rounded-md hover:bg-accent transition-colors"
       >
         <Crosshair size={12} />
-        Today
+        {t('today')}
       </button>
     </>
   );
@@ -106,7 +104,7 @@ export function TopNavbar({ onEditProject: _onEditProject, onSaveVersion, onNewP
       {isSaving && (
         <span className="flex items-center gap-1 text-[11px] text-muted-foreground">
           <Loader2 size={11} className="animate-spin" />
-          Saving…
+          {t('saving')}
         </span>
       )}
 
@@ -116,7 +114,7 @@ export function TopNavbar({ onEditProject: _onEditProject, onSaveVersion, onNewP
         className="flex items-center gap-2 px-3 py-1.5 text-xs text-muted-foreground bg-accent/40 border border-border rounded-md hover:bg-accent transition-colors min-w-[160px]"
       >
         <Search size={12} />
-        <span className="flex-1 text-left">Search...</span>
+        <span className="flex-1 text-left">{t('searchPlaceholder')}</span>
         <kbd className="text-[10px] text-muted-foreground/60 font-sans">⌘K</kbd>
       </button>
 
@@ -126,19 +124,19 @@ export function TopNavbar({ onEditProject: _onEditProject, onSaveVersion, onNewP
           <DropdownMenuTrigger asChild>
             <button className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs bg-accent/40 border border-border rounded-md text-muted-foreground hover:bg-accent hover:text-foreground transition-colors">
               <History size={12} />
-              {activeVersion ? activeVersion.versionName : 'Live'}
+              {activeVersion ? activeVersion.versionName : t('live')}
               <ChevronDown size={11} />
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-56">
-            <DropdownMenuLabel className="text-muted-foreground text-xs">Versions</DropdownMenuLabel>
+            <DropdownMenuLabel className="text-muted-foreground text-xs">{t('versions')}</DropdownMenuLabel>
 
             <DropdownMenuItem
               onSelect={() => { clearVersion(); setVersionMenuOpen(false); }}
               className={cn('text-xs cursor-pointer gap-2', !isVersionReadOnly && 'text-violet-500 font-medium')}
             >
               <span className={cn('w-1.5 h-1.5 rounded-full shrink-0', !isVersionReadOnly ? 'bg-emerald-500' : 'bg-muted-foreground/40')} />
-              Live
+              {t('live')}
             </DropdownMenuItem>
 
             {(versions && versions.length > 0) && <DropdownMenuSeparator />}
@@ -161,14 +159,14 @@ export function TopNavbar({ onEditProject: _onEditProject, onSaveVersion, onNewP
                 <div className="flex items-center gap-0.5 opacity-0 group-hover/item:opacity-100 transition-opacity shrink-0">
                   <button
                     onClick={() => { restoreVersion(v._id); setVersionMenuOpen(false); }}
-                    title="Restore as live"
+                    title={t('restoreAsLive')}
                     className="p-1 rounded hover:bg-emerald-500/15 hover:text-emerald-600 dark:hover:text-emerald-400 text-muted-foreground transition-colors"
                   >
                     <RotateCcw size={11} />
                   </button>
                   <button
                     onClick={() => deleteVersion(v._id)}
-                    title="Delete snapshot"
+                    title={t('deleteSnapshot')}
                     className="p-1 rounded hover:bg-red-500/15 hover:text-red-500 text-muted-foreground transition-colors"
                   >
                     <Trash2 size={11} />
@@ -184,14 +182,14 @@ export function TopNavbar({ onEditProject: _onEditProject, onSaveVersion, onNewP
       {!isVersionReadOnly && project && (
         <Button size="sm" onClick={onSaveVersion} className="h-7 px-3 text-xs bg-violet-600 hover:bg-violet-500 text-white gap-1.5">
           <Camera size={12} />
-          Save Snapshot
+          {t('saveSnapshot')}
         </Button>
       )}
 
       {/* New Project */}
       <Button size="sm" variant="outline" onClick={onNewProject} className="h-7 px-3 text-xs gap-1">
         <Plus size={12} />
-        New Project
+        {t('newProject')}
       </Button>
     </>
   );

@@ -15,6 +15,7 @@ import { OwnerAvatar } from '@/components/shared/OwnerAvatar';
 import { cn } from '@/lib/utils';
 import { format, addDays, parseISO } from 'date-fns';
 import { snapToWorkday } from '@/lib/dateUtils';
+import { useTranslations } from 'next-intl';
 
 type AddMode = 'epic' | 'feature' | 'task';
 
@@ -30,6 +31,8 @@ const today = new Date();
 
 export function AddItemDialog({ open, onClose, mode, epicId, featureId }: AddItemDialogProps) {
   const { levelNames, statuses, users, allowWeekends } = useSettingsStore();
+  const t = useTranslations('dialogs.addItem');
+  const tCommon = useTranslations('common');
   const [name, setName] = useState('');
   const [plannedStart, setPlannedStart] = useState(format(today, 'yyyy-MM-dd'));
   const [plannedEnd, setPlannedEnd] = useState(format(addDays(today, 7), 'yyyy-MM-dd'));
@@ -58,7 +61,7 @@ export function AddItemDialog({ open, onClose, mode, epicId, featureId }: AddIte
   const { addEpic, addFeature, addTask, activeProject } = useProjectStore();
 
   const levelLabel = mode === 'epic' ? levelNames.epic : mode === 'feature' ? levelNames.feature : levelNames.task;
-  const title = `Add ${levelLabel}`;
+  const title = t('title', { levelLabel });
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -104,18 +107,18 @@ export function AddItemDialog({ open, onClose, mode, epicId, featureId }: AddIte
         </DialogHeader>
         <form onSubmit={handleSubmit} className="flex flex-col gap-4 mt-2">
           <div className="flex flex-col gap-1.5">
-            <label className="text-xs text-muted-foreground">Name</label>
+            <label className="text-xs text-muted-foreground">{t('nameLabel')}</label>
             <Input
               autoFocus
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder={`${levelLabel} name…`}
+              placeholder={t('namePlaceholder', { levelLabel })}
               className="focus-visible:ring-violet-500"
             />
           </div>
           {(mode === 'feature' || mode === 'task') && users.length > 0 && (
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs text-muted-foreground">Owner</label>
+              <label className="text-xs text-muted-foreground">{t('ownerLabel')}</label>
               <div className="flex flex-wrap gap-1.5">
                 <button
                   type="button"
@@ -127,7 +130,7 @@ export function AddItemDialog({ open, onClose, mode, epicId, featureId }: AddIte
                       : 'border-border text-muted-foreground hover:border-border/80'
                   )}
                 >
-                  unassigned
+                  {tCommon('unassigned')}
                 </button>
                 {users.map((u) => (
                   <button
@@ -150,7 +153,7 @@ export function AddItemDialog({ open, onClose, mode, epicId, featureId }: AddIte
           )}
           <div className="grid grid-cols-2 gap-3">
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs text-muted-foreground">Planned Start</label>
+              <label className="text-xs text-muted-foreground">{t('plannedStartLabel')}</label>
               <Input
                 type="date"
                 value={plannedStart}
@@ -159,7 +162,7 @@ export function AddItemDialog({ open, onClose, mode, epicId, featureId }: AddIte
               />
             </div>
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs text-muted-foreground">Planned End</label>
+              <label className="text-xs text-muted-foreground">{t('plannedEndLabel')}</label>
               <Input
                 type="date"
                 value={plannedEnd}
@@ -169,7 +172,7 @@ export function AddItemDialog({ open, onClose, mode, epicId, featureId }: AddIte
             </div>
           </div>
           <div className="flex flex-col gap-1.5">
-            <label className="text-xs text-muted-foreground">Status</label>
+            <label className="text-xs text-muted-foreground">{t('statusLabel')}</label>
             <div className="flex flex-wrap gap-1.5">
               {statuses.map((s) => (
                 <button
@@ -189,14 +192,14 @@ export function AddItemDialog({ open, onClose, mode, epicId, featureId }: AddIte
           </div>
           <div className="flex justify-end gap-2 pt-1">
             <Button type="button" variant="ghost" onClick={onClose} className="text-muted-foreground">
-              Cancel
+              {tCommon('cancel')}
             </Button>
             <Button
               type="submit"
               disabled={loading || !name.trim()}
               className="bg-violet-600 hover:bg-violet-500 text-white"
             >
-              {loading ? 'Adding…' : `Add ${levelLabel}`}
+              {loading ? t('adding') : t('addButton', { levelLabel })}
             </Button>
           </div>
         </form>

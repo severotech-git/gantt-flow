@@ -210,6 +210,12 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       // Apply base callback first (handles uid on first login)
       const base = await authConfig.callbacks.jwt({ token, user, trigger, session });
 
+      // On update trigger: sync locale from client session update
+      const VALID_LOCALES = ['en', 'pt-BR', 'es'];
+      if (trigger === 'update' && session?.locale && VALID_LOCALES.includes(session.locale as string)) {
+        base.locale = session.locale as string;
+      }
+
       // On update trigger: validate membership before writing activeAccountId
       if (trigger === 'update' && session?.activeAccountId) {
         try {
@@ -241,13 +247,14 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         }
       }
 
-      // On first login: resolve activeAccountId and emailVerified from DB
+      // On first login: resolve activeAccountId, emailVerified, and locale from DB
       if (user?.id) {
         try {
           await connectDB();
           const dbUser = await User.findById(user.id);
           if (dbUser) {
             base.emailVerified = !!dbUser.emailVerified;
+            base.locale = dbUser.locale ?? 'en';
             if (dbUser.mainAccountId) {
               base.activeAccountId = dbUser.mainAccountId;
             } else if (!base.activeAccountId) {

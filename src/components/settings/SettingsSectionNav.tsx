@@ -2,31 +2,37 @@
 
 import { cn } from '@/lib/utils';
 import { Sun, Tag, Layers2, CalendarDays, User, UsersRound, UserCheck, Building2 } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 type Section = 'profile' | 'team' | 'users' | 'theme' | 'statuses' | 'levels' | 'calendar' | 'accounts';
 
-const GROUPS: { label: string; items: { id: Section; label: string; icon: React.ReactNode }[] }[] = [
+type GroupDef = {
+  groupKey: string;
+  items: { id: Section; itemKey: string; icon: React.ReactNode }[];
+};
+
+const GROUPS: GroupDef[] = [
   {
-    label: 'Account',
+    groupKey: 'account',
     items: [
-      { id: 'accounts', label: 'Workspaces',    icon: <Building2 size={15} /> },
-      { id: 'team',     label: 'Team & Access', icon: <UsersRound size={15} /> },
+      { id: 'accounts', itemKey: 'workspaces', icon: <Building2 size={15} /> },
+      { id: 'team',     itemKey: 'team',       icon: <UsersRound size={15} /> },
     ],
   },
   {
-    label: 'Customization',
+    groupKey: 'customization',
     items: [
-      { id: 'users',    label: 'Assignees',    icon: <UserCheck size={15} /> },
-      { id: 'levels',   label: 'Level Names',  icon: <Layers2 size={15} /> },
-      { id: 'statuses', label: 'Status List',  icon: <Tag size={15} /> },
-      { id: 'calendar', label: 'Calendar',     icon: <CalendarDays size={15} /> },
+      { id: 'users',    itemKey: 'assignees', icon: <UserCheck size={15} /> },
+      { id: 'levels',   itemKey: 'levels',    icon: <Layers2 size={15} /> },
+      { id: 'statuses', itemKey: 'statuses',  icon: <Tag size={15} /> },
+      { id: 'calendar', itemKey: 'calendar',  icon: <CalendarDays size={15} /> },
     ],
   },
   {
-    label: 'User',
+    groupKey: 'user',
     items: [
-      { id: 'profile', label: 'My Profile', icon: <User size={15} /> },
-      { id: 'theme',   label: 'Theme',      icon: <Sun size={15} /> },
+      { id: 'profile', itemKey: 'profile', icon: <User size={15} /> },
+      { id: 'theme',   itemKey: 'theme',   icon: <Sun size={15} /> },
     ],
   },
 ];
@@ -39,12 +45,14 @@ interface SettingsSectionNavProps {
 }
 
 export function SettingsSectionNav({ active, onChange }: SettingsSectionNavProps) {
+  const t = useTranslations('settings.nav');
+
   return (
     <nav className="w-48 shrink-0 border-r border-border py-4 flex flex-col gap-4">
       {GROUPS.map((group) => (
-        <div key={group.label}>
+        <div key={group.groupKey}>
           <p className="px-4 mb-1 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/60">
-            {group.label}
+            {t(`groups.${group.groupKey}`)}
           </p>
           <div className="flex flex-col gap-0.5">
             {group.items.map((s) => (
@@ -59,7 +67,7 @@ export function SettingsSectionNav({ active, onChange }: SettingsSectionNavProps
                 )}
               >
                 <span className="shrink-0 text-muted-foreground">{s.icon}</span>
-                {s.label}
+                {t(`items.${s.itemKey}`)}
               </button>
             ))}
           </div>

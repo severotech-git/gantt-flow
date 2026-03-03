@@ -11,12 +11,14 @@ import { Badge } from '@/components/ui/badge';
 import { OwnerAvatar } from '@/components/shared/OwnerAvatar';
 import { ColorSwatch } from './ColorSwatch';
 import { Trash2, Plus, Lock } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 function generateId(): string {
   return Math.random().toString(36).slice(2, 10);
 }
 
 export function UsersSection() {
+  const t = useTranslations('settings.assignees');
   const router = useRouter();
   const { data: session } = useSession();
   const accounts = useAccountStore((s) => s.accounts);
@@ -36,32 +38,32 @@ export function UsersSection() {
   return (
     <div className="max-w-lg space-y-8">
       <div>
-        <h2 className="text-lg font-semibold text-foreground mb-1">Assignees</h2>
-        <p className="text-sm text-muted-foreground">
-          Everyone listed here can be set as the owner of epics, features, and tasks.
-        </p>
+        <h2 className="text-lg font-semibold text-foreground mb-1">{t('title')}</h2>
+        <p className="text-sm text-muted-foreground">{t('subtitle')}</p>
       </div>
 
       {/* ── Account Members ───────────────────────────────────────────── */}
       <section className="space-y-3">
         <div className="flex items-center gap-2">
-          <h3 className="text-sm font-medium text-foreground">Account Members</h3>
-          <Badge variant="outline" className="text-[10px]">synced</Badge>
+          <h3 className="text-sm font-medium text-foreground">{t('accountMembers')}</h3>
+          <Badge variant="outline" className="text-[10px]">{t('syncedBadge')}</Badge>
         </div>
         <p className="text-xs text-muted-foreground -mt-1">
-          These are people with actual accounts. Manage access in{' '}
-          <button
-            className="text-primary hover:underline"
-            onClick={() => router.push('/settings?section=team')}
-          >
-            Team &amp; Access
-          </button>
-          .
+          {t.rich('accountMembersNote', {
+            link: (chunks) => (
+              <button
+                className="text-primary hover:underline"
+                onClick={() => router.push('/settings?section=team')}
+              >
+                {chunks}
+              </button>
+            ),
+          })}
         </p>
 
         <div className="space-y-2">
           {realMembers.length === 0 && (
-            <p className="text-xs text-muted-foreground/60 italic py-2">No account members yet.</p>
+            <p className="text-xs text-muted-foreground/60 italic py-2">{t('noAccountMembers')}</p>
           )}
           {realMembers.map((user) => {
             const isYou = session?.user?.id === user.uid;
@@ -83,16 +85,14 @@ export function UsersSection() {
       {/* ── Guest Assignees ───────────────────────────────────────────── */}
       <section className="space-y-3">
         <div className="flex items-center gap-2">
-          <h3 className="text-sm font-medium text-foreground">Guest Assignees</h3>
-          <Badge variant="outline" className="text-[10px]">virtual</Badge>
+          <h3 className="text-sm font-medium text-foreground">{t('guestAssignees')}</h3>
+          <Badge variant="outline" className="text-[10px]">{t('virtualBadge')}</Badge>
         </div>
-        <p className="text-xs text-muted-foreground -mt-1">
-          People who can be assigned to tasks but don&apos;t have an account. Useful for contractors or external collaborators.
-        </p>
+        <p className="text-xs text-muted-foreground -mt-1">{t('guestNote')}</p>
 
         <div className="space-y-2">
           {guestAssignees.length === 0 && (
-            <p className="text-xs text-muted-foreground/60 italic py-2">No guest assignees yet.</p>
+            <p className="text-xs text-muted-foreground/60 italic py-2">{t('noGuestAssignees')}</p>
           )}
           {guestAssignees.map((user) => (
             <GuestRow
@@ -111,7 +111,7 @@ export function UsersSection() {
           <span className="flex items-center justify-center w-5 h-5 rounded border border-dashed border-border group-hover:border-violet-500 transition-colors">
             <Plus size={11} />
           </span>
-          Add Guest Assignee
+          {t('addGuest')}
         </button>
       </section>
 
@@ -120,7 +120,7 @@ export function UsersSection() {
         disabled={isSaving}
         className="bg-violet-600 hover:bg-violet-500 text-white"
       >
-        {isSaving ? 'Saving…' : 'Save'}
+        {isSaving ? t('saving') : t('saveButton')}
       </Button>
     </div>
   );
@@ -137,17 +137,18 @@ function AccountMemberRow({
   isYou: boolean;
   role?: string;
 }) {
+  const t = useTranslations('settings.assignees');
   return (
     <div className="flex items-center gap-3 p-2 rounded-lg bg-muted/30 border border-border">
       <OwnerAvatar name={user.name || '?'} color={user.color} size={28} />
 
       <div className="flex-1 flex items-center gap-2 min-w-0">
         <span className="text-sm truncate">
-          {user.name || <span className="text-muted-foreground italic">Unnamed</span>}
+          {user.name || <span className="text-muted-foreground italic">{t('unnamed')}</span>}
         </span>
         {isYou && (
           <span className="text-[11px] font-medium px-2 py-0.5 rounded bg-violet-500/20 text-violet-400 shrink-0">
-            You
+            {t('youBadge')}
           </span>
         )}
       {role && <Badge variant="outline" className="text-[10px] shrink-0">{role}</Badge>}
@@ -175,6 +176,7 @@ function GuestRow({
   onUpdate: (patch: Partial<IUserConfig>) => void;
   onDelete: () => void;
 }) {
+  const t = useTranslations('settings.assignees');
   return (
     <div className="flex items-center gap-3 p-2 rounded-lg bg-muted/30 border border-border group">
       <OwnerAvatar name={user.name || '?'} color={user.color} size={28} />
@@ -183,7 +185,7 @@ function GuestRow({
         <Input
           value={user.name}
           onChange={(e) => onUpdate({ name: e.target.value })}
-          placeholder="Name…"
+          placeholder={t('namePlaceholder')}
           className="h-7 text-sm focus-visible:ring-violet-500"
         />
       </div>
@@ -193,7 +195,7 @@ function GuestRow({
       <button
         onClick={onDelete}
         className="text-muted-foreground/60 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100"
-        title="Remove"
+        title={t('removeTitle')}
       >
         <Trash2 size={14} />
       </button>

@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
-import { IStatusConfig, IUserConfig } from '@/types';
+import { IStatusConfig, IUserConfig, AppLocale } from '@/types';
 
 export const DEFAULT_STATUSES: IStatusConfig[] = [
   { value: 'todo',        label: 'To Do',       color: '#64748b', isFinal: false },
@@ -11,11 +11,12 @@ export const DEFAULT_STATUSES: IStatusConfig[] = [
   { value: 'blocked',     label: 'Blocked',     color: '#c2410c', isFinal: false },
 ];
 
-type SettingsKey = 'users' | 'theme' | 'levelNames' | 'statuses' | 'allowWeekends';
+type SettingsKey = 'users' | 'theme' | 'locale' | 'levelNames' | 'statuses' | 'allowWeekends';
 
 interface SettingsState {
   users: IUserConfig[];
   theme: 'dark' | 'light' | 'system';
+  locale: AppLocale;
   levelNames: { epic: string; feature: string; task: string };
   statuses: IStatusConfig[];
   allowWeekends: boolean;
@@ -28,6 +29,7 @@ interface SettingsActions {
   /** Persist only the specified keys — avoids sending managed fields when the user lacks permission. */
   persistSettings: (...keys: SettingsKey[]) => Promise<void>;
   setTheme: (t: 'dark' | 'light' | 'system') => void;
+  setLocale: (l: AppLocale) => void;
   setAllowWeekends: (v: boolean) => void;
   setLevelName: (level: 'epic' | 'feature' | 'task', v: string) => void;
   // User list CRUD
@@ -45,6 +47,7 @@ export const useSettingsStore = create<SettingsState & SettingsActions>()(
   immer((set, get) => ({
     users: [],
     theme: 'system',
+    locale: 'en',
     levelNames: { epic: 'Epic', feature: 'Feature', task: 'Task' },
     statuses: DEFAULT_STATUSES,
     allowWeekends: false,
@@ -60,6 +63,7 @@ export const useSettingsStore = create<SettingsState & SettingsActions>()(
         set((s) => {
           s.users = data.users ?? [];
           s.theme = data.theme ?? 'system';
+          s.locale = data.locale ?? 'en';
           s.levelNames = data.levelNames ?? { epic: 'Epic', feature: 'Feature', task: 'Task' };
           s.statuses = data.statuses?.length ? data.statuses : DEFAULT_STATUSES;
           s.allowWeekends = data.allowWeekends ?? false;
@@ -95,6 +99,11 @@ export const useSettingsStore = create<SettingsState & SettingsActions>()(
     setTheme: (t) => {
       set((s) => { s.theme = t; });
       setTimeout(() => get().persistSettings('theme'), 0);
+    },
+
+    setLocale: (l) => {
+      set((s) => { s.locale = l; });
+      setTimeout(() => get().persistSettings('locale'), 0);
     },
 
     setAllowWeekends: (v) => {

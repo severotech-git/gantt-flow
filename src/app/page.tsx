@@ -22,6 +22,8 @@ import {
 } from 'lucide-react';
 import Image, { type StaticImageData } from 'next/image';
 import { cn } from '@/lib/utils';
+import { useTranslations } from 'next-intl';
+import { LanguageSwitcher } from '@/components/shared/LanguageSwitcher';
 
 // Static imports for images to ensure reliable resolution
 import logoIcon from '../../public/icon.png';
@@ -103,6 +105,7 @@ export default function LandingPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const t = useTranslations('landing');
 
   useEffect(() => {
     if (status === 'authenticated' && session?.user) {
@@ -124,38 +127,38 @@ export default function LandingPage() {
   const features = [
     {
       icon: <Layers className="w-6 h-6 text-primary" />,
-      title: "Hierarchical Project Structure",
-      description: "Organize your work into three clean levels: Epics, Features, and Tasks. Maintain perfect clarity on complex projects.",
+      title: t('features.hierarchicalStructure.title'),
+      description: t('features.hierarchicalStructure.description'),
       image: structureImg
     },
     {
       icon: <Zap className="w-6 h-6 text-primary" />,
-      title: "Automated Date Rollups",
-      description: "Save time as child tasks automatically update their parent dates and progress percentages. Syncing is effortless.",
+      title: t('features.automatedRollups.title'),
+      description: t('features.automatedRollups.description'),
       image: rollupImg
     },
     {
       icon: <History className="w-6 h-6 text-primary" />,
-      title: "Version Snapshots",
-      description: "Capture the entire state of your project at any moment. Browse history and restore previous versions with a single click.",
+      title: t('features.versionSnapshots.title'),
+      description: t('features.versionSnapshots.description'),
       image: snapshotImg
     },
     {
       icon: <Clock className="w-6 h-6 text-primary" />,
-      title: "Proactive Delay Tracking",
-      description: "Instantly see overdue items and delay counts. Our visual health indicators keep you ahead of every deadline.",
+      title: t('features.delayTracking.title'),
+      description: t('features.delayTracking.description'),
       image: overdueImg
     },
     {
       icon: <Settings className="w-6 h-6 text-primary" />,
-      title: "Deep Customization",
-      description: "Tailor your workspace with custom statuses, colors, and level naming to match your team's specific workflow.",
+      title: t('features.customization.title'),
+      description: t('features.customization.description'),
       images: [levelCustomImg, statusCustomImg, calendarCustomImg]
     },
     {
       icon: <Calendar className="w-6 h-6 text-primary" />,
-      title: "Flexible Timelines",
-      description: "Visualize your roadmap across multiple scales, from daily tasks to quarterly strategic goals.",
+      title: t('features.flexibleTimelines.title'),
+      description: t('features.flexibleTimelines.description'),
       image: timelineImg
     }
   ];
@@ -177,14 +180,15 @@ export default function LandingPage() {
 
           {/* Desktop Nav */}
           <div className="hidden md:flex items-center gap-8">
-            <a href="#features" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">Features</a>
-            <a href="#pricing" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">Pricing</a>
-            <div className="flex items-center gap-4 ml-4">
+            <a href="#features" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">{t('nav.features')}</a>
+            <a href="#pricing" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">{t('nav.pricing')}</a>
+            <div className="flex items-center gap-3 ml-4">
+              <LanguageSwitcher />
               <Link href="/login">
-                <Button variant="ghost" size="sm">Log in</Button>
+                <Button variant="ghost" size="sm">{t('nav.login')}</Button>
               </Link>
               <Link href="/register">
-                <Button size="sm">Try for Free</Button>
+                <Button size="sm">{t('nav.tryForFree')}</Button>
               </Link>
             </div>
           </div>
@@ -198,14 +202,17 @@ export default function LandingPage() {
         {/* Mobile Nav Menu */}
         {isMenuOpen && (
           <div className="md:hidden border-b border-border bg-background p-4 flex flex-col gap-4">
-            <a href="#features" onClick={() => setIsMenuOpen(false)} className="px-4 py-2 text-sm font-medium">Features</a>
-            <a href="#pricing" onClick={() => setIsMenuOpen(false)} className="px-4 py-2 text-sm font-medium">Pricing</a>
+            <a href="#features" onClick={() => setIsMenuOpen(false)} className="px-4 py-2 text-sm font-medium">{t('nav.features')}</a>
+            <a href="#pricing" onClick={() => setIsMenuOpen(false)} className="px-4 py-2 text-sm font-medium">{t('nav.pricing')}</a>
             <hr className="border-border" />
+            <div className="flex justify-center">
+              <LanguageSwitcher variant="pills" />
+            </div>
             <Link href="/login" className="w-full">
-              <Button variant="outline" className="w-full">Log in</Button>
+              <Button variant="outline" className="w-full">{t('nav.login')}</Button>
             </Link>
             <Link href="/register" className="w-full">
-              <Button className="w-full">Try for Free</Button>
+              <Button className="w-full">{t('nav.tryForFree')}</Button>
             </Link>
           </div>
         )}
@@ -217,11 +224,11 @@ export default function LandingPage() {
           <div className="container mx-auto px-4 relative z-10">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold mb-6 border border-primary/20">
               <ShieldCheck className="w-3.5 h-3.5" />
-              <span>Free 30-Day Trial Available Now</span>
+              <span>{t('hero.badge')}</span>
             </div>
 
             <h1 className="text-4xl md:text-6xl lg:text-7xl font-extrabold tracking-tight mb-6 bg-clip-text text-transparent bg-gradient-to-b from-foreground to-foreground/70">
-              Master Your Timeline with
+              {t('hero.headline')}
               <br className="hidden md:block" />
               <div className="mb-8 flex justify-center items-center gap-4">
                 <div className="relative group">
@@ -237,19 +244,19 @@ export default function LandingPage() {
               </div>
             </h1>
             <p className="max-w-2xl mx-auto text-xl text-muted-foreground mb-10 leading-relaxed">
-              The professional project management tool designed for teams who need more than just a list. Visualize, track, and deliver complex roadmaps with ease.
+              {t('hero.subtitle')}
             </p>
 
             <div className="flex flex-col items-center gap-4 justify-center mb-16">
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Link href="/register">
                   <Button size="lg" className="h-12 px-8 text-base font-semibold gap-2">
-                    Start 30-Day Free Trial <ArrowRight className="w-4 h-4" />
+                    {t('hero.cta')} <ArrowRight className="w-4 h-4" />
                   </Button>
                 </Link>
               </div>
               <p className="text-xs text-muted-foreground font-medium italic">
-                No credit card required. Setup in 2 minutes.
+                {t('hero.noCreditCard')}
               </p>
             </div>
 
@@ -283,8 +290,8 @@ export default function LandingPage() {
         <section id="features" className="py-24 bg-surface-1 overflow-hidden">
           <div className="container mx-auto px-4">
             <div className="text-center mb-24">
-              <h2 className="text-3xl md:text-5xl font-bold mb-4 tracking-tight">Built for Serious Project Delivery</h2>
-              <p className="text-muted-foreground max-w-xl mx-auto text-lg">Everything you need to manage complex hierarchies and strict deadlines in one powerful interface.</p>
+              <h2 className="text-3xl md:text-5xl font-bold mb-4 tracking-tight">{t('features.sectionTitle')}</h2>
+              <p className="text-muted-foreground max-w-xl mx-auto text-lg">{t('features.sectionSubtitle')}</p>
             </div>
 
             <div className="space-y-32">
@@ -308,11 +315,11 @@ export default function LandingPage() {
                     <ul className="space-y-3">
                       <li className="flex items-center gap-2 text-sm text-muted-foreground">
                         <Check className="w-4 h-4 text-emerald-500" />
-                        Eliminate manual spreadsheet updates
+                        {t('features.bulletNoSpreadsheets')}
                       </li>
                       <li className="flex items-center gap-2 text-sm text-muted-foreground">
                         <Check className="w-4 h-4 text-emerald-500" />
-                        Maintain single source of truth for the team
+                        {t('features.bulletSingleSource')}
                       </li>
                     </ul>
                   </div>
@@ -345,84 +352,70 @@ export default function LandingPage() {
         <section id="pricing" className="py-24 border-t border-border/40">
           <div className="container mx-auto px-4">
             <div className="text-center mb-16">
-              <h2 className="text-3xl md:text-4xl font-bold mb-4">Simple, Transparent Pricing</h2>
-              <p className="text-muted-foreground max-w-xl mx-auto">Choose the plan that fits your team. All plans include a 30-day free trial with no commitment.</p>
+              <h2 className="text-3xl md:text-4xl font-bold mb-4">{t('pricing.sectionTitle')}</h2>
+              <p className="text-muted-foreground max-w-xl mx-auto">{t('pricing.sectionSubtitle')}</p>
             </div>
 
             <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
               {/* Monthly Plan */}
               <div className="relative p-8 rounded-3xl border border-border bg-surface-2 flex flex-col">
                 <div className="mb-6">
-                  <h3 className="text-xl font-bold mb-2">Monthly Plan</h3>
+                  <h3 className="text-xl font-bold mb-2">{t('pricing.monthly.title')}</h3>
                   <div className="flex items-baseline gap-1">
-                    <span className="text-4xl font-extrabold tracking-tight">R$ 20,00</span>
-                    <span className="text-muted-foreground text-sm">/month</span>
+                    <span className="text-4xl font-extrabold tracking-tight">{t('pricing.monthly.price')}</span>
+                    <span className="text-muted-foreground text-sm">{t('pricing.monthly.period')}</span>
                   </div>
                 </div>
 
                 <ul className="space-y-4 mb-8 flex-grow">
-                  {[
-                    "Unlimited Projects",
-                    "30-day Free Trial",
-                    "Version Snapshots",
-                    "Full Hierarchical Support",
-                    "Custom Statuses & Workflows",
-                    "24/7 Priority Support"
-                  ].map((item, i) => (
-                    <li key={i} className="flex items-center gap-3 text-sm">
+                  {(['unlimitedProjects','freeTrial','versionSnapshots','hierarchical','customStatuses','support'] as const).map((key) => (
+                    <li key={key} className="flex items-center gap-3 text-sm">
                       <div className="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
                         <Check className="w-3.5 h-3.5 text-primary" />
                       </div>
-                      {item}
+                      {t(`pricing.features.${key}`)}
                     </li>
                   ))}
                 </ul>
 
                 <Link href="/register">
-                  <Button variant="outline" className="w-full h-12 text-base font-semibold">Start Free Trial</Button>
+                  <Button variant="outline" className="w-full h-12 text-base font-semibold">{t('pricing.startFreeTrial')}</Button>
                 </Link>
               </div>
 
               {/* Yearly Plan */}
               <div className="relative p-8 rounded-3xl border-2 border-primary bg-surface-2 flex flex-col shadow-xl shadow-primary/10">
                 <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground text-xs font-bold px-4 py-1.5 rounded-full uppercase tracking-wider">
-                  Best Value — Save 16%
+                  {t('pricing.yearly.badge')}
                 </div>
 
                 <div className="mb-6">
-                  <h3 className="text-xl font-bold mb-2">Yearly Plan</h3>
+                  <h3 className="text-xl font-bold mb-2">{t('pricing.yearly.title')}</h3>
                   <div className="flex items-baseline gap-1">
-                    <span className="text-4xl font-extrabold tracking-tight">R$ 200,00</span>
-                    <span className="text-muted-foreground text-sm">/year</span>
+                    <span className="text-4xl font-extrabold tracking-tight">{t('pricing.yearly.price')}</span>
+                    <span className="text-muted-foreground text-sm">{t('pricing.yearly.period')}</span>
                   </div>
                 </div>
 
                 <ul className="space-y-4 mb-8 flex-grow">
-                  {[
-                    "Everything in Monthly Plan",
-                    "30-day Free Trial",
-                    "Significant Annual Savings",
-                    "Priority Feature Access",
-                    "Advanced Team Controls",
-                    "Data Export & API Access"
-                  ].map((item, i) => (
-                    <li key={i} className="flex items-center gap-3 text-sm">
+                  {(['everythingMonthly','freeTrial','annualSavings','priorityFeatures','teamControls','dataExport'] as const).map((key) => (
+                    <li key={key} className="flex items-center gap-3 text-sm">
                       <div className="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
                         <Check className="w-3.5 h-3.5 text-primary" />
                       </div>
-                      {item}
+                      {t(`pricing.features.${key}`)}
                     </li>
                   ))}
                 </ul>
 
                 <Link href="/register">
-                  <Button className="w-full h-12 text-base font-semibold shadow-lg shadow-primary/20">Get Started Yearly</Button>
+                  <Button className="w-full h-12 text-base font-semibold shadow-lg shadow-primary/20">{t('pricing.getStartedYearly')}</Button>
                 </Link>
               </div>
             </div>
 
             <p className="text-center mt-12 text-sm text-muted-foreground">
-              Prices are in Brazilian Real (BRL). Cancel anytime during your 30-day trial.
+              {t('pricing.disclaimer')}
             </p>
           </div>
         </section>
@@ -430,14 +423,14 @@ export default function LandingPage() {
         {/* CTA Section */}
         <section className="py-24 bg-primary text-primary-foreground relative overflow-hidden">
           <div className="container mx-auto px-4 text-center relative z-10">
-            <h2 className="text-3xl md:text-5xl font-extrabold mb-8 tracking-tight">Ready to Take Control of Your Projects?</h2>
+            <h2 className="text-3xl md:text-5xl font-extrabold mb-8 tracking-tight">{t('cta.title')}</h2>
             <p className="text-primary-foreground/80 max-w-2xl mx-auto text-xl mb-12">
-              Join thousands of teams who trust GanttFlow to visualize their success and meet their goals on time.
+              {t('cta.subtitle')}
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link href="/register">
                 <Button size="lg" variant="secondary" className="h-14 px-10 text-lg font-bold">
-                  Start Your 30-Day Trial
+                  {t('cta.button')}
                 </Button>
               </Link>
             </div>
@@ -463,13 +456,13 @@ export default function LandingPage() {
             </Link>
 
             <div className="flex gap-8 text-sm">
-              <a href="#" className="hover:text-foreground transition-colors">Privacy Policy</a>
-              <a href="#" className="hover:text-foreground transition-colors">Terms of Service</a>
-              <a href="#" className="hover:text-foreground transition-colors">Contact Us</a>
+              <a href="#" className="hover:text-foreground transition-colors">{t('footer.privacyPolicy')}</a>
+              <a href="#" className="hover:text-foreground transition-colors">{t('footer.termsOfService')}</a>
+              <a href="#" className="hover:text-foreground transition-colors">{t('footer.contactUs')}</a>
             </div>
 
             <p className="text-sm">
-              © {new Date().getFullYear()} GanttFlow. All rights reserved.
+              {t('footer.copyright', { year: new Date().getFullYear() })}
             </p>
           </div>
         </div>

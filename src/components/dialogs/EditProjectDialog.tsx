@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import type { IProject } from '@/types';
+import { useTranslations } from 'next-intl';
 
 const COLORS = [
   '#6366f1', '#8b5cf6', '#ec4899', '#ef4444',
@@ -25,6 +26,7 @@ interface EditProjectDialogProps {
 }
 
 export function EditProjectDialog({ open, onClose, project: propProject }: EditProjectDialogProps) {
+  const t = useTranslations('dialogs.editProject');
   const { activeProject, persistProject } = useProjectStore();
   
   // Use prop project if provided, otherwise fallback to activeProject from store
@@ -89,30 +91,30 @@ export function EditProjectDialog({ open, onClose, project: propProject }: EditP
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>Edit Project Settings</DialogTitle>
+          <DialogTitle>{t('title')}</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="flex flex-col gap-4 mt-2">
           <div className="flex flex-col gap-1.5">
-            <label className="text-xs text-muted-foreground">Project name</label>
+            <label className="text-xs text-muted-foreground">{t('nameLabel')}</label>
             <Input
               autoFocus
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="e.g. Q4 Roadmap 2025"
+              placeholder={t('namePlaceholder')}
               className="focus-visible:ring-violet-500"
             />
           </div>
           <div className="flex flex-col gap-1.5">
-            <label className="text-xs text-muted-foreground">Description (optional)</label>
+            <label className="text-xs text-muted-foreground">{t('descriptionLabel')}</label>
             <Input
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="Short description…"
+              placeholder={t('descriptionPlaceholder')}
               className="focus-visible:ring-violet-500"
             />
           </div>
           <div className="flex flex-col gap-1.5">
-            <label className="text-xs text-muted-foreground">Color</label>
+            <label className="text-xs text-muted-foreground">{t('colorLabel')}</label>
             <div className="flex gap-2">
               {COLORS.map((c) => (
                 <button
@@ -135,14 +137,14 @@ export function EditProjectDialog({ open, onClose, project: propProject }: EditP
               onClick={onClose}
               className="text-muted-foreground hover:text-foreground"
             >
-              Cancel
+              {t('cancel')}
             </Button>
             <Button
               type="submit"
               disabled={loading || !name.trim()}
               className="bg-violet-600 hover:bg-violet-500 text-white"
             >
-              {loading ? 'Saving…' : 'Save Changes'}
+              {loading ? t('saving') : t('saveButton')}
             </Button>
           </div>
         </form>

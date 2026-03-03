@@ -10,6 +10,7 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { useTranslations } from 'next-intl';
 
 interface SaveVersionDialogProps {
   open: boolean;
@@ -20,6 +21,8 @@ export function SaveVersionDialog({ open, onClose }: SaveVersionDialogProps) {
   const [name, setName] = useState('');
   const [loading, setLoading] = useState(false);
   const { saveVersion } = useProjectStore();
+  const t = useTranslations('dialogs.saveVersion');
+  const tCommon = useTranslations('common');
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -35,19 +38,19 @@ export function SaveVersionDialog({ open, onClose }: SaveVersionDialogProps) {
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
       <DialogContent className="max-w-sm">
         <DialogHeader>
-          <DialogTitle>Save Snapshot</DialogTitle>
+          <DialogTitle>{t('title')}</DialogTitle>
         </DialogHeader>
         <p className="text-xs text-muted-foreground -mt-1">
-          Creates a read-only copy of the current project state. You can restore it later.
+          {t('subtitle')}
         </p>
         <form onSubmit={handleSubmit} className="flex flex-col gap-4 mt-2">
           <div className="flex flex-col gap-1.5">
-            <label className="text-xs text-muted-foreground">Version name</label>
+            <label className="text-xs text-muted-foreground">{t('nameLabel')}</label>
             <Input
               autoFocus
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="e.g. v2.4, Sprint 12, Q3 Final"
+              placeholder={t('namePlaceholder')}
               className="focus-visible:ring-violet-500"
             />
           </div>
@@ -58,14 +61,14 @@ export function SaveVersionDialog({ open, onClose }: SaveVersionDialogProps) {
               onClick={onClose}
               className="text-muted-foreground hover:text-foreground"
             >
-              Cancel
+              {tCommon('cancel')}
             </Button>
             <Button
               type="submit"
               disabled={loading || !name.trim()}
               className="bg-violet-600 hover:bg-violet-500 text-white"
             >
-              {loading ? 'Saving…' : 'Save Snapshot'}
+              {loading ? t('saving') : t('saveButton')}
             </Button>
           </div>
         </form>

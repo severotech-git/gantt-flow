@@ -1,5 +1,8 @@
 export type StatusType = string;
 
+export type AppLocale = 'en' | 'pt-BR' | 'es';
+export const SUPPORTED_LOCALES: AppLocale[] = ['en', 'pt-BR', 'es'];
+
 export type TimelineScale = 'week' | 'month' | 'quarter';
 
 // ─── Account / Multi-tenant ───────────────────────────────────────────────────

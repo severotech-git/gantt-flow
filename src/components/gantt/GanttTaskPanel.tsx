@@ -15,6 +15,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { GanttBarData } from './GanttBar';
+import { useTranslations } from 'next-intl';
 
 export interface VisibleRow {
   rowKey: string;
@@ -90,10 +91,7 @@ export const GanttTaskPanel = forwardRef<HTMLDivElement, GanttTaskPanelProps>(
           className="sticky top-0 z-20 flex items-center border-b border-border bg-surface-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground shrink-0"
           style={{ height: 48 }}
         >
-          <div className="flex-1 px-3">Name</div>
-          <div className="w-7 text-center">Owner</div>
-          <div className="w-[88px] text-center">Status</div>
-          <div className="w-14 text-center">%</div>
+          <PanelHeader />
           <div className="w-16" />
         </div>
 
@@ -160,9 +158,7 @@ export const GanttTaskPanel = forwardRef<HTMLDivElement, GanttTaskPanelProps>(
           )}
 
           {visibleRows.length === 0 && (
-            <div className="flex flex-col items-center justify-center gap-2 py-16 text-muted-foreground/50 text-xs">
-              <p>No items yet.</p>
-            </div>
+            <EmptyState />
           )}
         </div>
 
@@ -184,6 +180,31 @@ export const GanttTaskPanel = forwardRef<HTMLDivElement, GanttTaskPanelProps>(
   }
 );
 
+// ─── PanelHeader ─────────────────────────────────────────────────────────────
+
+function PanelHeader() {
+  const t = useTranslations('gantt.taskPanel');
+  return (
+    <>
+      <div className="flex-1 px-3">{t('name')}</div>
+      <div className="w-7 text-center">{t('owner')}</div>
+      <div className="w-[88px] text-center">{t('status')}</div>
+      <div className="w-14 text-center">{t('pct')}</div>
+    </>
+  );
+}
+
+// ─── EmptyState ───────────────────────────────────────────────────────────────
+
+function EmptyState() {
+  const t = useTranslations('gantt.taskPanel');
+  return (
+    <div className="flex flex-col items-center justify-center gap-2 py-16 text-muted-foreground/50 text-xs">
+      <p>{t('noItems')}</p>
+    </div>
+  );
+}
+
 // ─── AddRow ──────────────────────────────────────────────────────────────────
 
 const ADD_ROW_STYLE = {
@@ -194,6 +215,7 @@ const ADD_ROW_STYLE = {
 
 function AddRow({ row }: { row: VisibleRow }) {
   const levelNames = useSettingsStore((s) => s.levelNames);
+  const t = useTranslations('gantt.taskPanel');
   const style = ADD_ROW_STYLE[row.level];
   const levelLabel = row.level === 'epic' ? levelNames.epic : row.level === 'feature' ? levelNames.feature : levelNames.task;
 
@@ -211,7 +233,7 @@ function AddRow({ row }: { row: VisibleRow }) {
         <Plus size={9} />
       </span>
       <span className="text-[11px] font-medium opacity-60 group-hover:opacity-100 transition-opacity">
-        New {levelLabel}
+        {t('addItem', { level: levelLabel })}
       </span>
     </button>
   );
@@ -245,6 +267,7 @@ function TaskRow({
   onNameChange,
 }: TaskRowProps) {
   const { statuses, users } = useSettingsStore();
+  const t = useTranslations('gantt.taskPanel');
   const statusConfig = statuses.find((s) => s.value === row.status);
   const ownerUser = users.find((u) => u.uid === row.ownerId);
   const isFinal = statusConfig?.isFinal ?? false;
@@ -315,7 +338,7 @@ function TaskRow({
             <DropdownMenuTrigger asChild>
               <button
                 className="rounded-full hover:ring-2 hover:ring-ring/30 transition-all"
-                title={ownerUser?.name ?? 'Assign owner'}
+                title={ownerUser?.name ?? t('unassigned')}
               >
                 <OwnerAvatar name={ownerUser?.name} color={ownerUser?.color} />
               </button>
@@ -333,7 +356,7 @@ function TaskRow({
               >
                 {!row.ownerId && <Check size={10} />}
                 {row.ownerId && <span className="w-2.5" />}
-                <span className="text-muted-foreground italic">Unassigned</span>
+                <span className="text-muted-foreground italic">{t('unassigned')}</span>
               </DropdownMenuItem>
               {users.map((u) => {
                 const active = row.ownerId === u.uid;
@@ -409,7 +432,7 @@ function TaskRow({
             <button
               onClick={onAddChild}
               className="p-1.5 rounded text-muted-foreground hover:text-violet-400 hover:bg-violet-500/10 transition-colors"
-              title={row.level === 'epic' ? 'Add feature' : 'Add task'}
+              title={row.level === 'epic' ? t('addFeature') : t('addTask')}
             >
               <Plus size={14} />
             </button>
@@ -417,7 +440,7 @@ function TaskRow({
           <button
             onClick={onDelete}
             className="p-1.5 rounded text-muted-foreground hover:text-red-400 hover:bg-red-500/10 transition-colors"
-            title="Delete"
+            title={t('deleteTitle')}
           >
             <Trash2 size={14} />
           </button>

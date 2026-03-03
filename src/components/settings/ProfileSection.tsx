@@ -2,17 +2,36 @@
 
 import { useState } from 'react';
 import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { OwnerAvatar } from '@/components/shared/OwnerAvatar';
 import { Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
+import { useSettingsStore } from '@/store/useSettingsStore';
+import { useTranslations } from 'next-intl';
+import type { AppLocale } from '@/types';
+
+const LOCALES: { value: AppLocale; label: string }[] = [
+  { value: 'en', label: 'English' },
+  { value: 'pt-BR', label: 'Português' },
+  { value: 'es', label: 'Español' },
+];
 
 export function ProfileSection() {
   const { data: session, update: updateSession } = useSession();
+  const router = useRouter();
+  const { locale, setLocale } = useSettingsStore();
+  const t = useTranslations('settings.profile');
   const [name, setName] = useState(session?.user?.name || '');
   const [email] = useState(session?.user?.email || '');
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [message, setMessage] = useState('');
+
+  const handleLocaleChange = async (newLocale: AppLocale) => {
+    setLocale(newLocale);
+    await updateSession({ locale: newLocale });
+    router.refresh();
+  };
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -50,9 +69,9 @@ export function ProfileSection() {
   return (
     <div className="max-w-md space-y-8">
       <div>
-        <h2 className="text-lg font-semibold text-foreground mb-1">Personal Profile</h2>
+        <h2 className="text-lg font-semibold text-foreground mb-1">{t('title')}</h2>
         <p className="text-sm text-muted-foreground">
-          Manage your account information and how you appear to others.
+          {t('subtitle')}
         </p>
       </div>
 
@@ -67,7 +86,7 @@ export function ProfileSection() {
       <form onSubmit={handleSave} className="space-y-6">
         <div className="space-y-2">
           <label htmlFor="name" className="text-sm font-medium text-foreground">
-            Display Name
+            {t('displayNameLabel')}
           </label>
           <Input
             id="name"
@@ -80,7 +99,7 @@ export function ProfileSection() {
 
         <div className="space-y-2">
           <label htmlFor="email" className="text-sm font-medium text-foreground">
-            Email Address
+            {t('emailLabel')}
           </label>
           <Input
             id="email"
@@ -89,7 +108,7 @@ export function ProfileSection() {
             className="bg-muted/50 cursor-not-allowed"
           />
           <p className="text-[11px] text-muted-foreground">
-            Email cannot be changed. Contact support if you need to update it.
+            {t('emailNote')}
           </p>
         </div>
 
@@ -110,13 +129,36 @@ export function ProfileSection() {
           {status === 'loading' ? (
             <>
               <Loader2 size={16} className="animate-spin mr-2" />
-              Saving changes...
+              {t('saving')}
             </>
           ) : (
-            'Save Profile'
+            t('saveButton')
           )}
         </Button>
       </form>
+
+      {/* Language picker */}
+      <div className="space-y-4 pt-2 border-t border-border">
+        <div>
+          <h3 className="text-base font-semibold text-foreground mb-1">{t('languageTitle')}</h3>
+          <p className="text-sm text-muted-foreground">{t('languageSubtitle')}</p>
+        </div>
+        <div className="flex gap-3">
+          {LOCALES.map((loc) => (
+            <button
+              key={loc.value}
+              onClick={() => handleLocaleChange(loc.value)}
+              className={`flex-1 py-2 px-3 rounded-lg border-2 text-sm font-medium transition-all ${
+                locale === loc.value
+                  ? 'border-violet-500 bg-violet-500/10 text-violet-600 dark:text-violet-300'
+                  : 'border-border hover:border-border/80 text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              {loc.label}
+            </button>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }

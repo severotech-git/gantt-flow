@@ -1,0 +1,468 @@
+{
+  "common": {
+    "cancel": "Cancel",
+    "save": "Save",
+    "delete": "Delete",
+    "edit": "Edit",
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "confirm": "Confirm",
+    "close": "Close",
+    "add": "Add",
+    "create": "Create",
+    "restore": "Restore",
+    "archived": "Archived",
+    "unassigned": "unassigned",
+    "noItemsYet": "No items yet.",
+    "updatedAt": "Updated {date}"
+  },
+  "sidebar": {
+    "recent": "Recent",
+    "workspace": "Workspace",
+    "allProjects": "All Projects",
+    "settings": "Settings",
+    "newProject": "New project",
+    "noProjectsYet": "No projects yet"
+  },
+  "landing": {
+    "nav": {
+      "features": "Features",
+      "pricing": "Pricing",
+      "login": "Log in",
+      "tryForFree": "Try for Free"
+    },
+    "hero": {
+      "badge": "Free 30-Day Trial Available Now",
+      "headline": "Master Your Timeline with",
+      "subtitle": "The professional project management tool designed for teams who need more than just a list. Visualize, track, and deliver complex roadmaps with ease.",
+      "cta": "Start 30-Day Free Trial",
+      "noCreditCard": "No credit card required. Setup in 2 minutes."
+    },
+    "features": {
+      "sectionTitle": "Built for Serious Project Delivery",
+      "sectionSubtitle": "Everything you need to manage complex hierarchies and strict deadlines in one powerful interface.",
+      "bulletSingleSource": "Maintain single source of truth for the team",
+      "bulletNoSpreadsheets": "Eliminate manual spreadsheet updates",
+      "hierarchicalStructure": {
+        "title": "Hierarchical Project Structure",
+        "description": "Organize your work into three clean levels: Epics, Features, and Tasks. Maintain perfect clarity on complex projects."
+      },
+      "automatedRollups": {
+        "title": "Automated Date Rollups",
+        "description": "Save time as child tasks automatically update their parent dates and progress percentages. Syncing is effortless."
+      },
+      "versionSnapshots": {
+        "title": "Version Snapshots",
+        "description": "Capture the entire state of your project at any moment. Browse history and restore previous versions with a single click."
+      },
+      "delayTracking": {
+        "title": "Proactive Delay Tracking",
+        "description": "Instantly see overdue items and delay counts. Our visual health indicators keep you ahead of every deadline."
+      },
+      "customization": {
+        "title": "Deep Customization",
+        "description": "Tailor your workspace with custom statuses, colors, and level naming to match your team's specific workflow."
+      },
+      "flexibleTimelines": {
+        "title": "Flexible Timelines",
+        "description": "Visualize your roadmap across multiple scales, from daily tasks to quarterly strategic goals."
+      }
+    },
+    "pricing": {
+      "sectionTitle": "Simple, Transparent Pricing",
+      "sectionSubtitle": "Choose the plan that fits your team. All plans include a 30-day free trial with no commitment.",
+      "monthly": {
+        "title": "Monthly Plan",
+        "price": "R$ 20,00",
+        "period": "/month"
+      },
+      "yearly": {
+        "title": "Yearly Plan",
+        "price": "R$ 200,00",
+        "period": "/year",
+        "badge": "Best Value — Save 16%"
+      },
+      "features": {
+        "unlimitedProjects": "Unlimited Projects",
+        "freeTrial": "30-day Free Trial",
+        "versionSnapshots": "Version Snapshots",
+        "hierarchical": "Full Hierarchical Support",
+        "customStatuses": "Custom Statuses & Workflows",
+        "support": "24/7 Priority Support",
+        "everythingMonthly": "Everything in Monthly Plan",
+        "annualSavings": "Significant Annual Savings",
+        "priorityFeatures": "Priority Feature Access",
+        "teamControls": "Advanced Team Controls",
+        "dataExport": "Data Export & API Access"
+      },
+      "startFreeTrial": "Start Free Trial",
+      "getStartedYearly": "Get Started Yearly",
+      "disclaimer": "Prices are in Brazilian Real (BRL). Cancel anytime during your 30-day trial."
+    },
+    "cta": {
+      "title": "Ready to Take Control of Your Projects?",
+      "subtitle": "Join thousands of teams who trust GanttFlow to visualize their success and meet their goals on time.",
+      "button": "Start Your 30-Day Trial"
+    },
+    "footer": {
+      "privacyPolicy": "Privacy Policy",
+      "termsOfService": "Terms of Service",
+      "contactUs": "Contact Us",
+      "copyright": "© {year} GanttFlow. All rights reserved."
+    }
+  },
+  "auth": {
+    "verifyEmail": {
+      "verifiedRedirecting": "Email verified! Redirecting…",
+      "title": "Check your inbox",
+      "body": "We sent a verification link to {email}. Click the link to activate your account.",
+      "emailFallback": "your email address",
+      "resendButton": "Resend verification email",
+      "resending": "Sending…",
+      "resendSuccess": "Verification email sent! Check your inbox.",
+      "resendFailed": "Failed to resend. Please try again.",
+      "errorOccurred": "An error occurred. Please try again.",
+      "rateLimited": "Resend is rate-limited to 3 times per 15 minutes."
+    },
+    "verifyMfa": {
+      "title": "Two-step verification",
+      "body": "Enter the 6-digit code we sent to {email}.",
+      "emailFallback": "your email",
+      "codePlaceholder": "000000",
+      "verify": "Verify",
+      "verifying": "Verifying…",
+      "invalidCode": "Please enter the 6-digit code.",
+      "invalidOrExpired": "Invalid or expired code. Please try again.",
+      "unexpectedError": "An unexpected error occurred.",
+      "noCode": "Didn't receive a code?",
+      "goBack": "Go back and try again"
+    },
+    "login": {
+      "title": "GanttFlow",
+      "emailLabel": "Email",
+      "emailPlaceholder": "you@example.com",
+      "passwordLabel": "Password",
+      "passwordPlaceholder": "••••••••",
+      "signInButton": "Sign In",
+      "signingIn": "Signing in...",
+      "orContinueWith": "Or continue with",
+      "google": "Google",
+      "github": "GitHub",
+      "noAccount": "Don't have an account?",
+      "createOne": "Create one",
+      "errors": {
+        "CredentialsSignin": "Invalid email or password.",
+        "MFARequired": "Verification code required.",
+        "OAuthSignin": "Could not sign in with that provider. Please try again.",
+        "OAuthCallback": "Could not sign in with that provider. Please try again.",
+        "OAuthCreateAccount": "Could not create account with that provider.",
+        "EmailCreateAccount": "Could not create account. Please try again.",
+        "Callback": "Sign-in callback failed. Please try again.",
+        "OAuthAccountNotLinked": "This email is already registered with a different sign-in method.",
+        "SessionRequired": "Please sign in to continue.",
+        "Default": "An error occurred. Please try again."
+      }
+    },
+    "register": {
+      "title": "GanttFlow",
+      "heading": "Create Account",
+      "inviteSubtitle": "Create your account to accept the team invitation.",
+      "nameLabel": "Full Name",
+      "namePlaceholder": "John Doe",
+      "emailLabel": "Email",
+      "emailPlaceholder": "you@example.com",
+      "passwordLabel": "Password",
+      "passwordPlaceholder": "••••••••",
+      "confirmPasswordLabel": "Confirm Password",
+      "confirmPasswordPlaceholder": "••••••••",
+      "createButton": "Create Account",
+      "createAndAcceptButton": "Create Account & Accept Invite",
+      "creating": "Creating account...",
+      "autoLoginFailed": "Registration succeeded, but auto-login failed. Please log in manually.",
+      "unexpectedError": "An unexpected error occurred",
+      "alreadyHaveAccount": "Already have an account?",
+      "signIn": "Sign in"
+    }
+  },
+  "projects": {
+    "pageTitle": "All Projects",
+    "newProject": "New Project",
+    "noProjectsYet": "No projects yet. Create your first one!",
+    "archiveProject": "Archive project",
+    "editProject": "Edit project",
+    "archivedProjects": "Archived projects",
+    "noArchivedProjects": "No archived projects.",
+    "deleteConfirmTitle": "Delete project permanently?",
+    "deleteConfirmBody": "This will permanently delete the project and all its snapshots. This action cannot be undone.",
+    "deleteForever": "Delete forever"
+  },
+  "gantt": {
+    "taskPanel": {
+      "name": "Name",
+      "owner": "Owner",
+      "status": "Status",
+      "pct": "%",
+      "noItems": "No items yet.",
+      "addItem": "New {level}",
+      "unassigned": "Unassigned",
+      "delay": "+{days}d late",
+      "selectProject": "Select a project from the sidebar",
+      "addFeature": "Add feature",
+      "addTask": "Add task",
+      "deleteTitle": "Delete"
+    },
+    "footer": {
+      "tasks": "{count} tasks",
+      "done": "• {count} done",
+      "overdue": "• {count} overdue"
+    },
+    "zoom": {
+      "zoomOut": "Zoom out (Ctrl −)",
+      "zoomIn": "Zoom in (Ctrl =)",
+      "resetZoom": "Reset zoom (Ctrl 0)"
+    },
+    "topnav": {
+      "scales": {
+        "week": "Week",
+        "month": "Month",
+        "quarter": "Quarter"
+      },
+      "backToLive": "Back to live",
+      "jumpToToday": "Jump to today",
+      "today": "Today",
+      "saving": "Saving…",
+      "searchPlaceholder": "Search...",
+      "versions": "Versions",
+      "live": "Live",
+      "restoreAsLive": "Restore as live",
+      "deleteSnapshot": "Delete snapshot",
+      "saveSnapshot": "Save Snapshot",
+      "newProject": "New Project"
+    },
+    "search": {
+      "title": "Search",
+      "placeholder": "Search items...",
+      "noProjectSelected": "No project selected",
+      "noResults": "No results for \"{query}\"",
+      "itemsTotal": "{count} items — type to search",
+      "navigate": "navigate",
+      "jumpToItem": "jump to item",
+      "close": "close",
+      "levels": {
+        "epics": "Epics",
+        "features": "Features",
+        "tasks": "Tasks"
+      }
+    }
+  },
+  "dialogs": {
+    "newProject": {
+      "title": "Create New Project",
+      "namePlaceholder": "e.g. Q4 Roadmap 2025",
+      "nameLabel": "Project name",
+      "descriptionLabel": "Description (optional)",
+      "descriptionPlaceholder": "Short description…",
+      "colorLabel": "Color",
+      "creating": "Creating…",
+      "createButton": "Create Project"
+    },
+    "saveVersion": {
+      "title": "Save Snapshot",
+      "subtitle": "Creates a read-only copy of the current project state. You can restore it later.",
+      "namePlaceholder": "e.g. v2.4, Sprint 12, Q3 Final",
+      "nameLabel": "Version name",
+      "saving": "Saving…",
+      "saveButton": "Save Snapshot"
+    },
+    "addItem": {
+      "title": "Add {levelLabel}",
+      "nameLabel": "Name",
+      "namePlaceholder": "{levelLabel} name…",
+      "ownerLabel": "Owner",
+      "plannedStartLabel": "Planned Start",
+      "plannedEndLabel": "Planned End",
+      "statusLabel": "Status",
+      "adding": "Adding…",
+      "addButton": "Add {levelLabel}"
+    },
+    "editProject": {
+      "title": "Edit Project Settings",
+      "nameLabel": "Project name",
+      "namePlaceholder": "e.g. Q4 Roadmap 2025",
+      "descriptionLabel": "Description (optional)",
+      "descriptionPlaceholder": "Short description…",
+      "colorLabel": "Color",
+      "cancel": "Cancel",
+      "saving": "Saving…",
+      "saveButton": "Save Changes"
+    },
+    "inviteMember": {
+      "title": "Invite a Team Member",
+      "description": "They will receive an email with a link to join your workspace.",
+      "emailLabel": "Email address",
+      "emailPlaceholder": "colleague@example.com",
+      "roleLabel": "Role",
+      "roleMember": "Member",
+      "roleAdmin": "Admin",
+      "successMessage": "Invitation sent!",
+      "cancel": "Cancel",
+      "sending": "Sending…",
+      "sendButton": "Send Invitation",
+      "failedError": "Failed to send invitation"
+    }
+  },
+  "layout": {
+    "navbar": {
+      "hideSidebar": "Hide sidebar",
+      "showSidebar": "Show sidebar",
+      "myProfile": "My Profile",
+      "settings": "Settings",
+      "logOut": "Log out"
+    },
+    "accountSwitcher": {
+      "selectWorkspace": "Select workspace",
+      "workspaces": "Workspaces",
+      "manageWorkspaces": "Manage workspaces",
+      "defaultWorkspaceTitle": "Default workspace"
+    }
+  },
+  "settings": {
+    "profile": {
+      "title": "Personal Profile",
+      "subtitle": "Manage your account information and how you appear to others.",
+      "displayNameLabel": "Display Name",
+      "displayNamePlaceholder": "Your name",
+      "emailLabel": "Email Address",
+      "emailNote": "Email cannot be changed. Contact support if you need to update it.",
+      "saving": "Saving changes...",
+      "saveButton": "Save Profile",
+      "successMessage": "Profile updated successfully",
+      "languageTitle": "Language",
+      "languageSubtitle": "Choose your preferred language.",
+      "languages": {
+        "en": "English",
+        "pt-BR": "Português",
+        "es": "Español"
+      }
+    },
+    "theme": {
+      "title": "Theme",
+      "subtitle": "Choose your preferred color scheme.",
+      "system": "System",
+      "dark": "Dark",
+      "light": "Light"
+    },
+    "nav": {
+      "groups": {
+        "account": "Account",
+        "customization": "Customization",
+        "user": "User"
+      },
+      "items": {
+        "workspaces": "Workspaces",
+        "team": "Team & Access",
+        "assignees": "Assignees",
+        "levels": "Level Names",
+        "statuses": "Status List",
+        "calendar": "Calendar",
+        "profile": "My Profile",
+        "theme": "Theme"
+      }
+    },
+    "readOnly": "Only owners and admins can change this setting.",
+    "statuses": {
+      "title": "Status List",
+      "subtitle": "Define the statuses available for tasks, features, and epics.",
+      "addStatus": "Add Status",
+      "saving": "Saving…",
+      "saveButton": "Save Statuses",
+      "terminalTitle": "Terminal state (no overdue)",
+      "nonTerminalTitle": "Non-terminal state",
+      "finalBadge": "Final",
+      "activeBadge": "Active",
+      "deleteTitle": "Delete status",
+      "newStatusLabel": "New Status"
+    },
+    "levels": {
+      "title": "Level Names",
+      "subtitle": "Rename the three hierarchy levels to match your team's terminology.",
+      "level1": "Level 1 (top-level)",
+      "level2": "Level 2 (mid-level)",
+      "level3": "Level 3 (leaf)",
+      "reset": "Reset",
+      "default": "Default: \"{value}\"",
+      "saving": "Saving…",
+      "saveButton": "Save Level Names"
+    },
+    "assignees": {
+      "title": "Assignees",
+      "subtitle": "Everyone listed here can be set as the owner of epics, features, and tasks.",
+      "accountMembers": "Account Members",
+      "syncedBadge": "synced",
+      "teamAccessLink": "Team & Access",
+      "accountMembersNote": "These are people with actual accounts. Manage access in {link}.",
+      "noAccountMembers": "No account members yet.",
+      "guestAssignees": "Guest Assignees",
+      "virtualBadge": "virtual",
+      "guestNote": "People who can be assigned to tasks but don't have an account. Useful for contractors or external collaborators.",
+      "noGuestAssignees": "No guest assignees yet.",
+      "addGuest": "Add Guest Assignee",
+      "saving": "Saving…",
+      "saveButton": "Save",
+      "unnamed": "Unnamed",
+      "youBadge": "You",
+      "removeTitle": "Remove",
+      "namePlaceholder": "Name…"
+    },
+    "team": {
+      "title": "Team & Access",
+      "subtitle": "Manage who can log in to this workspace and their permissions. To customise assignee colors or add virtual assignees, go to {link}.",
+      "assigneesLink": "Assignees",
+      "membersTitle": "Members",
+      "inviteButton": "Invite",
+      "youLabel": "(You)",
+      "noMembers": "No members yet.",
+      "pendingInvitations": "Pending Invitations",
+      "pendingBadge": "pending",
+      "cancelInvitationTitle": "Cancel invitation",
+      "removeMemberTitle": "Remove member",
+      "roles": {
+        "owner": "Owner",
+        "admin": "Admin",
+        "member": "Member"
+      }
+    },
+    "accounts": {
+      "title": "Workspaces",
+      "memberOfSingular": "You are a member of {count} workspace.",
+      "memberOfPlural": "You are a member of {count} workspaces.",
+      "defaultLabel": "default workspace",
+      "defaultAutoOpen": "Your {defaultLabel} opens automatically every time you log in.",
+      "explainerTitle": "What is the default workspace?",
+      "explainerBody": "When you sign in, GanttFlow opens your default workspace automatically — no extra clicks. You can still switch to any workspace you belong to at any time from the sidebar.",
+      "defaultBadge": "Default",
+      "activeBadge": "Active now",
+      "opensAutomatically": "Opens automatically when you log in",
+      "renameTitle": "Rename workspace",
+      "renameButton": "Rename",
+      "switchTitle": "Switch to this workspace",
+      "switchButton": "Switch",
+      "setDefaultTitle": "Set as default workspace",
+      "setDefaultButton": "Set default",
+      "joinNote": "To join a new workspace, ask a workspace owner or admin to send you an invitation.",
+      "renameDialogTitle": "Rename workspace",
+      "workspaceNamePlaceholder": "Workspace name",
+      "nameTooShort": "Name must be at least 2 characters.",
+      "cancel": "Cancel",
+      "save": "Save"
+    },
+    "calendar": {
+      "title": "Calendar",
+      "subtitle": "Configure scheduling rules that apply when creating or moving items.",
+      "allowWeekends": "Allow weekend dates",
+      "weekendsEnabled": "Tasks can start and end on Saturdays and Sundays.",
+      "weekendsDisabled": "Start dates snap to Monday, end dates snap to Friday when a weekend is selected or dragged to."
+    }
+  }
+}

@@ -13,6 +13,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 
 interface PageNavbarProps {
   title: string;
@@ -32,13 +33,14 @@ export function PageNavbar({
   actions,
 }: PageNavbarProps) {
   const { data: session } = useSession();
+  const t = useTranslations('layout.navbar');
 
   return (
     <header className="flex items-center h-12 px-4 gap-3 border-b border-border bg-surface-2 shrink-0">
       {/* Sidebar toggle */}
       <button
         onClick={onToggleSidebar}
-        title={sidebarOpen ? 'Hide sidebar' : 'Show sidebar'}
+        title={sidebarOpen ? t('hideSidebar') : t('showSidebar')}
         className="p-1.5 rounded text-muted-foreground hover:text-foreground hover:bg-accent transition-colors shrink-0"
       >
         {sidebarOpen ? <PanelLeftClose size={15} /> : <PanelLeftOpen size={15} />}
@@ -98,13 +100,13 @@ export function PageNavbar({
               <Link href="/settings?section=profile">
                 <DropdownMenuItem className="cursor-pointer">
                   <User className="mr-2 h-4 w-4" />
-                  <span>My Profile</span>
+                  <span>{t('myProfile')}</span>
                 </DropdownMenuItem>
               </Link>
               <Link href="/settings">
                 <DropdownMenuItem className="cursor-pointer">
                   <SettingsIcon className="mr-2 h-4 w-4" />
-                  <span>Settings</span>
+                  <span>{t('settings')}</span>
                 </DropdownMenuItem>
               </Link>
               <DropdownMenuSeparator />
@@ -113,7 +115,7 @@ export function PageNavbar({
                 onClick={() => signOut({ callbackUrl: '/login' })}
               >
                 <LogOut className="mr-2 h-4 w-4" />
-                <span>Log out</span>
+                <span>{t('logOut')}</span>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

@@ -10,12 +10,14 @@ import { Button } from '@/components/ui/button';
 import { ColorSwatch } from './ColorSwatch';
 import { Trash2, ChevronUp, ChevronDown, Plus } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useTranslations } from 'next-intl';
 
 function generateValue(label: string): string {
   return label.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '') + '-' + Math.random().toString(36).slice(2, 6);
 }
 
 export function StatusConfigSection() {
+  const t = useTranslations('settings.statuses');
   const { statuses, addStatus, updateStatus, deleteStatus, reorderStatuses, persistSettings, isSaving } = useSettingsStore();
   const canManage = useCanManage();
 
@@ -36,7 +38,7 @@ export function StatusConfigSection() {
   function handleAdd() {
     const newStatus: IStatusConfig = {
       value: generateValue('new-status'),
-      label: 'New Status',
+      label: t('newStatusLabel'),
       color: '#6366f1',
       isFinal: false,
     };
@@ -46,8 +48,8 @@ export function StatusConfigSection() {
   return (
     <div className="max-w-lg space-y-6">
       <div>
-        <h2 className="text-lg font-semibold text-foreground mb-1">Status List</h2>
-        <p className="text-sm text-muted-foreground">Define the statuses available for tasks, features, and epics.</p>
+        <h2 className="text-lg font-semibold text-foreground mb-1">{t('title')}</h2>
+        <p className="text-sm text-muted-foreground">{t('subtitle')}</p>
       </div>
 
       {!canManage && <ReadOnlyBanner />}
@@ -77,7 +79,7 @@ export function StatusConfigSection() {
             <span className="flex items-center justify-center w-5 h-5 rounded border border-dashed border-border group-hover:border-violet-500 transition-colors">
               <Plus size={11} />
             </span>
-            Add Status
+            {t('addStatus')}
           </button>
 
           <Button
@@ -85,7 +87,7 @@ export function StatusConfigSection() {
             disabled={isSaving}
             className="bg-violet-600 hover:bg-violet-500 text-white"
           >
-            {isSaving ? 'Saving…' : 'Save Statuses'}
+            {isSaving ? t('saving') : t('saveButton')}
           </Button>
         </>
       )}
@@ -105,6 +107,7 @@ interface StatusRowProps {
 }
 
 function StatusRow({ status, idx, total, readonly, onMoveUp, onMoveDown, onDelete, onUpdate }: StatusRowProps) {
+  const t = useTranslations('settings.statuses');
   return (
     <div className="flex items-center gap-2 p-2 rounded-lg bg-muted/30 border border-border group">
       <ColorSwatch color={status.color} onChange={readonly ? () => {} : (c) => onUpdate({ color: c })} size={24} />
@@ -119,7 +122,7 @@ function StatusRow({ status, idx, total, readonly, onMoveUp, onMoveDown, onDelet
       <button
         onClick={() => !readonly && onUpdate({ isFinal: !status.isFinal })}
         disabled={readonly}
-        title={status.isFinal ? 'Terminal state (no overdue)' : 'Non-terminal state'}
+        title={status.isFinal ? t('terminalTitle') : t('nonTerminalTitle')}
         className={cn(
           'px-2 py-0.5 rounded text-[10px] font-medium border transition-colors shrink-0',
           status.isFinal
@@ -128,7 +131,7 @@ function StatusRow({ status, idx, total, readonly, onMoveUp, onMoveDown, onDelet
           readonly && 'cursor-default'
         )}
       >
-        {status.isFinal ? 'Final' : 'Active'}
+        {status.isFinal ? t('finalBadge') : t('activeBadge')}
       </button>
 
       {!readonly && (
@@ -145,7 +148,7 @@ function StatusRow({ status, idx, total, readonly, onMoveUp, onMoveDown, onDelet
             onClick={onDelete}
             disabled={total <= 1}
             className="text-muted-foreground/60 hover:text-red-500 disabled:opacity-20 transition-colors opacity-0 group-hover:opacity-100"
-            title="Delete status"
+            title={t('deleteTitle')}
           >
             <Trash2 size={14} />
           </button>

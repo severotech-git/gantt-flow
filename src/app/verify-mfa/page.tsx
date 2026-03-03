@@ -8,8 +8,11 @@ import { Input } from '@/components/ui/input';
 import { Loader2, ShieldCheck } from 'lucide-react';
 import Image from 'next/image';
 import logoIcon from '../../../public/icon.png';
+import { useTranslations } from 'next-intl';
+import { LanguageSwitcher } from '@/components/shared/LanguageSwitcher';
 
 function VerifyMFAContent() {
+  const t = useTranslations('auth.verifyMfa');
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -34,7 +37,7 @@ function VerifyMFAContent() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (code.length !== 6) { setError('Please enter the 6-digit code.'); return; }
+    if (code.length !== 6) { setError(t('invalidCode')); return; }
     setError('');
     setLoading(true);
 
@@ -49,14 +52,13 @@ function VerifyMFAContent() {
         if (typeof window !== 'undefined') {
           sessionStorage.removeItem('mfa_pending_email');
         }
-        // After MFA the user has a session; proxy will redirect unverified to /verify-email
         router.push('/projects');
       } else {
         setCode('');
-        setError('Invalid or expired code. Please try again.');
+        setError(t('invalidOrExpired'));
       }
     } catch {
-      setError('An unexpected error occurred.');
+      setError(t('unexpectedError'));
     } finally {
       setLoading(false);
     }
@@ -65,16 +67,23 @@ function VerifyMFAContent() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-background">
       <div className="w-full max-w-md p-8 space-y-6 bg-card border border-border rounded-lg shadow-lg">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold flex items-center justify-center gap-2">
+        <div className="flex items-center justify-between">
+          <h1 className="text-2xl font-bold flex items-center gap-2">
             <Image src={logoIcon} alt="GanttFlow Logo" height={32} className="h-8 w-auto object-contain" priority />
             GanttFlow
           </h1>
-          <ShieldCheck className="mx-auto mt-4 h-10 w-10 text-primary" />
-          <h2 className="mt-2 text-lg font-semibold text-foreground">Two-step verification</h2>
+          <LanguageSwitcher />
+        </div>
+
+        <div className="text-center">
+          <ShieldCheck className="mx-auto mt-2 h-10 w-10 text-primary" />
+          <h2 className="mt-2 text-lg font-semibold text-foreground">{t('title')}</h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            Enter the 6-digit code we sent to{' '}
-            <span className="font-medium text-foreground">{email || 'your email'}</span>.
+            {t.rich('body', {
+              email: () => (
+                <span className="font-medium text-foreground">{email || t('emailFallback')}</span>
+              ),
+            })}
           </p>
         </div>
 
@@ -91,7 +100,7 @@ function VerifyMFAContent() {
             inputMode="numeric"
             pattern="[0-9]{6}"
             maxLength={6}
-            placeholder="000000"
+            placeholder={t('codePlaceholder')}
             value={code}
             onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))}
             disabled={loading}
@@ -101,22 +110,22 @@ function VerifyMFAContent() {
             {loading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Verifying…
+                {t('verifying')}
               </>
             ) : (
-              'Verify'
+              t('verify')
             )}
           </Button>
         </form>
 
         <p className="text-center text-xs text-muted-foreground">
-          Didn&apos;t receive a code?{' '}
+          {t('noCode')}{' '}
           <button
             type="button"
             className="text-primary hover:underline"
             onClick={() => router.push('/login')}
           >
-            Go back and try again
+            {t('goBack')}
           </button>
         </p>
       </div>

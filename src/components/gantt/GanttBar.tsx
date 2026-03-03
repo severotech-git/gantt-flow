@@ -5,13 +5,14 @@ import { CSS } from '@dnd-kit/utilities';
 import { cn } from '@/lib/utils';
 import { useSettingsStore } from '@/store/useSettingsStore';
 import { getDelayDays } from '@/lib/dateUtils';
-import { differenceInCalendarDays, parseISO, format, isValid } from 'date-fns';
+import { differenceInCalendarDays, parseISO, isValid } from 'date-fns';
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { AlertTriangle } from 'lucide-react';
+import { useFormatter } from 'next-intl';
 
 export interface GanttBarData {
   id: string;
@@ -47,10 +48,13 @@ const BAR_H: Record<GanttBarData['level'], number> = {
 
 const ROW_H = 36;
 
-function fmtDate(iso: string | undefined): string {
-  if (!iso) return '—';
-  const d = parseISO(iso);
-  return isValid(d) ? format(d, 'MMM d, yyyy') : '—';
+function useFmtDate() {
+  const fmt = useFormatter();
+  return (iso: string | undefined): string => {
+    if (!iso) return '—';
+    const d = parseISO(iso);
+    return isValid(d) ? fmt.dateTime(d, { year: 'numeric', month: 'short', day: 'numeric' }) : '—';
+  };
 }
 
 export function GanttBar({
@@ -74,6 +78,7 @@ export function GanttBar({
   const statuses = useSettingsStore((s) => s.statuses);
   const users = useSettingsStore((s) => s.users);
   const ownerUser = users.find((u) => u.uid === ownerId);
+  const fmtDate = useFmtDate();
   const statusConfig = statuses.find((s) => s.value === status);
   const barColorHex = statusConfig?.color ?? '#64748b';
   const isFinal = statusConfig?.isFinal ?? false;

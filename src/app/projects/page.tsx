@@ -9,7 +9,7 @@ import { EditProjectDialog } from '@/components/dialogs/EditProjectDialog';
 import Link from 'next/link';
 import { FolderKanban, Plus, BarChart3, Archive, ArchiveRestore, ChevronDown, ChevronRight, Trash2, Pencil } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { format } from 'date-fns';
+import { useFormatter, useTranslations } from 'next-intl';
 import type { IProject } from '@/types';
 
 export default function ProjectsPage() {
@@ -22,6 +22,8 @@ export default function ProjectsPage() {
   const [editProject, setEditProject] = useState<Omit<IProject, 'epics'> | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const t = useTranslations('projects');
+  const tCommon = useTranslations('common');
 
   useEffect(() => { fetchProjects(); }, [fetchProjects]);
 
@@ -31,7 +33,7 @@ export default function ProjectsPage() {
 
       <main className="flex-1 flex flex-col overflow-hidden">
         <PageNavbar
-          title="All Projects"
+          title={t('pageTitle')}
           sidebarOpen={!sidebarCollapsed}
           onToggleSidebar={() => setSidebarCollapsed((v) => !v)}
           actions={
@@ -41,7 +43,7 @@ export default function ProjectsPage() {
               className="h-7 px-3 text-xs bg-violet-600 hover:bg-violet-500 text-white gap-1.5"
             >
               <Plus size={12} />
-              New Project
+              {t('newProject')}
             </Button>
           }
         />
@@ -53,13 +55,13 @@ export default function ProjectsPage() {
           {projects.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-64 gap-4 text-muted-foreground">
               <BarChart3 size={48} strokeWidth={1} />
-              <p className="text-sm">No projects yet. Create your first one!</p>
+              <p className="text-sm">{t('noProjectsYet')}</p>
               <Button
                 onClick={() => setNewProjectOpen(true)}
                 className="bg-violet-600 hover:bg-violet-500 text-white gap-1.5"
               >
                 <Plus size={14} />
-                New Project
+                {t('newProject')}
               </Button>
             </div>
           ) : (
@@ -83,7 +85,7 @@ export default function ProjectsPage() {
             >
               {showArchived ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
               <Archive size={13} />
-              <span>Archived projects</span>
+              <span>{t('archivedProjects')}</span>
               {archivedProjects.length > 0 && (
                 <span className="px-1.5 py-0.5 rounded-full bg-muted text-muted-foreground text-[10px] tabular-nums">
                   {archivedProjects.length}
@@ -94,7 +96,7 @@ export default function ProjectsPage() {
             {showArchived && (
               <div className="mt-4">
                 {archivedProjects.length === 0 ? (
-                  <p className="text-xs text-muted-foreground/60 pl-6">No archived projects.</p>
+                  <p className="text-xs text-muted-foreground/60 pl-6">{t('noArchivedProjects')}</p>
                 ) : (
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                     {archivedProjects.map((p) => (
@@ -124,20 +126,20 @@ export default function ProjectsPage() {
       {confirmDelete && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
           <div className="bg-background border border-border rounded-xl p-6 max-sm w-full mx-4 space-y-4 shadow-xl">
-            <h2 className="text-sm font-semibold text-foreground">Delete project permanently?</h2>
+            <h2 className="text-sm font-semibold text-foreground">{t('deleteConfirmTitle')}</h2>
             <p className="text-xs text-muted-foreground">
-              This will permanently delete the project and all its snapshots. This action cannot be undone.
+              {t('deleteConfirmBody')}
             </p>
             <div className="flex justify-end gap-2">
               <Button variant="ghost" size="sm" onClick={() => setConfirmDelete(null)}>
-                Cancel
+                {tCommon('cancel')}
               </Button>
               <Button
                 size="sm"
                 className="bg-red-600 hover:bg-red-500 text-white"
                 onClick={() => { deleteProject(confirmDelete); setConfirmDelete(null); }}
               >
-                Delete forever
+                {t('deleteForever')}
               </Button>
             </div>
           </div>
@@ -158,6 +160,11 @@ function ProjectCard({
   onArchive: () => void;
   onEdit: () => void;
 }) {
+  const t = useTranslations('projects');
+  const tCommon = useTranslations('common');
+  const format = useFormatter();
+  const dateStr = format.dateTime(new Date(p.updatedAt), { year: 'numeric', month: 'short', day: 'numeric' });
+
   return (
     <div className="relative group flex flex-col gap-3 p-4 rounded-lg border border-border bg-card hover:bg-accent/40 hover:border-border/80 transition-all">
       <Link href={`/projects/${p._id}`} className="absolute inset-0 rounded-lg" aria-label={p.name} />
@@ -172,14 +179,14 @@ function ProjectCard({
         <div className="flex items-center gap-0.5 relative z-10">
           <button
             onClick={(e) => { e.preventDefault(); onEdit(); }}
-            title="Edit project"
+            title={t('editProject')}
             className="p-2 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors cursor-pointer"
           >
             <Pencil size={14} />
           </button>
           <button
             onClick={(e) => { e.preventDefault(); onArchive(); }}
-            title="Archive project"
+            title={t('archiveProject')}
             className="p-2 rounded-md text-muted-foreground hover:text-amber-600 dark:hover:text-amber-400 hover:bg-amber-500/10 transition-colors cursor-pointer"
           >
             <Archive size={14} />
@@ -196,7 +203,7 @@ function ProjectCard({
         )}
       </div>
       <p className="text-[11px] text-muted-foreground/70 mt-auto">
-        Updated {format(new Date(p.updatedAt), 'MMM d, yyyy')}
+        {tCommon('updatedAt', { date: dateStr })}
       </p>
     </div>
   );
@@ -213,6 +220,10 @@ function ArchivedProjectCard({
   onRestore: () => void;
   onDelete: () => void;
 }) {
+  const tCommon = useTranslations('common');
+  const format = useFormatter();
+  const dateStr = format.dateTime(new Date(p.updatedAt), { year: 'numeric', month: 'short', day: 'numeric' });
+
   return (
     <div className="flex flex-col gap-3 p-4 rounded-lg border border-border border-dashed bg-muted/20 opacity-70 hover:opacity-100 transition-opacity">
       <div className="flex items-start justify-between">
@@ -224,7 +235,7 @@ function ArchivedProjectCard({
         </div>
         <span className="flex items-center gap-1 text-[10px] text-muted-foreground bg-muted/40 px-1.5 py-0.5 rounded">
           <Archive size={10} />
-          Archived
+          {tCommon('archived')}
         </span>
       </div>
 
@@ -238,7 +249,7 @@ function ArchivedProjectCard({
       </div>
 
       <p className="text-[11px] text-muted-foreground/70">
-        Updated {format(new Date(p.updatedAt), 'MMM d, yyyy')}
+        {tCommon('updatedAt', { date: dateStr })}
       </p>
 
       {/* Actions */}
@@ -248,14 +259,14 @@ function ArchivedProjectCard({
           className="flex items-center gap-1.5 text-xs text-emerald-600 dark:text-emerald-400 hover:underline transition-colors"
         >
           <ArchiveRestore size={12} />
-          Restore
+          {tCommon('restore')}
         </button>
         <button
           onClick={onDelete}
           className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-red-500 transition-colors ml-auto"
         >
           <Trash2 size={12} />
-          Delete
+          {tCommon('delete')}
         </button>
       </div>
     </div>

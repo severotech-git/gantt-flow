@@ -1,19 +1,35 @@
 'use client';
 
-import { useState, Suspense } from 'react';
+import { useState, Suspense, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { signIn } from 'next-auth/react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import Image from 'next/image';
+import { useTranslations } from 'next-intl';
+import { LanguageSwitcher } from '@/components/shared/LanguageSwitcher';
 
 // Static imports for images to ensure reliable resolution
 import logoIcon from '../../../public/logo.png';
 import { PASSWORD_RULES, validatePassword } from '@/lib/passwordPolicy';
+import { SUPPORTED_LOCALES, type AppLocale } from '@/types';
 import { Check, X } from 'lucide-react';
 
+function detectLocale(): AppLocale {
+  if (typeof navigator === 'undefined') return 'en';
+  const lang = navigator.language || '';
+  const exact = SUPPORTED_LOCALES.find((l) => l === lang);
+  if (exact) return exact;
+  const prefix = lang.split('-')[0].toLowerCase();
+  const byPrefix = SUPPORTED_LOCALES.find(
+    (l) => l.toLowerCase() === prefix || l.toLowerCase().startsWith(prefix + '-')
+  );
+  return byPrefix ?? 'en';
+}
+
 function RegisterPageContent() {
+  const t = useTranslations('auth.register');
   const router = useRouter();
   const searchParams = useSearchParams();
   const inviteToken = searchParams.get('inviteToken');
@@ -25,9 +41,14 @@ function RegisterPageContent() {
     confirmPassword: '',
   });
 
+  const [detectedLocale, setDetectedLocale] = useState<AppLocale>('en');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [passwordFocused, setPasswordFocused] = useState(false);
+
+  useEffect(() => {
+    setDetectedLocale(detectLocale());
+  }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -50,7 +71,7 @@ function RegisterPageContent() {
       const response = await fetch('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({ ...formData, locale: detectedLocale }),
       });
 
       const data = await response.json();
@@ -60,9 +81,6 @@ function RegisterPageContent() {
         return;
       }
 
-      // Auto-login: the server has set an httpOnly cookie with the bypass token.
-      // We pass a sentinel value so the credentials provider knows to read it
-      // from the cookie header rather than from the credentials object.
       const signInResult = await signIn('credentials', {
         email: formData.email,
         password: formData.password,
@@ -74,18 +92,16 @@ function RegisterPageContent() {
         if (inviteToken) {
           router.push(`/invite/${inviteToken}?auto=1`);
         } else {
-          // Proxy will send unverified users to /verify-email
           router.push('/projects');
         }
       } else if (signInResult?.code === 'MFARequired') {
-        // Unlikely (bypassToken expired in <1s), but handle gracefully
         sessionStorage.setItem('mfa_pending_email', formData.email);
         router.push(`/verify-mfa?email=${encodeURIComponent(formData.email)}`);
       } else {
-        setError('Registration succeeded, but auto-login failed. Please log in manually.');
+        setError(t('autoLoginFailed'));
       }
     } catch (err) {
-      setError('An unexpected error occurred');
+      setError(t('unexpectedError'));
       console.error(err);
     } finally {
       setLoading(false);
@@ -95,8 +111,8 @@ function RegisterPageContent() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-background">
       <div className="w-full max-w-md p-8 space-y-6 bg-card border border-border rounded-lg shadow-lg">
-        <div>
-          <h1 className="text-2xl font-bold text-center flex items-center justify-center gap-2">
+        <div className="flex items-center justify-between">
+          <h1 className="text-2xl font-bold flex items-center gap-2">
             <Image
               src={logoIcon}
               alt="GanttFlow Logo"
@@ -106,11 +122,13 @@ function RegisterPageContent() {
             />
             GanttFlow
           </h1>
-          <h2 className="text-2xl font-bold text-foreground mt-4">Create Account</h2>
+          <LanguageSwitcher />
+        </div>
+
+        <div>
+          <h2 className="text-2xl font-bold text-foreground">{t('heading')}</h2>
           {inviteToken && (
-            <p className="text-sm text-muted-foreground mt-1">
-              Create your account to accept the team invitation.
-            </p>
+            <p className="text-sm text-muted-foreground mt-1">{t('inviteSubtitle')}</p>
           )}
         </div>
 
@@ -123,14 +141,14 @@ function RegisterPageContent() {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-foreground mb-1">
-              Full Name
+              {t('nameLabel')}
             </label>
             <Input
               type="text"
               name="name"
               value={formData.name}
               onChange={handleChange}
-              placeholder="John Doe"
+              placeholder={t('namePlaceholder')}
               disabled={loading}
               required
             />
@@ -138,14 +156,14 @@ function RegisterPageContent() {
 
           <div>
             <label className="block text-sm font-medium text-foreground mb-1">
-              Email
+              {t('emailLabel')}
             </label>
             <Input
               type="email"
               name="email"
               value={formData.email}
               onChange={handleChange}
-              placeholder="you@example.com"
+              placeholder={t('emailPlaceholder')}
               disabled={loading}
               required
             />
@@ -153,7 +171,7 @@ function RegisterPageContent() {
 
           <div>
             <label className="block text-sm font-medium text-foreground mb-1">
-              Password
+              {t('passwordLabel')}
             </label>
             <Input
               type="password"
@@ -161,7 +179,7 @@ function RegisterPageContent() {
               value={formData.password}
               onChange={handleChange}
               onFocus={() => setPasswordFocused(true)}
-              placeholder="••••••••"
+              placeholder={t('passwordPlaceholder')}
               disabled={loading}
               required
             />
@@ -182,14 +200,14 @@ function RegisterPageContent() {
 
           <div>
             <label className="block text-sm font-medium text-foreground mb-1">
-              Confirm Password
+              {t('confirmPasswordLabel')}
             </label>
             <Input
               type="password"
               name="confirmPassword"
               value={formData.confirmPassword}
               onChange={handleChange}
-              placeholder="••••••••"
+              placeholder={t('confirmPasswordPlaceholder')}
               disabled={loading}
               required
             />
@@ -200,17 +218,17 @@ function RegisterPageContent() {
             className="w-full"
             disabled={loading}
           >
-            {loading ? 'Creating account...' : inviteToken ? 'Create Account & Accept Invite' : 'Create Account'}
+            {loading ? t('creating') : inviteToken ? t('createAndAcceptButton') : t('createButton')}
           </Button>
         </form>
 
         <div className="text-center text-sm">
-          <span className="text-muted-foreground">Already have an account? </span>
+          <span className="text-muted-foreground">{t('alreadyHaveAccount')} </span>
           <Link
             href={inviteToken ? `/login?callbackUrl=${encodeURIComponent(`/invite/${inviteToken}`)}` : '/login'}
             className="text-primary hover:underline font-medium"
           >
-            Sign in
+            {t('signIn')}
           </Link>
         </div>
       </div>
