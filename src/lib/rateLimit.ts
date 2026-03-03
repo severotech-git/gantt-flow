@@ -53,10 +53,27 @@ export function checkRateLimit(
 
 /**
  * Extract the client IP from request headers.
- * Trusts X-Forwarded-For (first hop) or X-Real-IP, falling back to '127.0.0.1'.
+ *
+ * X-Forwarded-For / X-Real-IP are user-controllable unless the request passes
+ * through a trusted reverse proxy first.  Set TRUSTED_PROXY=1 in your
+ * environment (e.g. behind Nginx, AWS ALB, Cloudflare) to enable XFF trust.
+ * Without it the headers are ignored to prevent rate-limit bypass via spoofing.
  */
 export function getClientIp(headers: Headers): string {
-  const forwarded = headers.get('x-forwarded-for');
-  if (forwarded) return forwarded.split(',')[0].trim();
-  return headers.get('x-real-ip') ?? '127.0.0.1';
+  if (process.env.TRUSTED_PROXY === '1') {
+    const forwarded = headers.get('x-forwarded-for');
+    if (forwarded) {
+      const ip = forwarded.split(',')[0].trim();
+      if (isValidIp(ip)) return ip;
+    }
+    const realIp = headers.get('x-real-ip');
+    if (realIp && isValidIp(realIp)) return realIp;
+  }
+  return '127.0.0.1';
+}
+
+function isValidIp(ip: string): boolean {
+  const ipv4 = /^(\d{1,3}\.){3}\d{1,3}$/;
+  const ipv6 = /^[\da-fA-F:]+$/;
+  return ipv4.test(ip) || ipv6.test(ip);
 }

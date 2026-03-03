@@ -60,11 +60,13 @@ function RegisterPageContent() {
         return;
       }
 
-      // Auto-login using bypassToken so MFA is skipped for fresh registration
+      // Auto-login: the server has set an httpOnly cookie with the bypass token.
+      // We pass a sentinel value so the credentials provider knows to read it
+      // from the cookie header rather than from the credentials object.
       const signInResult = await signIn('credentials', {
         email: formData.email,
         password: formData.password,
-        bypassToken: data.bypassToken ?? '',
+        bypassToken: '__use_cookie__',
         redirect: false,
       });
 

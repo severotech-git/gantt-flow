@@ -14,6 +14,15 @@ import { authConfig } from '@/auth.config';
 import { checkRateLimit, getClientIp } from '@/lib/rateLimit';
 import { sendMFACode } from '@/lib/email';
 
+/** Parse a single named cookie from a raw Cookie header string. */
+function parseCookie(cookieHeader: string, name: string): string | null {
+  for (const part of cookieHeader.split(';')) {
+    const [k, ...v] = part.trim().split('=');
+    if (k.trim() === name) return v.join('=') || null;
+  }
+  return null;
+}
+
 class MFARequiredError extends CredentialsSignin {
   code = 'MFARequired';
 }
@@ -81,8 +90,11 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             return null;
           }
 
-          // Valid code — delete OTP and return user
-          await EmailOTP.deleteOne({ email });
+          // Atomically claim the OTP document so two concurrent requests with
+          // the correct code cannot both succeed (race-condition prevention).
+          const claimed = await EmailOTP.findOneAndDelete({ _id: otp._id });
+          if (!claimed) return null; // Another concurrent request claimed it first
+
           const user = await User.findOne({ email });
           if (!user) return null;
 
@@ -109,25 +121,39 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         if (!passwordMatch) throw new Error('Invalid email or password');
 
         // ── Branch B: bypassToken (post-registration auto-login) ──────────────
-        if (credentials.bypassToken) {
-          const verification = await EmailVerification.findOne({
-            userId: user._id.toString(),
-            bypassToken: credentials.bypassToken as string,
-          });
+        // The client sends the sentinel '__use_cookie__'; the actual token lives
+        // in an httpOnly cookie that is never readable by JavaScript.
+        if (credentials.bypassToken === '__use_cookie__') {
+          const cookieHeader = (request as Request).headers.get('cookie') ?? '';
+          const bypassTokenValue = parseCookie(cookieHeader, '__bypass_token');
 
-          if (verification && verification.bypassExpiresAt && verification.bypassExpiresAt > new Date()) {
-            // Single-use: clear bypassToken fields
-            await EmailVerification.findByIdAndUpdate(verification._id, {
-              $unset: { bypassToken: '', bypassExpiresAt: '' },
+          if (bypassTokenValue) {
+            // Per-userId rate limit so even a leaked httpOnly cookie can't be
+            // brute-forced against multiple userIds.
+            const bypassRl = checkRateLimit(`bypass:${user._id}`, 3, 60 * 1000);
+            if (!bypassRl.ok) {
+              throw new Error('Too many login attempts. Please try again later.');
+            }
+
+            const verification = await EmailVerification.findOne({
+              userId: user._id.toString(),
+              bypassToken: bypassTokenValue,
             });
-            return {
-              id: user._id.toString(),
-              email: user.email,
-              name: user.name,
-              image: user.image,
-            };
+
+            if (verification && verification.bypassExpiresAt && verification.bypassExpiresAt > new Date()) {
+              // Single-use: clear bypassToken fields atomically
+              await EmailVerification.findByIdAndUpdate(verification._id, {
+                $unset: { bypassToken: '', bypassExpiresAt: '' },
+              });
+              return {
+                id: user._id.toString(),
+                email: user.email,
+                name: user.name,
+                image: user.image,
+              };
+            }
           }
-          // Expired bypassToken — fall through to Branch C (MFA)
+          // Expired or missing bypass token — fall through to Branch C (MFA)
         }
 
         // ── Branch C: Normal login → generate OTP ────────────────────────────

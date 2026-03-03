@@ -13,9 +13,9 @@ export const runtime = 'nodejs';
 
 export async function POST(request: NextRequest) {
   try {
-    // Rate limit: 10 registrations per IP per hour
+    // Rate limit: 5 registrations per IP per hour
     const ip = getClientIp(request.headers);
-    const rl = checkRateLimit(`register:${ip}`, 10, 60 * 60 * 1000);
+    const rl = checkRateLimit(`register:${ip}`, 5, 60 * 60 * 1000);
     if (!rl.ok) {
       return NextResponse.json(
         { error: 'Too many requests. Please try again later.' },
@@ -106,10 +106,21 @@ export async function POST(request: NextRequest) {
       console.error('[register] Failed to send verification email:', err);
     }
 
-    return NextResponse.json(
-      { message: 'User created successfully', bypassToken },
+    // Set the bypass token as an httpOnly cookie so it is never accessible from
+    // JavaScript.  The credentials provider reads it server-side from the cookie
+    // header; the client only sends a sentinel value ('__use_cookie__').
+    const response = NextResponse.json(
+      { message: 'User created successfully' },
       { status: 201 }
     );
+    response.cookies.set('__bypass_token', bypassToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 65, // slightly longer than the 60 s DB validity window
+      path: '/api/auth/callback/credentials',
+    });
+    return response;
   } catch (error) {
     console.error('Register error:', error);
     return NextResponse.json(

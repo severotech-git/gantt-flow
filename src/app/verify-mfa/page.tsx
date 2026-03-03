@@ -13,11 +13,15 @@ function VerifyMFAContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  // Email can come from query param (login flow) or sessionStorage (MFA redirect)
+  // Email can come from query param (login flow) or sessionStorage (MFA redirect).
+  // Validate the format before use to prevent session-fixation via crafted values.
   const emailFromParam = searchParams.get('email') ?? '';
-  const [email] = useState(
-    () => emailFromParam || (typeof window !== 'undefined' ? sessionStorage.getItem('mfa_pending_email') ?? '' : '')
-  );
+  const isValidEmail = (e: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e);
+  const [email] = useState(() => {
+    const stored = typeof window !== 'undefined' ? sessionStorage.getItem('mfa_pending_email') ?? '' : '';
+    const candidate = emailFromParam || stored;
+    return isValidEmail(candidate) ? candidate : '';
+  });
 
   const [code, setCode] = useState('');
   const [error, setError] = useState('');

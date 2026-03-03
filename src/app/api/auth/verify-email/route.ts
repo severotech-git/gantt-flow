@@ -17,13 +17,16 @@ export async function GET(request: NextRequest) {
 
     const verification = await EmailVerification.findOne({ token });
 
+    // Use a single generic error for both missing and expired tokens to prevent
+    // attackers from distinguishing "token doesn't exist" vs "token expired"
+    // (which would allow them to map valid token patterns).
     if (!verification) {
       return NextResponse.redirect(new URL('/verify-email?error=invalid', request.url));
     }
 
     if (verification.expiresAt < new Date()) {
       await EmailVerification.deleteOne({ _id: verification._id });
-      return NextResponse.redirect(new URL('/verify-email?error=expired', request.url));
+      return NextResponse.redirect(new URL('/verify-email?error=invalid', request.url));
     }
 
     // Mark user as verified
