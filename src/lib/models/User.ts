@@ -9,6 +9,7 @@ export interface IUserDocument extends Document {
   mainAccountId?: string | null;
   theme: 'dark' | 'light' | 'system';
   locale: 'en' | 'pt-BR' | 'es';
+  ganttScale: 'week' | 'month' | 'quarter';
 }
 
 const UserSchema = new Schema<IUserDocument>(
@@ -49,6 +50,11 @@ const UserSchema = new Schema<IUserDocument>(
       type: String,
       enum: ['en', 'pt-BR', 'es'],
       default: 'en',
+    },
+    ganttScale: {
+      type: String,
+      enum: ['week', 'month', 'quarter'],
+      default: 'week',
     },
   },
   {

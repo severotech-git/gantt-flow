@@ -62,7 +62,7 @@ export function NewProjectDialog({ open, onClose }: NewProjectDialogProps) {
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder={t('namePlaceholder')}
-              className="focus-visible:ring-violet-500"
+              className="focus-visible:ring-blue-500"
             />
           </div>
           <div className="flex flex-col gap-1.5">
@@ -71,7 +71,7 @@ export function NewProjectDialog({ open, onClose }: NewProjectDialogProps) {
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder={t('descriptionPlaceholder')}
-              className="focus-visible:ring-violet-500"
+              className="focus-visible:ring-blue-500"
             />
           </div>
           <div className="flex flex-col gap-1.5">
@@ -84,7 +84,7 @@ export function NewProjectDialog({ open, onClose }: NewProjectDialogProps) {
                   onClick={() => setColor(c)}
                   className={cn(
                     "w-6 h-6 rounded-full transition-all ring-offset-background",
-                    color === c ? "ring-2 ring-violet-500 ring-offset-2" : "hover:scale-110"
+                    color === c ? "ring-2 ring-blue-500 ring-offset-2" : "hover:scale-110"
                   )}
                   style={{ background: c }}
                 />
@@ -103,7 +103,7 @@ export function NewProjectDialog({ open, onClose }: NewProjectDialogProps) {
             <Button
               type="submit"
               disabled={loading || !name.trim()}
-              className="bg-violet-600 hover:bg-violet-500 text-white"
+              className="bg-blue-600 hover:bg-blue-500 text-white"
             >
               {loading ? t('creating') : t('createButton')}
             </Button>

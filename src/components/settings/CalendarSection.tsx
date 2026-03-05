@@ -28,15 +28,15 @@ export function CalendarSection() {
         className={cn(
           'w-full flex items-start gap-4 p-4 rounded-lg border-2 text-left transition-all',
           !canManage && 'opacity-60 cursor-not-allowed',
-          canManage && allowWeekends  && 'border-violet-500 bg-violet-500/10',
+          canManage && allowWeekends  && 'border-blue-500 bg-blue-500/10',
           canManage && !allowWeekends && 'border-border bg-muted/20 hover:border-border/80',
-          !canManage && allowWeekends  && 'border-violet-500/50 bg-violet-500/5',
+          !canManage && allowWeekends  && 'border-blue-500/50 bg-blue-500/5',
           !canManage && !allowWeekends && 'border-border bg-muted/20',
         )}
       >
         <div className={cn(
           'mt-0.5 flex items-center justify-center w-8 h-8 rounded-md shrink-0',
-          allowWeekends ? 'bg-violet-500/20 text-violet-500' : 'bg-muted text-muted-foreground'
+          allowWeekends ? 'bg-blue-500/20 text-blue-500' : 'bg-muted text-muted-foreground'
         )}>
           <CalendarDays size={16} />
         </div>
@@ -46,7 +46,7 @@ export function CalendarSection() {
             <span className="text-sm font-medium text-foreground">{t('allowWeekends')}</span>
             <div className={cn(
               'relative shrink-0 w-9 h-5 rounded-full transition-colors',
-              allowWeekends ? 'bg-violet-500' : 'bg-muted-foreground/30'
+              allowWeekends ? 'bg-blue-500' : 'bg-muted-foreground/30'
             )}>
               <span className={cn(
                 'absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform',

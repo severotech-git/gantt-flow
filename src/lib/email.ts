@@ -120,7 +120,7 @@ function renderEmailLayout(title: string, contentHtml: string): string {
     <body>
       <div class="container">
         <div class="header">
-          <img src="${APP_URL}/logo.png" alt="GanttFlow" class="logo">
+          <img src="${APP_URL}/icon.png" alt="GanttFlow" class="logo">
         </div>
         <div class="card">
           ${contentHtml}

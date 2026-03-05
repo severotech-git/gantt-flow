@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
-import { IStatusConfig, IUserConfig, AppLocale } from '@/types';
+import { IStatusConfig, IUserConfig, AppLocale, TimelineScale } from '@/types';
 
 export const DEFAULT_STATUSES: IStatusConfig[] = [
   { value: 'todo',        label: 'To Do',       color: '#64748b', isFinal: false },
@@ -11,12 +11,13 @@ export const DEFAULT_STATUSES: IStatusConfig[] = [
   { value: 'blocked',     label: 'Blocked',     color: '#c2410c', isFinal: false },
 ];
 
-type SettingsKey = 'users' | 'theme' | 'locale' | 'levelNames' | 'statuses' | 'allowWeekends';
+type SettingsKey = 'users' | 'theme' | 'locale' | 'levelNames' | 'statuses' | 'allowWeekends' | 'ganttScale';
 
 interface SettingsState {
   users: IUserConfig[];
   theme: 'dark' | 'light' | 'system';
   locale: AppLocale;
+  ganttScale: TimelineScale;
   levelNames: { epic: string; feature: string; task: string };
   statuses: IStatusConfig[];
   allowWeekends: boolean;
@@ -30,6 +31,7 @@ interface SettingsActions {
   persistSettings: (...keys: SettingsKey[]) => Promise<void>;
   setTheme: (t: 'dark' | 'light' | 'system') => void;
   setLocale: (l: AppLocale) => void;
+  setGanttScale: (s: TimelineScale) => void;
   setAllowWeekends: (v: boolean) => void;
   setLevelName: (level: 'epic' | 'feature' | 'task', v: string) => void;
   // User list CRUD
@@ -48,6 +50,7 @@ export const useSettingsStore = create<SettingsState & SettingsActions>()(
     users: [],
     theme: 'system',
     locale: 'en',
+    ganttScale: 'week',
     levelNames: { epic: 'Epic', feature: 'Feature', task: 'Task' },
     statuses: DEFAULT_STATUSES,
     allowWeekends: false,
@@ -60,14 +63,19 @@ export const useSettingsStore = create<SettingsState & SettingsActions>()(
         const res = await fetch('/api/settings');
         if (!res.ok) return;
         const data = await res.json();
+        const savedScale: TimelineScale = data.ganttScale ?? 'week';
         set((s) => {
           s.users = data.users ?? [];
           s.theme = data.theme ?? 'system';
           s.locale = data.locale ?? 'en';
+          s.ganttScale = savedScale;
           s.levelNames = data.levelNames ?? { epic: 'Epic', feature: 'Feature', task: 'Task' };
           s.statuses = data.statuses?.length ? data.statuses : DEFAULT_STATUSES;
           s.allowWeekends = data.allowWeekends ?? false;
         });
+        // Apply saved scale to project store without re-persisting
+        const { useProjectStore } = await import('@/store/useProjectStore');
+        useProjectStore.getState().applyTimelineScale(savedScale);
       } finally {
         set((s) => { s.isLoading = false; });
       }
@@ -104,6 +112,11 @@ export const useSettingsStore = create<SettingsState & SettingsActions>()(
     setLocale: (l) => {
       set((s) => { s.locale = l; });
       setTimeout(() => get().persistSettings('locale'), 0);
+    },
+
+    setGanttScale: (scale) => {
+      set((s) => { s.ganttScale = scale; });
+      setTimeout(() => get().persistSettings('ganttScale'), 0);
     },
 
     setAllowWeekends: (v) => {

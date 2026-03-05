@@ -112,7 +112,7 @@ export function TeamSection() {
         <div className="flex items-center justify-between">
           <h3 className="text-sm font-medium">{t('membersTitle')}</h3>
           {canManage && (
-            <Button size="sm" onClick={() => setShowInvite(true)} className="bg-violet-600 hover:bg-violet-500 text-white">
+            <Button size="sm" onClick={() => setShowInvite(true)} className="bg-blue-600 hover:bg-blue-500 text-white">
               <UserPlus size={14} className="mr-1.5" />
               {t('inviteButton')}
             </Button>

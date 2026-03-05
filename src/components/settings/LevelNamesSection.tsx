@@ -59,7 +59,7 @@ export function LevelNamesSection() {
               onChange={(e) => setLocal((p) => ({ ...p, [key]: e.target.value }))}
               placeholder={DEFAULTS[key]}
               disabled={!canManage}
-              className="focus-visible:ring-violet-500"
+              className="focus-visible:ring-blue-500"
             />
             <p className="text-[10px] text-muted-foreground/50">{t('default', { value: DEFAULTS[key] })}</p>
           </div>
@@ -70,7 +70,7 @@ export function LevelNamesSection() {
         <Button
           onClick={handleSave}
           disabled={isSaving}
-          className="bg-violet-600 hover:bg-violet-500 text-white"
+          className="bg-blue-600 hover:bg-blue-500 text-white"
         >
           {isSaving ? t('saving') : t('saveButton')}
         </Button>

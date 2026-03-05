@@ -13,6 +13,7 @@ import { LevelNamesSection } from '@/components/settings/LevelNamesSection';
 import { CalendarSection } from '@/components/settings/CalendarSection';
 import { TeamSection } from '@/components/settings/TeamSection';
 import { AccountsSection } from '@/components/settings/AccountsSection';
+import { LanguageSection } from '@/components/settings/LanguageSection';
 import { Loader2 } from 'lucide-react';
 import { PageNavbar } from '@/components/layout/PageNavbar';
 
@@ -24,7 +25,7 @@ function SettingsContent() {
 
   // Derive active section from URL (Source of Truth)
   const querySection = searchParams.get('section') as SettingsSection;
-  const validSections: SettingsSection[] = ['accounts', 'team', 'users', 'levels', 'statuses', 'calendar', 'profile', 'theme'];
+  const validSections: SettingsSection[] = ['accounts', 'team', 'users', 'levels', 'statuses', 'calendar', 'profile', 'theme', 'language'];
   const activeSection = validSections.includes(querySection) ? querySection : 'accounts';
 
   const handleSectionChange = (newSection: SettingsSection) => {
@@ -63,7 +64,8 @@ function SettingsContent() {
             {activeSection === 'calendar' && <CalendarSection />}
             {activeSection === 'profile'  && <ProfileSection />}
             {activeSection === 'theme'    && <ThemeSection />}
-            {activeSection === 'accounts' && <AccountsSection />}
+            {activeSection === 'accounts'  && <AccountsSection />}
+            {activeSection === 'language'  && <LanguageSection />}
           </div>
         </div>
       </main>

@@ -1,10 +1,10 @@
 'use client';
 
 import { cn } from '@/lib/utils';
-import { Sun, Tag, Layers2, CalendarDays, User, UsersRound, UserCheck, Building2 } from 'lucide-react';
+import { Sun, Tag, Layers2, CalendarDays, User, UsersRound, UserCheck, Building2, Globe } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 
-type Section = 'profile' | 'team' | 'users' | 'theme' | 'statuses' | 'levels' | 'calendar' | 'accounts';
+type Section = 'profile' | 'team' | 'users' | 'theme' | 'statuses' | 'levels' | 'calendar' | 'accounts' | 'language';
 
 type GroupDef = {
   groupKey: string;
@@ -31,8 +31,9 @@ const GROUPS: GroupDef[] = [
   {
     groupKey: 'user',
     items: [
-      { id: 'profile', itemKey: 'profile', icon: <User size={15} /> },
-      { id: 'theme',   itemKey: 'theme',   icon: <Sun size={15} /> },
+      { id: 'profile',  itemKey: 'profile',  icon: <User size={15} /> },
+      { id: 'language', itemKey: 'language', icon: <Globe size={15} /> },
+      { id: 'theme',    itemKey: 'theme',    icon: <Sun size={15} /> },
     ],
   },
 ];

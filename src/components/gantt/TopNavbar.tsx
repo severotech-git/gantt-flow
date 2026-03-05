@@ -133,7 +133,7 @@ export function TopNavbar({ onEditProject: _onEditProject, onSaveVersion, onNewP
 
             <DropdownMenuItem
               onSelect={() => { clearVersion(); setVersionMenuOpen(false); }}
-              className={cn('text-xs cursor-pointer gap-2', !isVersionReadOnly && 'text-violet-500 font-medium')}
+              className={cn('text-xs cursor-pointer gap-2', !isVersionReadOnly && 'text-blue-500 font-medium')}
             >
               <span className={cn('w-1.5 h-1.5 rounded-full shrink-0', !isVersionReadOnly ? 'bg-emerald-500' : 'bg-muted-foreground/40')} />
               {t('live')}
@@ -180,7 +180,7 @@ export function TopNavbar({ onEditProject: _onEditProject, onSaveVersion, onNewP
 
       {/* Save Snapshot */}
       {!isVersionReadOnly && project && (
-        <Button size="sm" onClick={onSaveVersion} className="h-7 px-3 text-xs bg-violet-600 hover:bg-violet-500 text-white gap-1.5">
+        <Button size="sm" onClick={onSaveVersion} className="h-7 px-3 text-xs bg-blue-600 hover:bg-blue-500 text-white gap-1.5">
           <Camera size={12} />
           {t('saveSnapshot')}
         </Button>

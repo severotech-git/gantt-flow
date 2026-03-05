@@ -210,6 +210,11 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       // Apply base callback first (handles uid on first login)
       const base = await authConfig.callbacks.jwt({ token, user, trigger, session });
 
+      // On update trigger: sync name from client session update
+      if (trigger === 'update' && session?.name && typeof session.name === 'string') {
+        base.name = session.name.trim();
+      }
+
       // On update trigger: sync locale from client session update
       const VALID_LOCALES = ['en', 'pt-BR', 'es'];
       if (trigger === 'update' && session?.locale && VALID_LOCALES.includes(session.locale as string)) {

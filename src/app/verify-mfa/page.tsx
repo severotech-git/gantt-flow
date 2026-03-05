@@ -106,7 +106,7 @@ function VerifyMFAContent() {
             disabled={loading}
             className="text-center text-2xl tracking-[0.5em] font-mono"
           />
-          <Button type="submit" className="w-full" disabled={loading || code.length !== 6}>
+          <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-500 text-white" disabled={loading || code.length !== 6}>
             {loading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />

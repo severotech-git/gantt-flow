@@ -11,7 +11,7 @@ import { useTranslations } from 'next-intl';
 import { LanguageSwitcher } from '@/components/shared/LanguageSwitcher';
 
 // Static imports for images to ensure reliable resolution
-import logoIcon from '../../../public/logo.png';
+import logoIcon from '../../../public/icon.png';
 import { PASSWORD_RULES, validatePassword } from '@/lib/passwordPolicy';
 import { SUPPORTED_LOCALES, type AppLocale } from '@/types';
 import { Check, X } from 'lucide-react';
@@ -215,7 +215,7 @@ function RegisterPageContent() {
 
           <Button
             type="submit"
-            className="w-full"
+            className="w-full bg-blue-600 hover:bg-blue-500 text-white"
             disabled={loading}
           >
             {loading ? t('creating') : inviteToken ? t('createAndAcceptButton') : t('createButton')}

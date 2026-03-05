@@ -12,7 +12,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { AlertTriangle } from 'lucide-react';
-import { useFormatter } from 'next-intl';
+import { useFormatter, useTranslations } from 'next-intl';
 
 export interface GanttBarData {
   id: string;
@@ -75,6 +75,7 @@ export function GanttBar({
   dragDelta,
   hasWarning,
 }: GanttBarProps) {
+  const t = useTranslations('gantt.bar');
   const statuses = useSettingsStore((s) => s.statuses);
   const users = useSettingsStore((s) => s.users);
   const ownerUser = users.find((u) => u.uid === ownerId);
@@ -193,10 +194,10 @@ export function GanttBar({
   if (isOverlay) return barEl;
 
   const diffLabel = isDelayed
-    ? `${delayDays}d overdue`
+    ? t('overdue', { days: delayDays })
     : isEarly
-    ? `${Math.abs(delayDays)}d early`
-    : 'On schedule';
+    ? t('early', { days: Math.abs(delayDays) })
+    : t('onSchedule');
 
   return (
     <Tooltip>
@@ -206,27 +207,27 @@ export function GanttBar({
         className="bg-popover border-border text-popover-foreground text-xs p-3 max-w-[220px] space-y-1.5"
       >
         <p className="font-semibold text-foreground">{label}</p>
-        {ownerUser && <p className="text-muted-foreground text-[11px]">Owner: {ownerUser.name}</p>}
+        {ownerUser && <p className="text-muted-foreground text-[11px]">{t('owner')}: {ownerUser.name}</p>}
         <div className="border-t border-border pt-1.5 grid grid-cols-2 gap-x-4 gap-y-1 text-[11px]">
-          <span className="text-muted-foreground">Planned start</span>
+          <span className="text-muted-foreground">{t('plannedStart')}</span>
           <span>{fmtDate(plannedStart)}</span>
-          <span className="text-muted-foreground">Planned end</span>
+          <span className="text-muted-foreground">{t('plannedEnd')}</span>
           <span>{fmtDate(plannedEnd)}</span>
           {actualStart && (
             <>
-              <span className="text-muted-foreground">Actual start</span>
+              <span className="text-muted-foreground">{t('actualStart')}</span>
               <span>{fmtDate(actualStart)}</span>
             </>
           )}
           {actualEnd && (
             <>
-              <span className="text-muted-foreground">Actual end</span>
+              <span className="text-muted-foreground">{t('actualEnd')}</span>
               <span>{fmtDate(actualEnd)}</span>
             </>
           )}
-          <span className="text-muted-foreground">Duration</span>
+          <span className="text-muted-foreground">{t('duration')}</span>
           <span>{durationDays}d</span>
-          <span className="text-muted-foreground">Progress</span>
+          <span className="text-muted-foreground">{t('progress')}</span>
           <span>{pct}%</span>
         </div>
         <p className={cn(

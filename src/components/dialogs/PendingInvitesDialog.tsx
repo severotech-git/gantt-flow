@@ -102,6 +102,7 @@ export function PendingInvitesDialog({ open, onOpenChange }: PendingInvitesDialo
                     size="sm"
                     disabled={isLoading}
                     onClick={() => handleAccept(inv.token)}
+                    className="bg-blue-600 hover:bg-blue-500 text-white"
                   >
                     {isLoading ? <Loader2 size={12} className="animate-spin" /> : 'Accept'}
                   </Button>

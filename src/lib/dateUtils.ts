@@ -184,6 +184,37 @@ export function snapToWorkday(date: Date, direction: 'forward' | 'backward' = 'f
   return date;
 }
 
+/**
+ * Derives the timeline canvas start date so that:
+ * - All project items are reachable (canvas begins before the earliest item)
+ * - Today is also always reachable (today is included in the min calculation)
+ * Returns { startDate, todayOffsetDays } so callers can scroll the viewport
+ * to show today on first render.
+ */
+export function getProjectTimelineStart(
+  project: { epics: IEpic[] },
+  scale: TimelineScale,
+): { startDate: Date; todayOffsetDays: number } {
+  const today = new Date();
+  // Always include today so the canvas covers it even if all items are in the past/future
+  const dates: Date[] = [today];
+  for (const epic of project.epics) {
+    if (epic.plannedStart) { const d = parseISO(epic.plannedStart); if (isValid(d)) dates.push(d); }
+    for (const feat of epic.features) {
+      if (feat.plannedStart) { const d = parseISO(feat.plannedStart); if (isValid(d)) dates.push(d); }
+      for (const task of feat.tasks) {
+        if (task.plannedStart) { const d = parseISO(task.plannedStart); if (isValid(d)) dates.push(d); }
+      }
+    }
+  }
+  const earliest = dateMin(dates);
+  // Back up enough to give breathing room before the first bar
+  const pad = scale === 'week' ? 14 : scale === 'month' ? 30 : 90;
+  const startDate = startOfWeek(addDays(earliest, -pad), { weekStartsOn: 1 });
+  const todayOffsetDays = differenceInCalendarDays(today, startDate);
+  return { startDate, todayOffsetDays };
+}
+
 /** Default timeline start date for a given scale. */
 export function getDefaultStartDate(scale: TimelineScale): Date {
   const today = new Date();

@@ -1,6 +1,6 @@
 'use client';
 
-import { forwardRef, useState, useRef, useCallback } from 'react';
+import { forwardRef, useState, useRef, useCallback, useMemo } from 'react';
 import { StatusBadge } from '@/components/shared/StatusBadge';
 import { OwnerAvatar } from '@/components/shared/OwnerAvatar';
 import { useProjectStore } from '@/store/useProjectStore';
@@ -45,6 +45,70 @@ const PANEL_MIN = 200;
 const PANEL_MAX = 700;
 const PANEL_DEFAULT = 460;
 
+interface RowMeta {
+  isLastSibling: boolean;
+  parentIsLast: boolean;
+  isNotFirstEpic: boolean;
+  epicColorIdx: number;
+}
+
+function computeRowMetas(visibleRows: VisibleRow[]): RowMeta[] {
+  let epicCount = 0;
+  let epicColorIdx = -1;
+  let lastEpicId = '';
+  return visibleRows.map((row, i) => {
+    if (row.level === 'epic') {
+      const isNotFirstEpic = epicCount > 0;
+      epicCount++;
+      if (row.epicId !== lastEpicId) { epicColorIdx++; lastEpicId = row.epicId; }
+      return { isLastSibling: true, parentIsLast: true, isNotFirstEpic, epicColorIdx };
+    }
+    if (row.isAddRow) {
+      return { isLastSibling: true, parentIsLast: true, isNotFirstEpic: false, epicColorIdx: Math.max(epicColorIdx, 0) };
+    }
+
+    // Compute isLastSibling
+    let isLastSibling = true;
+    if (row.level === 'feature') {
+      for (let j = i + 1; j < visibleRows.length; j++) {
+        const next = visibleRows[j];
+        if (next.isAddRow || next.level === 'task') continue;
+        if (next.level === 'feature' && next.epicId === row.epicId) isLastSibling = false;
+        break;
+      }
+    } else {
+      // task
+      for (let j = i + 1; j < visibleRows.length; j++) {
+        const next = visibleRows[j];
+        if (next.isAddRow) continue;
+        if (next.level === 'task' && next.featureId === row.featureId) isLastSibling = false;
+        break;
+      }
+    }
+
+    // Compute parentIsLast (for tasks: is parent feature the last feature in its epic?)
+    let parentIsLast = true;
+    if (row.level === 'task') {
+      outer: for (let j = i - 1; j >= 0; j--) {
+        const prev = visibleRows[j];
+        if (prev.isAddRow) continue;
+        if (prev.level === 'epic') break;
+        if (prev.level === 'feature' && prev.featureId === row.featureId) {
+          for (let k = j + 1; k < visibleRows.length; k++) {
+            const next = visibleRows[k];
+            if (next.isAddRow || next.level === 'task') continue;
+            if (next.level === 'feature' && next.epicId === prev.epicId) parentIsLast = false;
+            break;
+          }
+          break outer;
+        }
+      }
+    }
+
+    return { isLastSibling, parentIsLast, isNotFirstEpic: false, epicColorIdx: Math.max(epicColorIdx, 0) };
+  });
+}
+
 interface GanttTaskPanelProps {
   visibleRows: VisibleRow[];
   onScrollY: (scrollTop: number) => void;
@@ -64,6 +128,8 @@ export const GanttTaskPanel = forwardRef<HTMLDivElement, GanttTaskPanelProps>(
 
     const [panelWidth, setPanelWidth] = useState(PANEL_DEFAULT);
     const [isResizing, setIsResizing] = useState(false);
+
+    const rowMetas = useMemo(() => computeRowMetas(visibleRows), [visibleRows]);
 
     const onResizeMouseDown = useCallback((e: React.MouseEvent) => {
       e.preventDefault();
@@ -101,13 +167,17 @@ export const GanttTaskPanel = forwardRef<HTMLDivElement, GanttTaskPanelProps>(
           className="overflow-y-auto overflow-x-hidden gantt-scroll"
           onScroll={(e) => onScrollY((e.target as HTMLDivElement).scrollTop)}
         >
-          {visibleRows.map((row) =>
+          {visibleRows.map((row, i) =>
             row.isAddRow ? (
               <AddRow key={row.rowKey} row={row} />
             ) : (
               <TaskRow
                 key={row.rowKey}
                 row={row}
+                isLastSibling={rowMetas[i]?.isLastSibling ?? true}
+                parentIsLast={rowMetas[i]?.parentIsLast ?? true}
+                isNotFirstEpic={rowMetas[i]?.isNotFirstEpic ?? false}
+                epicColorIdx={rowMetas[i]?.epicColorIdx ?? 0}
                 isExpanded={
                   row.level === 'epic'
                     ? expandedEpicIds.has(row.epicId)
@@ -167,18 +237,56 @@ export const GanttTaskPanel = forwardRef<HTMLDivElement, GanttTaskPanelProps>(
           onMouseDown={onResizeMouseDown}
           className={cn(
             'absolute right-0 top-0 bottom-0 w-1 cursor-col-resize group z-30',
-            isResizing && 'bg-violet-500/40',
+            isResizing && 'bg-blue-500/40',
           )}
         >
           <div className={cn(
             'absolute inset-y-0 right-0 w-px transition-colors',
-            isResizing ? 'bg-violet-500' : 'bg-border group-hover:bg-violet-500/60',
+            isResizing ? 'bg-blue-500' : 'bg-border group-hover:bg-blue-500/60',
           )} />
         </div>
       </div>
     );
   }
 );
+
+// Same palette as GanttTimeline — keeps left stripe color consistent across both panels
+const EPIC_COLORS = [
+  'rgba(59,130,246,0.50)',   // blue
+  'rgba(139,92,246,0.50)',   // violet
+  'rgba(16,185,129,0.50)',   // emerald
+  'rgba(245,158,11,0.50)',   // amber
+  'rgba(244,63,94,0.50)',    // rose
+  'rgba(6,182,212,0.50)',    // cyan
+];
+
+// ─── Tree connector sub-components ───────────────────────────────────────────
+
+// L-shape (└) when isLast=true, T-shape (├) when isLast=false
+function ConnectorLine({ isLast }: { isLast: boolean }) {
+  return (
+    <span className="w-3 shrink-0 self-stretch relative flex-none">
+      {/* Vertical segment — full height for ├, half height for └ */}
+      <span
+        className={cn(
+          'absolute left-[7px] top-0 w-px bg-border/60',
+          isLast ? 'h-1/2' : 'h-full'
+        )}
+      />
+      {/* Horizontal connector at mid-row */}
+      <span className="absolute left-[7px] right-0 top-1/2 h-px bg-border/60" />
+    </span>
+  );
+}
+
+// Straight vertical line — shows if the parent level has more siblings below
+function ContinuationLine({ active }: { active: boolean }) {
+  return (
+    <span className="w-3 shrink-0 self-stretch relative flex-none">
+      {active && <span className="absolute left-[7px] inset-y-0 w-px bg-border/45" />}
+    </span>
+  );
+}
 
 // ─── PanelHeader ─────────────────────────────────────────────────────────────
 
@@ -208,7 +316,7 @@ function EmptyState() {
 // ─── AddRow ──────────────────────────────────────────────────────────────────
 
 const ADD_ROW_STYLE = {
-  epic:    { indent: 'pl-3',    accent: 'border-violet-500/40 text-violet-400/70 hover:text-violet-500 hover:bg-violet-500/5' },
+  epic:    { indent: 'pl-3',    accent: 'border-blue-500/40 text-blue-400/70 hover:text-blue-500 hover:bg-blue-500/5' },
   feature: { indent: 'pl-8',    accent: 'border-blue-500/30 text-blue-400/60 hover:text-blue-300 hover:bg-blue-500/5' },
   task:    { indent: 'pl-[52px]', accent: 'border-slate-500/30 text-muted-foreground hover:text-foreground hover:bg-muted/30' },
 };
@@ -244,6 +352,10 @@ function AddRow({ row }: { row: VisibleRow }) {
 interface TaskRowProps {
   row: VisibleRow;
   isExpanded: boolean;
+  isLastSibling: boolean;
+  parentIsLast: boolean;
+  isNotFirstEpic: boolean;
+  epicColorIdx: number;
   readonly: boolean;
   onToggle: () => void;
   onDelete: () => void;
@@ -257,6 +369,10 @@ interface TaskRowProps {
 function TaskRow({
   row,
   isExpanded,
+  isLastSibling,
+  parentIsLast,
+  isNotFirstEpic,
+  epicColorIdx,
   readonly,
   onToggle,
   onDelete,
@@ -280,23 +396,35 @@ function TaskRow({
       className={cn(
         'flex items-center border-b border-border/40 group text-xs relative',
         row.level === 'epic' && 'bg-[var(--row-alt)]',
+        // Stronger top separator before each new epic group (except the first)
+        isNotFirstEpic && 'border-t-2 border-t-border/60',
       )}
       style={{ height: ROW_H }}
     >
-      {/* Progress accent bar (left edge) */}
+      {/* Epic group left accent stripe (same color as timeline side) */}
       <div
-        className={cn(
-          'absolute left-0 top-0 bottom-0 w-0.5 transition-opacity',
-          row.completionPct >= 100 ? 'bg-emerald-500' :
-          isLate ? 'bg-red-500/60' :
-          row.level === 'epic' ? 'bg-violet-500/40' : 'bg-transparent'
-        )}
+        className="absolute left-0 top-0 bottom-0 transition-opacity"
+        style={{
+          width: row.level === 'epic' ? 3 : 2,
+          backgroundColor:
+            row.completionPct >= 100 ? 'rgba(16,185,129,0.8)' :
+            isLate ? 'rgba(239,68,68,0.6)' :
+            EPIC_COLORS[epicColorIdx % EPIC_COLORS.length],
+        }}
       />
 
       {/* Name cell */}
       <div className="flex-1 flex items-center gap-1 px-3 pl-2.5 min-w-0">
-        {row.level === 'feature' && <span className="w-3 shrink-0" />}
-        {row.level === 'task' && <span className="w-6 shrink-0" />}
+        {/* Tree connectors / indent */}
+        {row.level === 'feature' && (
+          <ConnectorLine isLast={isLastSibling} />
+        )}
+        {row.level === 'task' && (
+          <>
+            <ContinuationLine active={!parentIsLast} />
+            <ConnectorLine isLast={isLastSibling} />
+          </>
+        )}
 
         {/* Expand/collapse or bullet */}
         {row.level !== 'task' ? (
@@ -351,7 +479,7 @@ function TaskRow({
                 onClick={() => onOwnerChange(undefined)}
                 className={cn(
                   'cursor-pointer text-xs hover:bg-muted gap-2',
-                  !row.ownerId && 'text-violet-500'
+                  !row.ownerId && 'text-blue-500'
                 )}
               >
                 {!row.ownerId && <Check size={10} />}
@@ -366,7 +494,7 @@ function TaskRow({
                     onClick={() => onOwnerChange(u.uid)}
                     className={cn(
                       'cursor-pointer text-xs hover:bg-muted gap-2',
-                      active && 'text-violet-500'
+                      active && 'text-blue-500'
                     )}
                   >
                     {active && <Check size={10} />}
@@ -402,7 +530,7 @@ function TaskRow({
                   onClick={() => onStatusChange(s.value)}
                   className={cn(
                     'cursor-pointer text-xs gap-2',
-                    s.value === row.status && 'text-violet-500'
+                    s.value === row.status && 'text-blue-500'
                   )}
                 >
                   {s.value === row.status && <Check size={10} />}
@@ -431,7 +559,7 @@ function TaskRow({
           {row.level !== 'task' && (
             <button
               onClick={onAddChild}
-              className="p-1.5 rounded text-muted-foreground hover:text-violet-400 hover:bg-violet-500/10 transition-colors"
+              className="p-1.5 rounded text-muted-foreground hover:text-blue-400 hover:bg-blue-500/10 transition-colors"
               title={row.level === 'epic' ? t('addFeature') : t('addTask')}
             >
               <Plus size={14} />
@@ -454,7 +582,7 @@ function TaskRow({
             className={cn(
               'h-full transition-all',
               row.completionPct >= 100 ? 'bg-emerald-500/60' :
-              isLate ? 'bg-red-500/50' : 'bg-violet-500/50'
+              isLate ? 'bg-red-500/50' : 'bg-blue-500/50'
             )}
             style={{ width: `${Math.min(row.completionPct, 100)}%` }}
           />
@@ -498,7 +626,7 @@ function NameEditor({ value, onChange, readonly, className }: { value: string; o
       onChange={(e) => setDraft(e.target.value)}
       onBlur={commit}
       onKeyDown={(e) => { if (e.key === 'Enter') commit(); if (e.key === 'Escape') { setDraft(value); setEditing(false); } }}
-      className="flex-1 bg-muted border border-violet-500/50 rounded px-1 -ml-1 outline-none text-[inherit] font-[inherit]"
+      className="flex-1 bg-muted border border-blue-500/50 rounded px-1 -ml-1 outline-none text-[inherit] font-[inherit]"
       autoFocus
     />
   );
@@ -539,7 +667,7 @@ function PctEditor({ value, onChange }: { value: number; onChange: (n: number) =
       onChange={(e) => setDraft(e.target.value)}
       onBlur={commit}
       onKeyDown={(e) => { if (e.key === 'Enter') commit(); if (e.key === 'Escape') setEditing(false); }}
-      className="w-12 text-[11px] text-foreground bg-muted border border-violet-500/50 rounded px-1 py-0.5 text-center outline-none tabular-nums"
+      className="w-12 text-[11px] text-foreground bg-muted border border-blue-500/50 rounded px-1 py-0.5 text-center outline-none tabular-nums"
       autoFocus
     />
   );

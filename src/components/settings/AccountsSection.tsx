@@ -125,7 +125,7 @@ export function AccountsSection() {
               className={cn(
                 'rounded-xl border-2 p-4 transition-all',
                 isActive
-                  ? 'border-violet-500/40 bg-violet-500/5'
+                  ? 'border-blue-500/40 bg-blue-500/5'
                   : 'border-border bg-muted/20 hover:border-border/80'
               )}
             >
@@ -133,7 +133,7 @@ export function AccountsSection() {
                 {/* Workspace icon */}
                 <div className={cn(
                   'shrink-0 flex items-center justify-center w-9 h-9 rounded-lg',
-                  isActive ? 'bg-violet-500/20 text-violet-500' : 'bg-muted text-muted-foreground'
+                  isActive ? 'bg-blue-500/20 text-blue-500' : 'bg-muted text-muted-foreground'
                 )}>
                   <Building2 size={17} />
                 </div>
@@ -150,7 +150,7 @@ export function AccountsSection() {
                       </span>
                     )}
                     {isActive && (
-                      <Badge className="text-[10px] shrink-0 bg-violet-500/15 text-violet-400 border-violet-500/20">
+                      <Badge className="text-[10px] shrink-0 bg-blue-500/15 text-blue-400 border-blue-500/20">
                         {t('activeBadge')}
                       </Badge>
                     )}
@@ -225,7 +225,7 @@ export function AccountsSection() {
               onKeyDown={(e) => { if (e.key === 'Enter') handleRename(); }}
               placeholder={t('workspaceNamePlaceholder')}
               autoFocus
-              className="focus-visible:ring-violet-500"
+              className="focus-visible:ring-blue-500"
             />
             {editError && <p className="text-xs text-red-500">{editError}</p>}
           </div>
@@ -237,7 +237,7 @@ export function AccountsSection() {
             <Button
               onClick={handleRename}
               disabled={isSaving || editName.trim().length < 2}
-              className="bg-violet-600 hover:bg-violet-500 text-white"
+              className="bg-blue-600 hover:bg-blue-500 text-white"
             >
               {isSaving ? <Loader2 size={14} className="animate-spin mr-1.5" /> : null}
               {t('save')}

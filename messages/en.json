@@ -116,7 +116,7 @@
     "verifyEmail": {
       "verifiedRedirecting": "Email verified! Redirecting…",
       "title": "Check your inbox",
-      "body": "We sent a verification link to {email}. Click the link to activate your account.",
+      "body": "We sent a verification link to <email>your address</email>. Click the link to activate your account.",
       "emailFallback": "your email address",
       "resendButton": "Resend verification email",
       "resending": "Sending…",
@@ -127,7 +127,7 @@
     },
     "verifyMfa": {
       "title": "Two-step verification",
-      "body": "Enter the 6-digit code we sent to {email}.",
+      "body": "Enter the 6-digit code we sent to <email>your address</email>.",
       "emailFallback": "your email",
       "codePlaceholder": "000000",
       "verify": "Verify",
@@ -198,9 +198,21 @@
     "deleteForever": "Delete forever"
   },
   "gantt": {
+    "bar": {
+      "plannedStart": "Planned start",
+      "plannedEnd": "Planned end",
+      "actualStart": "Actual start",
+      "actualEnd": "Actual end",
+      "duration": "Duration",
+      "progress": "Progress",
+      "owner": "Owner",
+      "onSchedule": "On schedule",
+      "overdue": "{days}d overdue",
+      "early": "{days}d early"
+    },
     "taskPanel": {
       "name": "Name",
-      "owner": "Owner",
+      "owner": "Resp.",
       "status": "Status",
       "pct": "%",
       "noItems": "No items yet.",
@@ -367,7 +379,8 @@
         "statuses": "Status List",
         "calendar": "Calendar",
         "profile": "My Profile",
-        "theme": "Theme"
+        "theme": "Theme",
+        "language": "Language"
       }
     },
     "readOnly": "Only owners and admins can change this setting.",
@@ -401,7 +414,7 @@
       "accountMembers": "Account Members",
       "syncedBadge": "synced",
       "teamAccessLink": "Team & Access",
-      "accountMembersNote": "These are people with actual accounts. Manage access in {link}.",
+      "accountMembersNote": "These are people with actual accounts. Manage access in <link>Team & Access</link>.",
       "noAccountMembers": "No account members yet.",
       "guestAssignees": "Guest Assignees",
       "virtualBadge": "virtual",
@@ -417,7 +430,7 @@
     },
     "team": {
       "title": "Team & Access",
-      "subtitle": "Manage who can log in to this workspace and their permissions. To customise assignee colors or add virtual assignees, go to {link}.",
+      "subtitle": "Manage who can log in to this workspace and their permissions. To customise assignee colors or add virtual assignees, go to <link>Assignees</link>.",
       "assigneesLink": "Assignees",
       "membersTitle": "Members",
       "inviteButton": "Invite",
@@ -456,6 +469,11 @@
       "nameTooShort": "Name must be at least 2 characters.",
       "cancel": "Cancel",
       "save": "Save"
+    },
+    "language": {
+      "title": "Language",
+      "subtitle": "Choose the language used across the application.",
+      "note": "Language changes take effect immediately."
     },
     "calendar": {
       "title": "Calendar",

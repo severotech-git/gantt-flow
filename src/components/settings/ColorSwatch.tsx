@@ -8,11 +8,11 @@ import { cn } from '@/lib/utils';
 const PRESET_COLORS = [
   // neutrals
   '#94a3b8', '#64748b', '#475569', '#1e293b',
-  // violet / indigo
+  // blue / indigo
   '#a78bfa', '#7c3aed', '#6366f1', '#4338ca',
   // blue / cyan
   '#38bdf8', '#0284c7', '#06b6d4', '#0e7490',
-  // green / teal
+  // green / blue
   '#34d399', '#059669', '#2dd4bf', '#0f766e',
   // amber / orange
   '#fbbf24', '#d97706', '#fb923c', '#c2410c',

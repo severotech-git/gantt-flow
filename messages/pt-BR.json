@@ -116,7 +116,7 @@
     "verifyEmail": {
       "verifiedRedirecting": "E-mail verificado! Redirecionando…",
       "title": "Verifique sua caixa de entrada",
-      "body": "Enviamos um link de verificação para {email}. Clique no link para ativar sua conta.",
+      "body": "Enviamos um link de verificação para <email>seu endereço</email>. Clique no link para ativar sua conta.",
       "emailFallback": "seu endereço de e-mail",
       "resendButton": "Reenviar e-mail de verificação",
       "resending": "Enviando…",
@@ -127,7 +127,7 @@
     },
     "verifyMfa": {
       "title": "Verificação em dois passos",
-      "body": "Insira o código de 6 dígitos que enviamos para {email}.",
+      "body": "Insira o código de 6 dígitos que enviamos para <email>seu endereço</email>.",
       "emailFallback": "seu e-mail",
       "codePlaceholder": "000000",
       "verify": "Verificar",
@@ -198,9 +198,21 @@
     "deleteForever": "Excluir para sempre"
   },
   "gantt": {
+    "bar": {
+      "plannedStart": "Início planejado",
+      "plannedEnd": "Fim planejado",
+      "actualStart": "Início real",
+      "actualEnd": "Fim real",
+      "duration": "Duração",
+      "progress": "Progresso",
+      "owner": "Responsável",
+      "onSchedule": "No prazo",
+      "overdue": "{days}d de atraso",
+      "early": "{days}d adiantado"
+    },
     "taskPanel": {
       "name": "Nome",
-      "owner": "Responsável",
+      "owner": "Resp.",
       "status": "Status",
       "pct": "%",
       "noItems": "Nenhum item ainda.",
@@ -367,7 +379,8 @@
         "statuses": "Lista de Status",
         "calendar": "Calendário",
         "profile": "Meu Perfil",
-        "theme": "Tema"
+        "theme": "Tema",
+        "language": "Idioma"
       }
     },
     "readOnly": "Apenas proprietários e admins podem alterar esta configuração.",
@@ -401,7 +414,7 @@
       "accountMembers": "Membros da Conta",
       "syncedBadge": "sincronizado",
       "teamAccessLink": "Equipe e Acesso",
-      "accountMembersNote": "São pessoas com contas reais. Gerencie o acesso em {link}.",
+      "accountMembersNote": "São pessoas com contas reais. Gerencie o acesso em <link>Equipe e Acesso</link>.",
       "noAccountMembers": "Nenhum membro da conta ainda.",
       "guestAssignees": "Responsáveis Convidados",
       "virtualBadge": "virtual",
@@ -417,7 +430,7 @@
     },
     "team": {
       "title": "Equipe e Acesso",
-      "subtitle": "Gerencie quem pode acessar este workspace e suas permissões. Para personalizar cores de responsáveis ou adicionar responsáveis virtuais, acesse {link}.",
+      "subtitle": "Gerencie quem pode acessar este workspace e suas permissões. Para personalizar cores de responsáveis ou adicionar responsáveis virtuais, acesse <link>Responsáveis</link>.",
       "assigneesLink": "Responsáveis",
       "membersTitle": "Membros",
       "inviteButton": "Convidar",
@@ -456,6 +469,11 @@
       "nameTooShort": "O nome deve ter pelo menos 2 caracteres.",
       "cancel": "Cancelar",
       "save": "Salvar"
+    },
+    "language": {
+      "title": "Idioma",
+      "subtitle": "Escolha o idioma usado em toda a aplicação.",
+      "note": "As alterações de idioma entram em vigor imediatamente."
     },
     "calendar": {
       "title": "Calendário",

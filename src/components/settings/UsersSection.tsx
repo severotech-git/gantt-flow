@@ -106,9 +106,9 @@ export function UsersSection() {
 
         <button
           onClick={handleAdd}
-          className="flex items-center gap-2 text-sm text-muted-foreground hover:text-violet-500 transition-colors group"
+          className="flex items-center gap-2 text-sm text-muted-foreground hover:text-blue-500 transition-colors group"
         >
-          <span className="flex items-center justify-center w-5 h-5 rounded border border-dashed border-border group-hover:border-violet-500 transition-colors">
+          <span className="flex items-center justify-center w-5 h-5 rounded border border-dashed border-border group-hover:border-blue-500 transition-colors">
             <Plus size={11} />
           </span>
           {t('addGuest')}
@@ -118,7 +118,7 @@ export function UsersSection() {
       <Button
         onClick={() => persistSettings('users')}
         disabled={isSaving}
-        className="bg-violet-600 hover:bg-violet-500 text-white"
+        className="bg-blue-600 hover:bg-blue-500 text-white"
       >
         {isSaving ? t('saving') : t('saveButton')}
       </Button>
@@ -147,7 +147,7 @@ function AccountMemberRow({
           {user.name || <span className="text-muted-foreground italic">{t('unnamed')}</span>}
         </span>
         {isYou && (
-          <span className="text-[11px] font-medium px-2 py-0.5 rounded bg-violet-500/20 text-violet-400 shrink-0">
+          <span className="text-[11px] font-medium px-2 py-0.5 rounded bg-blue-500/20 text-blue-400 shrink-0">
             {t('youBadge')}
           </span>
         )}
@@ -186,7 +186,7 @@ function GuestRow({
           value={user.name}
           onChange={(e) => onUpdate({ name: e.target.value })}
           placeholder={t('namePlaceholder')}
-          className="h-7 text-sm focus-visible:ring-violet-500"
+          className="h-7 text-sm focus-visible:ring-blue-500"
         />
       </div>
 

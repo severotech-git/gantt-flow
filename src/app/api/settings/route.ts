@@ -15,13 +15,15 @@ export async function GET() {
     await connectDB();
     const [account, user] = await Promise.all([
       Account.findById(accountId, { settings: 1 }).lean(),
-      User.findById(userId, { theme: 1, locale: 1 }).lean(),
+      User.findById(userId, { theme: 1, locale: 1, ganttScale: 1 }).lean(),
     ]);
 
+    const u = user as { theme?: string; locale?: string; ganttScale?: string } | null;
     return NextResponse.json({
       ...(account?.settings ?? {}),
-      theme: (user as { theme?: string } | null)?.theme ?? 'system',
-      locale: (user as { locale?: string } | null)?.locale ?? 'en',
+      theme: u?.theme ?? 'system',
+      locale: u?.locale ?? 'en',
+      ganttScale: u?.ganttScale ?? 'week',
     });
   } catch (err) {
     console.error('[settings GET]', err);
@@ -57,6 +59,15 @@ export async function PATCH(request: Request) {
       ops.push(User.findByIdAndUpdate(userId, { $set: { theme: body.theme } }, { runValidators: true }));
     }
 
+    // ganttScale → User document
+    if ('ganttScale' in body) {
+      const VALID_SCALES = ['week', 'month', 'quarter'] as const;
+      if (!VALID_SCALES.includes(body.ganttScale)) {
+        return NextResponse.json({ error: 'Invalid ganttScale value' }, { status: 400 });
+      }
+      ops.push(User.findByIdAndUpdate(userId, { $set: { ganttScale: body.ganttScale } }, { runValidators: true }));
+    }
+
     // locale → User document
     if ('locale' in body) {
       const VALID_LOCALES = ['en', 'pt-BR', 'es'] as const;
@@ -84,14 +95,16 @@ export async function PATCH(request: Request) {
     // Return merged settings so the frontend state stays consistent
     const [account, user] = await Promise.all([
       Account.findById(accountId, { settings: 1 }).lean(),
-      User.findById(userId, { theme: 1, locale: 1 }).lean(),
+      User.findById(userId, { theme: 1, locale: 1, ganttScale: 1 }).lean(),
     ]);
 
-    const locale = (user as { locale?: string } | null)?.locale ?? 'en';
+    const u2 = user as { theme?: string; locale?: string; ganttScale?: string } | null;
+    const locale = u2?.locale ?? 'en';
     const res = NextResponse.json({
       ...(account?.settings ?? {}),
-      theme: (user as { theme?: string } | null)?.theme ?? 'system',
+      theme: u2?.theme ?? 'system',
       locale,
+      ganttScale: u2?.ganttScale ?? 'week',
     });
 
     // If locale changed, update NEXT_LOCALE cookie so next-intl picks it up immediately

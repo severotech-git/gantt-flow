@@ -74,9 +74,9 @@ export function StatusConfigSection() {
         <>
           <button
             onClick={handleAdd}
-            className="flex items-center gap-2 text-sm text-muted-foreground hover:text-violet-500 transition-colors group"
+            className="flex items-center gap-2 text-sm text-muted-foreground hover:text-blue-500 transition-colors group"
           >
-            <span className="flex items-center justify-center w-5 h-5 rounded border border-dashed border-border group-hover:border-violet-500 transition-colors">
+            <span className="flex items-center justify-center w-5 h-5 rounded border border-dashed border-border group-hover:border-blue-500 transition-colors">
               <Plus size={11} />
             </span>
             {t('addStatus')}
@@ -85,7 +85,7 @@ export function StatusConfigSection() {
           <Button
             onClick={() => persistSettings('statuses')}
             disabled={isSaving}
-            className="bg-violet-600 hover:bg-violet-500 text-white"
+            className="bg-blue-600 hover:bg-blue-500 text-white"
           >
             {isSaving ? t('saving') : t('saveButton')}
           </Button>
@@ -116,7 +116,7 @@ function StatusRow({ status, idx, total, readonly, onMoveUp, onMoveDown, onDelet
         value={status.label}
         onChange={(e) => !readonly && onUpdate({ label: e.target.value })}
         disabled={readonly}
-        className="flex-1 h-7 text-xs focus-visible:ring-violet-500"
+        className="flex-1 h-7 text-xs focus-visible:ring-blue-500"
       />
 
       <button

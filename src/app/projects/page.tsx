@@ -40,7 +40,7 @@ export default function ProjectsPage() {
             <Button
               size="sm"
               onClick={() => setNewProjectOpen(true)}
-              className="h-7 px-3 text-xs bg-violet-600 hover:bg-violet-500 text-white gap-1.5"
+              className="h-7 px-3 text-xs bg-blue-600 hover:bg-blue-500 text-white gap-1.5"
             >
               <Plus size={12} />
               {t('newProject')}
@@ -58,7 +58,7 @@ export default function ProjectsPage() {
               <p className="text-sm">{t('noProjectsYet')}</p>
               <Button
                 onClick={() => setNewProjectOpen(true)}
-                className="bg-violet-600 hover:bg-violet-500 text-white gap-1.5"
+                className="bg-blue-600 hover:bg-blue-500 text-white gap-1.5"
               >
                 <Plus size={14} />
                 {t('newProject')}
@@ -125,7 +125,7 @@ export default function ProjectsPage() {
       {/* Delete confirmation */}
       {confirmDelete && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="bg-background border border-border rounded-xl p-6 max-sm w-full mx-4 space-y-4 shadow-xl">
+          <div className="bg-background border border-border rounded-xl p-6 max-w-sm w-full mx-4 space-y-4 shadow-xl">
             <h2 className="text-sm font-semibold text-foreground">{t('deleteConfirmTitle')}</h2>
             <p className="text-xs text-muted-foreground">
               {t('deleteConfirmBody')}
@@ -195,7 +195,7 @@ function ProjectCard({
       </div>
 
       <div>
-        <h3 className="text-sm font-semibold text-foreground group-hover:text-violet-500 dark:group-hover:text-violet-300 transition-colors">
+        <h3 className="text-sm font-semibold text-foreground group-hover:text-blue-500 dark:group-hover:text-blue-300 transition-colors">
           {p.name}
         </h3>
         {p.description && (

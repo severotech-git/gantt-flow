@@ -113,7 +113,7 @@ export function AddItemDialog({ open, onClose, mode, epicId, featureId }: AddIte
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder={t('namePlaceholder', { levelLabel })}
-              className="focus-visible:ring-violet-500"
+              className="focus-visible:ring-blue-500"
             />
           </div>
           {(mode === 'feature' || mode === 'task') && users.length > 0 && (
@@ -126,7 +126,7 @@ export function AddItemDialog({ open, onClose, mode, epicId, featureId }: AddIte
                   className={cn(
                     'flex items-center gap-1.5 px-2 py-1 rounded border text-[12px] transition-colors',
                     selectedUserId === null
-                      ? 'border-violet-400 text-violet-600 dark:text-violet-300 bg-violet-500/10'
+                      ? 'border-blue-400 text-blue-600 dark:text-blue-300 bg-blue-500/10'
                       : 'border-border text-muted-foreground hover:border-border/80'
                   )}
                 >
@@ -140,7 +140,7 @@ export function AddItemDialog({ open, onClose, mode, epicId, featureId }: AddIte
                     className={cn(
                       'flex items-center gap-1.5 px-2 py-1 rounded border text-[12px] transition-colors',
                       selectedUserId === u.uid
-                        ? 'border-violet-400 text-violet-600 dark:text-violet-300 bg-violet-500/10'
+                        ? 'border-blue-400 text-blue-600 dark:text-blue-300 bg-blue-500/10'
                         : 'border-border text-muted-foreground hover:border-border/80'
                     )}
                   >
@@ -158,7 +158,7 @@ export function AddItemDialog({ open, onClose, mode, epicId, featureId }: AddIte
                 type="date"
                 value={plannedStart}
                 onChange={(e) => handleStartChange(e.target.value)}
-                className="focus-visible:ring-violet-500"
+                className="focus-visible:ring-blue-500"
               />
             </div>
             <div className="flex flex-col gap-1.5">
@@ -167,7 +167,7 @@ export function AddItemDialog({ open, onClose, mode, epicId, featureId }: AddIte
                 type="date"
                 value={plannedEnd}
                 onChange={(e) => handleEndChange(e.target.value)}
-                className="focus-visible:ring-violet-500"
+                className="focus-visible:ring-blue-500"
               />
             </div>
           </div>
@@ -181,7 +181,7 @@ export function AddItemDialog({ open, onClose, mode, epicId, featureId }: AddIte
                   onClick={() => setStatus(s.value)}
                   className={`px-2 py-0.5 rounded text-[11px] font-medium uppercase tracking-wider border transition-colors ${
                     status === s.value
-                      ? 'border-violet-400 text-violet-600 dark:text-violet-300 bg-violet-500/10'
+                      ? 'border-blue-400 text-blue-600 dark:text-blue-300 bg-blue-500/10'
                       : 'border-border text-muted-foreground hover:border-border/80'
                   }`}
                 >
@@ -197,7 +197,7 @@ export function AddItemDialog({ open, onClose, mode, epicId, featureId }: AddIte
             <Button
               type="submit"
               disabled={loading || !name.trim()}
-              className="bg-violet-600 hover:bg-violet-500 text-white"
+              className="bg-blue-600 hover:bg-blue-500 text-white"
             >
               {loading ? t('adding') : t('addButton', { levelLabel })}
             </Button>

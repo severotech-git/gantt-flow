@@ -2,7 +2,8 @@ import { enableMapSet } from 'immer';
 import { create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
 import { IEpic, IFeature, IProject, IProjectSnapshot, ITask, TimelineScale } from '@/types';
-import { rollupEpicDates, rollupFeatureDates, getDefaultStartDate } from '@/lib/dateUtils';
+import { rollupEpicDates, rollupFeatureDates, getDefaultStartDate, getProjectTimelineStart } from '@/lib/dateUtils';
+import { useSettingsStore } from '@/store/useSettingsStore';
 
 // Required for Immer to draft Map and Set instances
 enableMapSet();
@@ -29,6 +30,7 @@ interface ProjectState {
   // Timeline display
   timelineScale: TimelineScale;
   timelineStartDate: Date;
+  timelineScrollTarget: number | null; // px to set scrollLeft after a start-date reset
   zoomLevel: number;
 
   // UI state
@@ -57,9 +59,11 @@ interface ProjectActions {
 
   // Timeline
   setTimelineScale: (scale: TimelineScale) => void;
+  applyTimelineScale: (scale: TimelineScale) => void; // applies without persisting to settings
   setTimelineStartDate: (date: Date) => void;
   setZoomLevel: (z: number) => void;
   jumpToToday: () => void;
+  clearTimelineScrollTarget: () => void;
 
   // Version control
   fetchVersions: (projectId: string) => Promise<void>;
@@ -118,6 +122,7 @@ export const useProjectStore = create<ProjectStore>()(
     versions: [],
     timelineScale: 'week',
     timelineStartDate: getDefaultStartDate('week'),
+    timelineScrollTarget: null,
     zoomLevel: 1,
     expandedEpicIds: new Set<string>(),
     expandedFeatureIds: new Set<string>(),
@@ -196,7 +201,10 @@ export const useProjectStore = create<ProjectStore>()(
 
     deleteProject: async (id) => {
       await fetch(`/api/projects/${id}`, { method: 'DELETE' });
-      set((s) => { s.projects = s.projects.filter((p) => p._id !== id); });
+      set((s) => {
+        s.projects = s.projects.filter((p) => p._id !== id);
+        s.archivedProjects = s.archivedProjects.filter((p) => p._id !== id);
+      });
     },
 
     // ── Active project ──────────────────────────────────────────────────────
@@ -219,11 +227,17 @@ export const useProjectStore = create<ProjectStore>()(
         }
         const data: IProject = await res.json();
         set((s) => {
+          const BASE_PX: Record<string, number> = { week: 28, month: 10, quarter: 4 };
+          const pxPerDay = BASE_PX[s.timelineScale] * s.zoomLevel;
+          const { startDate, todayOffsetDays } = getProjectTimelineStart(data, s.timelineScale);
           s.activeProject = data;
           s.isLoadingProject = false;
           s.activeVersion = null;
           s.isVersionReadOnly = false;
           s.projectError = null;
+          s.timelineStartDate = startDate;
+          // Scroll so today appears ~200px from the left edge on first render
+          s.timelineScrollTarget = Math.max(todayOffsetDays * pxPerDay - 200, 0);
         });
       } catch (err) {
         set((s) => { 
@@ -258,8 +272,35 @@ export const useProjectStore = create<ProjectStore>()(
     // ── Timeline ────────────────────────────────────────────────────────────
     setTimelineScale: (scale) => {
       set((s) => {
+        const BASE_PX: Record<string, number> = { week: 28, month: 10, quarter: 4 };
+        const pxPerDay = BASE_PX[scale] * s.zoomLevel;
+        if (s.activeProject) {
+          const { startDate, todayOffsetDays } = getProjectTimelineStart(s.activeProject, scale);
+          s.timelineScale = scale;
+          s.timelineStartDate = startDate;
+          s.timelineScrollTarget = Math.max(todayOffsetDays * pxPerDay - 200, 0);
+        } else {
+          s.timelineScale = scale;
+          s.timelineStartDate = getDefaultStartDate(scale);
+          s.timelineScrollTarget = null;
+        }
+      });
+      // Persist the preference
+      useSettingsStore.getState().setGanttScale(scale);
+    },
+
+    applyTimelineScale: (scale) => {
+      set((s) => {
+        const BASE_PX: Record<string, number> = { week: 28, month: 10, quarter: 4 };
+        const pxPerDay = BASE_PX[scale] * s.zoomLevel;
         s.timelineScale = scale;
-        s.timelineStartDate = getDefaultStartDate(scale);
+        if (s.activeProject) {
+          const { startDate, todayOffsetDays } = getProjectTimelineStart(s.activeProject, scale);
+          s.timelineStartDate = startDate;
+          s.timelineScrollTarget = Math.max(todayOffsetDays * pxPerDay - 200, 0);
+        } else {
+          s.timelineStartDate = getDefaultStartDate(scale);
+        }
       });
     },
 
@@ -272,13 +313,24 @@ export const useProjectStore = create<ProjectStore>()(
     },
 
     jumpToToday: () => {
-      const { timelineScale, zoomLevel } = get();
+      const { timelineScale, zoomLevel, activeProject } = get();
       const BASE_PX: Record<string, number> = { week: 28, month: 10, quarter: 4 };
       const pxPerDay = BASE_PX[timelineScale] * zoomLevel;
-      // Place today ~200px from the left edge of the viewport, regardless of zoom
-      const offsetDays = Math.max(2, Math.round(200 / pxPerDay));
-      const startDate = new Date(Date.now() - offsetDays * 86_400_000);
-      set((s) => { s.timelineStartDate = startDate; });
+      if (activeProject) {
+        const { startDate, todayOffsetDays } = getProjectTimelineStart(activeProject, timelineScale);
+        set((s) => {
+          s.timelineStartDate = startDate;
+          s.timelineScrollTarget = Math.max(todayOffsetDays * pxPerDay - 200, 0);
+        });
+      } else {
+        const offsetDays = Math.max(2, Math.round(200 / pxPerDay));
+        const startDate = new Date(Date.now() - offsetDays * 86_400_000);
+        set((s) => { s.timelineStartDate = startDate; s.timelineScrollTarget = null; });
+      }
+    },
+
+    clearTimelineScrollTarget: () => {
+      set((s) => { s.timelineScrollTarget = null; });
     },
 
     // ── Version control ─────────────────────────────────────────────────────

@@ -121,7 +121,7 @@ export default function InvitePage({ params }: InvitePageProps) {
 
         {authStatus === 'unauthenticated' ? (
           <div className="space-y-3">
-            <Button asChild className="w-full">
+            <Button asChild className="w-full bg-blue-600 hover:bg-blue-500 text-white">
               <Link href={`/register?inviteToken=${token}`}>Accept &amp; Sign Up</Link>
             </Button>
             <Button asChild variant="outline" className="w-full">
@@ -136,7 +136,7 @@ export default function InvitePage({ params }: InvitePageProps) {
             <p className="text-xs text-center text-muted-foreground">
               Signed in as <span className="text-foreground">{session?.user?.email}</span>
             </p>
-            <Button className="w-full" disabled={acting || done} onClick={handleAccept}>
+            <Button className="w-full bg-blue-600 hover:bg-blue-500 text-white" disabled={acting || done} onClick={handleAccept}>
               {acting ? <Loader2 size={14} className="mr-1.5 animate-spin" /> : null}
               Accept Invitation
             </Button>

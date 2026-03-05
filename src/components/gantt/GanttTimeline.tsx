@@ -1,16 +1,27 @@
 'use client';
 
-import { useRef, forwardRef, useImperativeHandle, useEffect, useLayoutEffect, useState, useCallback } from 'react';
+import { useRef, forwardRef, useImperativeHandle, useEffect, useLayoutEffect, useState, useCallback, useMemo } from 'react';
 import { useProjectStore } from '@/store/useProjectStore';
 import { GanttBar, GanttBarData } from './GanttBar';
-import { differenceInCalendarDays, parseISO, isValid, addDays, startOfWeek, format } from 'date-fns';
+import { differenceInCalendarDays, parseISO, isValid, addDays, startOfWeek } from 'date-fns';
 import { cn } from '@/lib/utils';
+import { useFormatter, type DateTimeFormatOptions } from 'next-intl';
 
 const PX_PER_DAY: Record<string, number> = {
   week:    28,
   month:   10,
   quarter:  4,
 };
+
+// Subtle per-epic group accent colors (rotate through palette)
+const EPIC_COLORS = [
+  'rgba(59,130,246,0.40)',   // blue
+  'rgba(139,92,246,0.40)',   // violet
+  'rgba(16,185,129,0.40)',   // emerald
+  'rgba(245,158,11,0.40)',   // amber
+  'rgba(244,63,94,0.40)',    // rose
+  'rgba(6,182,212,0.40)',    // cyan
+];
 
 // Days added per infinite-scroll extension
 const CHUNK = 90;
@@ -41,7 +52,9 @@ function toDate(s: string | undefined): Date | null {
 
 interface HeaderGroup { label: string; days: number }
 
-function buildHeader(scale: string, timelineStart: Date, totalDays: number) {
+type FmtDate = (date: Date, opts: DateTimeFormatOptions) => string;
+
+function buildHeader(scale: string, timelineStart: Date, totalDays: number, fmtDate: FmtDate) {
   const today = new Date();
   const groups: HeaderGroup[] = [];
   const dayLabels: Array<{ label: string; isToday: boolean; isWeekend: boolean }> = [];
@@ -50,7 +63,7 @@ function buildHeader(scale: string, timelineStart: Date, totalDays: number) {
     const date = addDays(timelineStart, d);
     const isToday = differenceInCalendarDays(date, today) === 0;
     const isWeekend = date.getDay() === 0 || date.getDay() === 6;
-    dayLabels.push({ label: format(date, 'EEEEE'), isToday, isWeekend });
+    dayLabels.push({ label: fmtDate(date, { weekday: 'narrow' }), isToday, isWeekend });
   }
 
   let cursor = 0;
@@ -59,14 +72,14 @@ function buildHeader(scale: string, timelineStart: Date, totalDays: number) {
     if (scale === 'week') {
       const weekStart = startOfWeek(date, { weekStartsOn: 1 });
       const weekEnd = addDays(weekStart, 6);
-      const label = `${format(weekStart, 'MMM d')} - ${format(weekEnd, 'MMM d')}`;
+      const label = `${fmtDate(weekStart, { month: 'short', day: 'numeric' })} - ${fmtDate(weekEnd, { month: 'short', day: 'numeric' })}`;
       const days = Math.min(7, totalDays - cursor);
       groups.push({ label, days });
       cursor += days;
     } else if (scale === 'month') {
       const monthEnd = new Date(date.getFullYear(), date.getMonth() + 1, 0);
       const days = Math.min(differenceInCalendarDays(monthEnd, date) + 1, totalDays - cursor);
-      groups.push({ label: format(date, 'MMMM yyyy'), days });
+      groups.push({ label: fmtDate(date, { month: 'long', year: 'numeric' }), days });
       cursor += days;
     } else {
       const qMonth = Math.floor(date.getMonth() / 3) * 3;
@@ -83,8 +96,10 @@ function buildHeader(scale: string, timelineStart: Date, totalDays: number) {
 
 export const GanttTimeline = forwardRef<GanttTimelineHandle, GanttTimelineProps>(
   function GanttTimeline({ visibleRows, onScrollY, dragDelta }, ref) {
-    const { timelineScale, timelineStartDate: storeStartDate, isVersionReadOnly, focusedBarId, setFocusedBarId, zoomLevel } = useProjectStore();
+    const { timelineScale, timelineStartDate: storeStartDate, isVersionReadOnly, focusedBarId, setFocusedBarId, zoomLevel, timelineScrollTarget, clearTimelineScrollTarget } = useProjectStore();
     const scrollRef = useRef<HTMLDivElement>(null);
+    const fmt = useFormatter();
+    const fmtDate: FmtDate = (date, opts) => fmt.dateTime(date, opts);
 
     const pxPerDay = PX_PER_DAY[timelineScale] * zoomLevel;
 
@@ -99,16 +114,43 @@ export const GanttTimeline = forwardRef<GanttTimelineHandle, GanttTimelineProps>
     // Tracks how many pixels we need to add to scrollLeft after a left-extension render
     const pendingScrollAdjust = useRef(0);
 
-    // When store resets the origin (Today button, scale switch, search nav) → reset local state
+    // Per-row: which epic color index + whether it's the first row of a new epic group
+    const rowGroupMeta = useMemo(() => {
+      let epicIdx = -1;
+      let lastEpicId = '';
+      const map = new Map<string, { colorIdx: number; isNotFirstEpic: boolean }>();
+      for (const row of visibleRows) {
+        if (row.level === 'epic' && row.epicId !== lastEpicId) {
+          epicIdx++;
+          lastEpicId = row.epicId;
+          map.set(row.rowKey, { colorIdx: epicIdx, isNotFirstEpic: epicIdx > 0 });
+        } else {
+          map.set(row.rowKey, { colorIdx: Math.max(epicIdx, 0), isNotFirstEpic: false });
+        }
+      }
+      return map;
+    }, [visibleRows]);
+
+    // When store resets the origin (project load, Today button, scale switch) → reset local state
     useEffect(() => {
       setLocalStartDate(storeStartDate);
       setLocalTotalDays(initialTotalDays(PX_PER_DAY[timelineScale]));
       pendingScrollAdjust.current = 0;
-      if (scrollRef.current) {
+      if (scrollRef.current && timelineScrollTarget === null) {
+        // No scroll target — reset to left edge (e.g. manual setTimelineStartDate)
         scrollRef.current.scrollLeft = 0;
       }
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [storeStartDate, timelineScale]);
+
+    // Apply scroll-to-today target synchronously after DOM update so the browser
+    // doesn't clamp scrollLeft before the canvas width is committed.
+    useLayoutEffect(() => {
+      if (timelineScrollTarget === null || !scrollRef.current) return;
+      scrollRef.current.scrollLeft = timelineScrollTarget;
+      clearTimelineScrollTarget();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [timelineScrollTarget]);
 
     // When zoom changes, ensure canvas has enough days (zooming out needs more days)
     useEffect(() => {
@@ -160,7 +202,7 @@ export const GanttTimeline = forwardRef<GanttTimelineHandle, GanttTimelineProps>
     const today = new Date();
     const todayOffset = differenceInCalendarDays(today, localStartDate) * pxPerDay;
 
-    const { groups, dayLabels } = buildHeader(timelineScale, localStartDate, localTotalDays);
+    const { groups, dayLabels } = buildHeader(timelineScale, localStartDate, localTotalDays, fmtDate);
     const HEADER_H = groups ? 48 : 32;
 
     function barLeft(start: string) {
@@ -227,13 +269,19 @@ export const GanttTimeline = forwardRef<GanttTimelineHandle, GanttTimelineProps>
 
           {/* ── Rows ────────────────────────────────────────── */}
           <div>
-            {visibleRows.map((row) => (
+            {visibleRows.map((row) => {
+              const meta = rowGroupMeta.get(row.rowKey);
+              const groupColor = EPIC_COLORS[(meta?.colorIdx ?? 0) % EPIC_COLORS.length];
+              const isNotFirstEpic = meta?.isNotFirstEpic ?? false;
+
+              return (
               <div
                 key={row.rowKey}
                 className={cn(
                   'relative border-b border-border/40',
                   !row.isAddRow && row.level === 'epic' && 'bg-[var(--row-alt)]',
                   row.isAddRow && 'bg-transparent',
+                  isNotFirstEpic && 'border-t-2 border-t-border/60',
                 )}
                 style={{ height: ROW_H }}
               >
@@ -250,6 +298,17 @@ export const GanttTimeline = forwardRef<GanttTimelineHandle, GanttTimelineProps>
                   />
                 ))}
 
+                {/* Epic group left accent stripe */}
+                {!row.isAddRow && (
+                  <div
+                    className="absolute left-0 top-0 bottom-0 z-[5] pointer-events-none"
+                    style={{
+                      width: row.level === 'epic' ? 3 : 2,
+                      backgroundColor: groupColor,
+                    }}
+                  />
+                )}
+
                 {/* Bar — skip for add-rows */}
                 {!row.isAddRow && row.bar && (
                   <GanttBar
@@ -261,7 +320,8 @@ export const GanttTimeline = forwardRef<GanttTimelineHandle, GanttTimelineProps>
                   />
                 )}
               </div>
-            ))}
+              );
+            })}
 
             {/* Empty state rows placeholder */}
             {visibleRows.length === 0 && (
