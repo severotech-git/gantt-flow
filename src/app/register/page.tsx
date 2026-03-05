@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import Image from 'next/image';
 import { useTranslations } from 'next-intl';
 import { LanguageSwitcher } from '@/components/shared/LanguageSwitcher';
+import { ThemeToggle } from '@/components/shared/ThemeToggle';
 
 // Static imports for images to ensure reliable resolution
 import logoIcon from '../../../public/icon.png';
@@ -122,7 +123,10 @@ function RegisterPageContent() {
             />
             GanttFlow
           </h1>
-          <LanguageSwitcher />
+          <div className="flex items-center gap-1">
+            <ThemeToggle />
+            <LanguageSwitcher />
+          </div>
         </div>
 
         <div>
@@ -215,7 +219,7 @@ function RegisterPageContent() {
 
           <Button
             type="submit"
-            className="w-full bg-blue-600 hover:bg-blue-500 text-white"
+            className="w-full"
             disabled={loading}
           >
             {loading ? t('creating') : inviteToken ? t('createAndAcceptButton') : t('createButton')}

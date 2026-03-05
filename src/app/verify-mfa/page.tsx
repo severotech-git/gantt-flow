@@ -10,6 +10,7 @@ import Image from 'next/image';
 import logoIcon from '../../../public/icon.png';
 import { useTranslations } from 'next-intl';
 import { LanguageSwitcher } from '@/components/shared/LanguageSwitcher';
+import { ThemeToggle } from '@/components/shared/ThemeToggle';
 
 function VerifyMFAContent() {
   const t = useTranslations('auth.verifyMfa');
@@ -72,7 +73,10 @@ function VerifyMFAContent() {
             <Image src={logoIcon} alt="GanttFlow Logo" height={32} className="h-8 w-auto object-contain" priority />
             GanttFlow
           </h1>
-          <LanguageSwitcher />
+          <div className="flex items-center gap-1">
+            <ThemeToggle />
+            <LanguageSwitcher />
+          </div>
         </div>
 
         <div className="text-center">
@@ -106,7 +110,7 @@ function VerifyMFAContent() {
             disabled={loading}
             className="text-center text-2xl tracking-[0.5em] font-mono"
           />
-          <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-500 text-white" disabled={loading || code.length !== 6}>
+          <Button type="submit" className="w-full" disabled={loading || code.length !== 6}>
             {loading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />

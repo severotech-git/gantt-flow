@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { IInvitation } from '@/types';
 import { Loader2, Users } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
+import { ThemeToggle } from '@/components/shared/ThemeToggle';
 
 interface InvitePageProps {
   params: Promise<{ token: string }>;
@@ -107,6 +108,9 @@ export default function InvitePage({ params }: InvitePageProps) {
   return (
     <div className="min-h-screen flex items-center justify-center bg-background">
       <div className="w-full max-w-md p-8 space-y-6 bg-card border border-border rounded-lg shadow-lg">
+        <div className="flex justify-end">
+          <ThemeToggle />
+        </div>
         <div className="flex flex-col items-center gap-3 text-center">
           <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
             <Users size={22} className="text-primary" />
@@ -121,7 +125,7 @@ export default function InvitePage({ params }: InvitePageProps) {
 
         {authStatus === 'unauthenticated' ? (
           <div className="space-y-3">
-            <Button asChild className="w-full bg-blue-600 hover:bg-blue-500 text-white">
+            <Button asChild className="w-full">
               <Link href={`/register?inviteToken=${token}`}>Accept &amp; Sign Up</Link>
             </Button>
             <Button asChild variant="outline" className="w-full">
@@ -136,7 +140,7 @@ export default function InvitePage({ params }: InvitePageProps) {
             <p className="text-xs text-center text-muted-foreground">
               Signed in as <span className="text-foreground">{session?.user?.email}</span>
             </p>
-            <Button className="w-full bg-blue-600 hover:bg-blue-500 text-white" disabled={acting || done} onClick={handleAccept}>
+            <Button className="w-full" disabled={acting || done} onClick={handleAccept}>
               {acting ? <Loader2 size={14} className="mr-1.5 animate-spin" /> : null}
               Accept Invitation
             </Button>

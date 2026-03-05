@@ -24,6 +24,7 @@ import Image, { type StaticImageData } from 'next/image';
 import { cn } from '@/lib/utils';
 import { useTranslations } from 'next-intl';
 import { LanguageSwitcher } from '@/components/shared/LanguageSwitcher';
+import { ThemeToggle } from '@/components/shared/ThemeToggle';
 
 // Static imports for images to ensure reliable resolution
 import logoIcon from '../../public/icon.png';
@@ -183,6 +184,7 @@ export default function LandingPage() {
             <a href="#features" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">{t('nav.features')}</a>
             <a href="#pricing" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">{t('nav.pricing')}</a>
             <div className="flex items-center gap-3 ml-4">
+              <ThemeToggle />
               <LanguageSwitcher />
               <Link href="/login">
                 <Button variant="ghost" size="sm">{t('nav.login')}</Button>
@@ -205,7 +207,8 @@ export default function LandingPage() {
             <a href="#features" onClick={() => setIsMenuOpen(false)} className="px-4 py-2 text-sm font-medium">{t('nav.features')}</a>
             <a href="#pricing" onClick={() => setIsMenuOpen(false)} className="px-4 py-2 text-sm font-medium">{t('nav.pricing')}</a>
             <hr className="border-border" />
-            <div className="flex justify-center">
+            <div className="flex justify-center items-center gap-4">
+              <ThemeToggle />
               <LanguageSwitcher variant="pills" />
             </div>
             <Link href="/login" className="w-full">
@@ -263,7 +266,7 @@ export default function LandingPage() {
             {/* Product Screenshot Container */}
             <div className="relative max-w-5xl mx-auto">
               {/* Glow effect behind the image */}
-              <div className="absolute -inset-1 bg-gradient-to-b from-primary/20 to-blue-600/20 rounded-xl blur-2xl opacity-50"></div>
+              <div className="absolute -inset-1 bg-gradient-to-b from-primary/20 to-primary/5 rounded-xl blur-2xl opacity-50"></div>
 
               {/* The actual image */}
               <div className="relative rounded-xl border border-border/50 bg-background/50 backdrop-blur-sm shadow-2xl overflow-hidden ring-1 ring-white/10">
@@ -282,7 +285,7 @@ export default function LandingPage() {
           {/* Hero Decorative Background */}
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full -z-10 opacity-10 pointer-events-none">
              <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-primary rounded-full blur-[120px]" />
-             <div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-blue-600 rounded-full blur-[120px]" />
+             <div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-primary rounded-full blur-[120px]" />
           </div>
         </section>
 
@@ -314,11 +317,11 @@ export default function LandingPage() {
                     </p>
                     <ul className="space-y-3">
                       <li className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <Check className="w-4 h-4 text-emerald-500" />
+                        <Check className="w-4 h-4 text-primary" />
                         {t('features.bulletNoSpreadsheets')}
                       </li>
                       <li className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <Check className="w-4 h-4 text-emerald-500" />
+                        <Check className="w-4 h-4 text-primary" />
                         {t('features.bulletSingleSource')}
                       </li>
                     </ul>

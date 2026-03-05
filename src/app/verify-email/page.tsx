@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Mail, CheckCircle, Loader2 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { LanguageSwitcher } from '@/components/shared/LanguageSwitcher';
+import { ThemeToggle } from '@/components/shared/ThemeToggle';
 
 function VerifyEmailContent() {
   const t = useTranslations('auth.verifyEmail');
@@ -68,7 +69,8 @@ function VerifyEmailContent() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-background">
       <div className="w-full max-w-md p-8 space-y-6 bg-card border border-border rounded-lg shadow-lg text-center">
-        <div className="flex justify-end">
+        <div className="flex justify-end items-center gap-1">
+          <ThemeToggle />
           <LanguageSwitcher />
         </div>
 
