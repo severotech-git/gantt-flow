@@ -136,7 +136,13 @@
       "invalidOrExpired": "Invalid or expired code. Please try again.",
       "unexpectedError": "An unexpected error occurred.",
       "noCode": "Didn't receive a code?",
-      "goBack": "Go back and try again"
+      "goBack": "Go back and try again",
+      "resendCode": "Resend code",
+      "resendingCode": "Sending…",
+      "resendSuccess": "A new code was sent to your inbox.",
+      "resendFailed": "Failed to send. Please try again.",
+      "resendCooldown": "Resend in {seconds}s",
+      "tooManyAttempts": "Too many attempts. Please wait before trying again."
     },
     "login": {
       "title": "GanttFlow",
@@ -148,7 +154,6 @@
       "signingIn": "Signing in...",
       "orContinueWith": "Or continue with",
       "google": "Google",
-      "github": "GitHub",
       "noAccount": "Don't have an account?",
       "createOne": "Create one",
       "errors": {
@@ -212,7 +217,7 @@
     },
     "taskPanel": {
       "name": "Name",
-      "owner": "Resp.",
+      "owner": "Owner",
       "status": "Status",
       "pct": "%",
       "noItems": "No items yet.",

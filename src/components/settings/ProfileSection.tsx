@@ -59,7 +59,7 @@ export function ProfileSection() {
       </div>
 
       <div className="flex items-center gap-4 p-4 rounded-xl border border-border bg-card">
-        <OwnerAvatar name={name || session?.user?.name || 'User'} size={64} />
+        <OwnerAvatar name={name || session?.user?.name || 'User'} avatar={session?.user?.image ?? undefined} size={64} />
         <div>
           <p className="text-sm font-medium text-foreground">{name || session?.user?.name}</p>
           <p className="text-xs text-muted-foreground">{email}</p>

@@ -1,6 +1,6 @@
 // next-auth v5 beta type resolution doesn't fully align with bundler moduleResolution.
 // The runtime behaviour is correct; only the TS import path is unresolvable in this mode.
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+
 // @ts-expect-error – next-auth type export unresolvable under moduleResolution:bundler
 import type { NextAuthConfig } from 'next-auth';
 
@@ -22,6 +22,7 @@ export const authConfig = {
   // An empty array here still allows JWT-based session reads.
   providers: [],
   callbacks: {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     jwt: async ({ token, user, trigger, session }: {
       token: Record<string, unknown>;
       user?: { id?: string | null } | null;

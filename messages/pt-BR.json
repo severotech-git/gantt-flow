@@ -136,7 +136,13 @@
       "invalidOrExpired": "Código inválido ou expirado. Tente novamente.",
       "unexpectedError": "Ocorreu um erro inesperado.",
       "noCode": "Não recebeu o código?",
-      "goBack": "Voltar e tentar novamente"
+      "goBack": "Voltar e tentar novamente",
+      "resendCode": "Reenviar código",
+      "resendingCode": "Enviando…",
+      "resendSuccess": "Um novo código foi enviado para sua caixa de entrada.",
+      "resendFailed": "Falha ao enviar. Tente novamente.",
+      "resendCooldown": "Reenviar em {seconds}s",
+      "tooManyAttempts": "Muitas tentativas. Aguarde antes de tentar novamente."
     },
     "login": {
       "title": "GanttFlow",
@@ -148,7 +154,6 @@
       "signingIn": "Entrando...",
       "orContinueWith": "Ou continue com",
       "google": "Google",
-      "github": "GitHub",
       "noAccount": "Não tem uma conta?",
       "createOne": "Criar conta",
       "errors": {

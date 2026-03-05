@@ -28,6 +28,7 @@ export function StatusBadge({ status, className }: StatusBadgeProps) {
 }
 
 // Legacy helper — now returns hex color string from store; kept for GanttBar compatibility
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export function getBarColor(status: string): string {
   // This is a synchronous fallback; GanttBar reads directly from store now
   return '#64748b';

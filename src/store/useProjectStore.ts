@@ -209,18 +209,18 @@ export const useProjectStore = create<ProjectStore>()(
 
     // ── Active project ──────────────────────────────────────────────────────
     fetchProject: async (id) => {
-      set((s) => { 
-        s.isLoadingProject = true; 
-        s.activeProject = null; 
+      set((s) => {
+        s.isLoadingProject = true;
+        s.activeProject = null;
         s.projectError = null; // Clear previous errors
       });
       try {
         const res = await fetch(`/api/projects/${id}`);
         if (!res.ok) {
            const errorData = await res.json().catch(() => ({}));
-           set((s) => { 
+           set((s) => {
              s.activeProject = null;
-             s.isLoadingProject = false; 
+             s.isLoadingProject = false;
              s.projectError = errorData.error || (res.status === 404 ? 'Not Found' : 'Failed to fetch');
            });
            return;
@@ -239,10 +239,10 @@ export const useProjectStore = create<ProjectStore>()(
           // Scroll so today appears ~200px from the left edge on first render
           s.timelineScrollTarget = Math.max(todayOffsetDays * pxPerDay - 200, 0);
         });
-      } catch (err) {
-        set((s) => { 
+      } catch {
+        set((s) => {
           s.activeProject = null;
-          s.isLoadingProject = false; 
+          s.isLoadingProject = false;
           s.projectError = 'Network error';
         });
       }
@@ -572,7 +572,7 @@ export const useProjectStore = create<ProjectStore>()(
     persistProject: async () => {
       const project = get().activeProject;
       if (!project || get().isVersionReadOnly) return;
-      
+
       set((s) => { s.isSaving = true; });
       try {
         const res = await fetch(`/api/projects/${project._id}`, {
@@ -586,7 +586,7 @@ export const useProjectStore = create<ProjectStore>()(
             currentVersion: project.currentVersion,
           }),
         });
-        
+
         if (res.ok) {
           const updatedProject: IProject = await res.json();
           // We update the active project with the server response to sync IDs (tmp_ -> real)

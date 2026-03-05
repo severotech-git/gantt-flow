@@ -74,6 +74,7 @@ export function PageNavbar({
               <button className="flex items-center gap-2.5 p-1 rounded-lg hover:bg-accent transition-colors focus:outline-none text-left">
                 <OwnerAvatar
                   name={session.user.name || 'User'}
+                  avatar={session.user.image ?? undefined}
                   size={28}
                   className="shrink-0"
                 />

@@ -41,6 +41,19 @@ export function OwnerAvatar({ name, avatar, size = 'sm', color, className }: Own
     ? { width: px, height: px, fontSize: Math.round(px * 0.42), lineHeight: `${px}px` }
     : { fontSize: size === 'sm' ? 11 : 13 };
 
+  if (avatar) {
+    return (
+      <img
+        src={avatar}
+        alt={name ?? ''}
+        referrerPolicy="no-referrer"
+        className={cn('rounded-full object-cover shrink-0', dimClass, className)}
+        style={isNumeric ? { width: px, height: px } : undefined}
+        title={name}
+      />
+    );
+  }
+
   if (!name) {
     return (
       <span

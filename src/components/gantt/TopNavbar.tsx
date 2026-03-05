@@ -28,7 +28,7 @@ interface TopNavbarProps {
   onToggleSidebar: () => void;
 }
 
-export function TopNavbar({ onEditProject: _onEditProject, onSaveVersion, onNewProject, onSearch, sidebarOpen, onToggleSidebar }: TopNavbarProps) {
+export function TopNavbar({ onSaveVersion, onNewProject, onSearch, sidebarOpen, onToggleSidebar }: TopNavbarProps) {
   const t = useTranslations('gantt.topnav');
   const {
     timelineScale,

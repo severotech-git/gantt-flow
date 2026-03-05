@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import { useLocale } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { Globe } from 'lucide-react';
@@ -28,11 +29,17 @@ interface LanguageSwitcherProps {
 export function LanguageSwitcher({ variant = 'dropdown', className }: LanguageSwitcherProps) {
   const locale = useLocale() as AppLocale;
   const router = useRouter();
+  const [pendingLocale, setPendingLocale] = useState<AppLocale | null>(null);
+
+  useEffect(() => {
+    if (!pendingLocale) return;
+    document.cookie = `NEXT_LOCALE=${pendingLocale}; path=/; max-age=31536000; SameSite=Lax`;
+    router.refresh();
+  }, [pendingLocale, router]);
 
   const handleChange = (newLocale: AppLocale) => {
     if (newLocale === locale) return;
-    document.cookie = `NEXT_LOCALE=${newLocale}; path=/; max-age=31536000; SameSite=Lax`;
-    router.refresh();
+    setPendingLocale(newLocale);
   };
 
   if (variant === 'pills') {

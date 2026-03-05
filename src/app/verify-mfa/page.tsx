@@ -12,6 +12,8 @@ import { useTranslations } from 'next-intl';
 import { LanguageSwitcher } from '@/components/shared/LanguageSwitcher';
 import { ThemeToggle } from '@/components/shared/ThemeToggle';
 
+const RESEND_COOLDOWN = 120;
+
 function VerifyMFAContent() {
   const t = useTranslations('auth.verifyMfa');
   const router = useRouter();
@@ -32,9 +34,39 @@ function VerifyMFAContent() {
   const [loading, setLoading] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
+  // Resend state — starts locked because a code was already sent on page load
+  const [resendCooldown, setResendCooldown] = useState(RESEND_COOLDOWN);
+  const [resendLoading, setResendLoading] = useState(false);
+  const [resendSuccess, setResendSuccess] = useState(false);
+  const [resendError, setResendError] = useState('');
+  const cooldownRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
   useEffect(() => {
     inputRef.current?.focus();
   }, []);
+
+  // Start the initial 120s cooldown on mount (code was sent when user arrived)
+  useEffect(() => {
+    startCooldown(RESEND_COOLDOWN);
+    return () => {
+      if (cooldownRef.current) clearInterval(cooldownRef.current);
+    };
+   
+  }, []);
+
+  function startCooldown(seconds: number) {
+    setResendCooldown(seconds);
+    if (cooldownRef.current) clearInterval(cooldownRef.current);
+    cooldownRef.current = setInterval(() => {
+      setResendCooldown((prev) => {
+        if (prev <= 1) {
+          clearInterval(cooldownRef.current!);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -49,19 +81,58 @@ function VerifyMFAContent() {
         redirect: false,
       });
 
-      if (result?.ok) {
+      // next-auth beta.30: result.ok reflects HTTP status (always 200), not auth success.
+      // The only reliable success indicator is the absence of result.error.
+      const errCode = result?.error ?? '';
+      if (!errCode) {
         if (typeof window !== 'undefined') {
           sessionStorage.removeItem('mfa_pending_email');
         }
         router.push('/projects');
       } else {
         setCode('');
-        setError(t('invalidOrExpired'));
+        if (errCode === 'CredentialsSignin') {
+          setError(t('invalidOrExpired'));
+        } else if (errCode === 'TooManyAttempts' || errCode === 'Configuration') {
+          setError(t('tooManyAttempts'));
+        } else {
+          setError(t('unexpectedError'));
+        }
       }
     } catch {
       setError(t('unexpectedError'));
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleResend = async () => {
+    if (resendCooldown > 0 || resendLoading) return;
+    setResendError('');
+    setResendSuccess(false);
+    setResendLoading(true);
+
+    try {
+      const res = await fetch('/api/auth/mfa/resend', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
+
+      if (res.status === 429) {
+        const data = await res.json();
+        const wait = typeof data.retryAfterSeconds === 'number' ? data.retryAfterSeconds : RESEND_COOLDOWN;
+        startCooldown(wait);
+      } else if (res.ok) {
+        setResendSuccess(true);
+        startCooldown(RESEND_COOLDOWN);
+      } else {
+        setResendError(t('resendFailed'));
+      }
+    } catch {
+      setResendError(t('resendFailed'));
+    } finally {
+      setResendLoading(false);
     }
   };
 
@@ -122,16 +193,43 @@ function VerifyMFAContent() {
           </Button>
         </form>
 
-        <p className="text-center text-xs text-muted-foreground">
-          {t('noCode')}{' '}
-          <button
+        <div className="space-y-2">
+          {resendSuccess && (
+            <p className="text-center text-sm text-green-600">{t('resendSuccess')}</p>
+          )}
+          {resendError && (
+            <p className="text-center text-sm text-red-600">{resendError}</p>
+          )}
+          <Button
             type="button"
-            className="text-primary hover:underline"
-            onClick={() => router.push('/login')}
+            variant="outline"
+            className="w-full"
+            disabled={resendCooldown > 0 || resendLoading}
+            onClick={handleResend}
           >
-            {t('goBack')}
-          </button>
-        </p>
+            {resendLoading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                {t('resendingCode')}
+              </>
+            ) : resendCooldown > 0 ? (
+              t('resendCooldown', { seconds: resendCooldown })
+            ) : (
+              t('resendCode')
+            )}
+          </Button>
+
+          <p className="text-center text-xs text-muted-foreground">
+            {t('noCode')}{' '}
+            <button
+              type="button"
+              className="text-primary hover:underline"
+              onClick={() => router.push('/login')}
+            >
+              {t('goBack')}
+            </button>
+          </p>
+        </div>
       </div>
     </div>
   );

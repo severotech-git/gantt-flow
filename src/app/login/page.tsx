@@ -170,14 +170,6 @@ function LoginPageContent() {
           >
             {t('google')}
           </Button>
-          <Button
-            variant="outline"
-            className="w-full"
-            onClick={() => handleSocialLogin('github')}
-            disabled={loading}
-          >
-            {t('github')}
-          </Button>
         </div>
 
         <div className="text-center text-sm">

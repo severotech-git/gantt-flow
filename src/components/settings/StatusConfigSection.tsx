@@ -1,6 +1,5 @@
 'use client';
 
-import { useState } from 'react';
 import { useSettingsStore } from '@/store/useSettingsStore';
 import { useCanManage } from '@/hooks/useAccountRole';
 import { ReadOnlyBanner } from './ReadOnlyBanner';

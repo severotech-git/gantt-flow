@@ -51,7 +51,7 @@ export function GanttBoard() {
   const t = useTranslations('gantt');
   const project = useProjectStore(selectDisplayProject);
   const {
-    timelineScale, timelineStartDate,
+    timelineScale,
     updateTask, updateFeature, updateEpic,
     expandedEpicIds, expandedFeatureIds,
     isVersionReadOnly, isLoadingProject,
@@ -279,9 +279,9 @@ export function GanttBoard() {
   const handleDragStart = useCallback((event: DragStartEvent) => {
     const dragId = event.active.id as string;
     setDragDelta({ id: dragId, x: 0 });
-    
+
     if (dragId.startsWith('resize-')) return;
-    
+
     const row = visibleRows.find((r) => r.bar?.id === dragId);
     if (!row?.bar) return;
     const s = safeParseISO(row.bar.plannedStart);

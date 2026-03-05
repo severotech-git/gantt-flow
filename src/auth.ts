@@ -1,9 +1,8 @@
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+ 
 // @ts-expect-error – next-auth re-exports CredentialsSignin from @auth/core/errors; TS resolves it at runtime
 import NextAuth, { CredentialsSignin } from 'next-auth';
 import Credentials from 'next-auth/providers/credentials';
 import Google from 'next-auth/providers/google';
-import GitHub from 'next-auth/providers/github';
 import { connectDB } from '@/lib/mongodb';
 import User from '@/lib/models/User';
 import Account from '@/lib/models/Account';
@@ -29,7 +28,7 @@ class MFARequiredError extends CredentialsSignin {
 
 // next-auth v5 beta type resolution doesn't fully align with bundler moduleResolution;
 // the runtime call is correct, only the TS default-import signature is missing.
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+ 
 // @ts-expect-error – next-auth default export callable mismatch with Next.js 16 bundler resolution
 export const { handlers, auth, signIn, signOut } = NextAuth({
   ...authConfig,
@@ -180,19 +179,32 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     ...(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET
       ? [Google({ clientId: process.env.GOOGLE_CLIENT_ID, clientSecret: process.env.GOOGLE_CLIENT_SECRET })]
       : []),
-    ...(process.env.GITHUB_CLIENT_ID && process.env.GITHUB_CLIENT_SECRET
-      ? [GitHub({ clientId: process.env.GITHUB_CLIENT_ID, clientSecret: process.env.GITHUB_CLIENT_SECRET })]
-      : []),
   ],
   callbacks: {
     ...authConfig.callbacks,
-    signIn: async ({ user, account }: { user: { id?: string | null }; account: { provider?: string } | null }) => {
-      // Auto-verify OAuth users (Google/GitHub handle their own auth)
+    signIn: async ({ user, account }: {
+      user: { id?: string | null; email?: string | null; name?: string | null; image?: string | null };
+      account: { provider?: string } | null;
+    }) => {
+      // Auto-verify OAuth users (Google handles its own email auth)
       if (account?.provider && account.provider !== 'credentials') {
         try {
           await connectDB();
-          if (user?.id) {
-            await User.findByIdAndUpdate(user.id, { $set: { emailVerified: new Date() } });
+          if (user?.email) {
+            const email = user.email.toLowerCase();
+            const existing = await User.findOne({ email });
+            if (!existing) {
+              // First OAuth login — create the user and seed their workspace
+              const created = await User.create({
+                email,
+                name: user.name ?? email,
+                image: user.image ?? undefined,
+                emailVerified: new Date(),
+              });
+              await seedAccountForNewUser(created._id.toString(), created.name);
+            } else {
+              await User.findByIdAndUpdate(existing._id, { $set: { emailVerified: new Date() } });
+            }
           }
         } catch (err) {
           console.error('[auth signIn] Failed to auto-verify OAuth user:', err);
@@ -203,12 +215,36 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     // Override jwt to also resolve activeAccountId and emailVerified from DB on first login
     jwt: async ({ token, user, trigger, session }: {
       token: Record<string, unknown>;
-      user?: { id?: string | null } | null;
+      user?: { id?: string | null; email?: string | null } | null;
       trigger?: string;
       session?: Record<string, unknown> | null;
     }) => {
       // Apply base callback first (handles uid on first login)
       const base = await authConfig.callbacks.jwt({ token, user, trigger, session });
+
+      // Heal sessions where uid is an OAuth provider UUID instead of a MongoDB ObjectId.
+      // Runs on every token refresh so existing sessions self-correct without re-login.
+      const currentUid = (base.uid ?? '') as string;
+      if (!/^[a-f\d]{24}$/i.test(currentUid) && token.email) {
+        try {
+          await connectDB();
+          const healedUser = await User.findOne({ email: (token.email as string).toLowerCase() });
+          if (healedUser) {
+            base.uid = healedUser._id.toString();
+            base.emailVerified = !!healedUser.emailVerified;
+            base.locale = healedUser.locale ?? 'en';
+            if (!base.activeAccountId) {
+              const acct = await Account.findOne(
+                { 'members.userId': healedUser._id.toString() },
+                { _id: 1 }
+              ).sort({ createdAt: 1 });
+              if (acct) base.activeAccountId = acct._id.toString();
+            }
+          }
+        } catch (err) {
+          console.error('[auth jwt] Failed to heal OAuth uid:', err);
+        }
+      }
 
       // On update trigger: sync name from client session update
       if (trigger === 'update' && session?.name && typeof session.name === 'string') {
@@ -256,16 +292,23 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       if (user?.id) {
         try {
           await connectDB();
-          const dbUser = await User.findById(user.id);
+          // OAuth providers supply a UUID as user.id, not a MongoDB ObjectId.
+          // Fall back to email lookup so we always resolve the real DB user.
+          const isObjectId = /^[a-f\d]{24}$/i.test(user.id);
+          const dbUser = isObjectId
+            ? await User.findById(user.id)
+            : await User.findOne({ email: user.email?.toLowerCase() });
           if (dbUser) {
+            base.uid = dbUser._id.toString(); // ensure JWT carries the real MongoDB _id
             base.emailVerified = !!dbUser.emailVerified;
             base.locale = dbUser.locale ?? 'en';
+            const mongoId = dbUser._id.toString();
             if (dbUser.mainAccountId) {
               base.activeAccountId = dbUser.mainAccountId;
             } else if (!base.activeAccountId) {
               // Fall back to the first account the user is a member of
               const account = await Account.findOne(
-                { 'members.userId': user.id },
+                { 'members.userId': mongoId },
                 { _id: 1 }
               ).sort({ createdAt: 1 });
               if (account) {

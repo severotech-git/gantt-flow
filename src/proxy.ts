@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+ 
 // @ts-expect-error – next-auth/jwt re-exports from @auth/core/jwt; TS resolves it at runtime
 import { getToken } from 'next-auth/jwt';
 

@@ -2,12 +2,14 @@
 
 import { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 import { useAccountStore } from '@/store/useAccountStore';
 import { useSettingsStore } from '@/store/useSettingsStore';
 import { PendingInvitesDialog } from '@/components/dialogs/PendingInvitesDialog';
 
 export function AccountProvider({ children }: { children: React.ReactNode }) {
   const { status } = useSession();
+  const router = useRouter();
   const fetchAccounts = useAccountStore((s) => s.fetchAccounts);
   const fetchPendingInvitations = useAccountStore((s) => s.fetchPendingInvitations);
   const fetchSettings = useSettingsStore((s) => s.fetchSettings);
@@ -17,13 +19,27 @@ export function AccountProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (status !== 'authenticated') return;
     fetchAccounts();
-    fetchSettings();
+    fetchSettings().then(() => {
+      // After login, force locale and theme from the user's DB profile.
+      // This overrides anything the user may have set on the login/register pages.
+      const { locale } = useSettingsStore.getState();
+      const cookieLocale = document.cookie
+        .split('; ')
+        .find((r) => r.startsWith('NEXT_LOCALE='))
+        ?.split('=')[1];
+      if (locale && locale !== cookieLocale) {
+        document.cookie = `NEXT_LOCALE=${locale}; path=/; max-age=31536000; SameSite=Lax`;
+        router.refresh();
+      }
+      // Clear the ThemeToggle localStorage key so the authenticated ThemeProvider wins.
+      localStorage.removeItem('ganttflow-theme');
+    });
     fetchPendingInvitations().then(() => {
       const { pendingInvites: invites } = useAccountStore.getState();
       if (invites.length > 0) setShowPendingDialog(true);
     });
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [status]);
+  }, [status]); // router/fetch refs are stable; re-running only on auth status change is intentional
 
   // Show dialog whenever new pending invites arrive
   useEffect(() => {

@@ -35,7 +35,7 @@ interface AccountActions {
 
 // Suppress unused-get warning; kept for future actions that need current state
 export const useAccountStore = create<AccountState & AccountActions>()(
-  immer((set, _get) => ({
+  immer((set) => ({
     accounts: [],
     mainAccountId: null,
     currentAccount: null,

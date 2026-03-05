@@ -1,4 +1,4 @@
-import { IEpic, IFeature, ITask } from '@/types';
+import { IEpic, IFeature } from '@/types';
 import {
   startOfWeek,
   startOfMonth,

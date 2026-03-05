@@ -27,8 +27,8 @@ interface EditProjectDialogProps {
 
 export function EditProjectDialog({ open, onClose, project: propProject }: EditProjectDialogProps) {
   const t = useTranslations('dialogs.editProject');
-  const { activeProject, persistProject } = useProjectStore();
-  
+  const { activeProject } = useProjectStore();
+
   // Use prop project if provided, otherwise fallback to activeProject from store
   const project = propProject || activeProject;
 
@@ -48,12 +48,12 @@ export function EditProjectDialog({ open, onClose, project: propProject }: EditP
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!name.trim() || !project) return;
-    
+
     setLoading(true);
-    
+
     try {
-      // We perform a direct PATCH here because updateProject in the store 
-      // is designed for the active project. For the list view, we want 
+      // We perform a direct PATCH here because updateProject in the store
+      // is designed for the active project. For the list view, we want
       // a more generic update that works for any project ID.
       const res = await fetch(`/api/projects/${project._id}`, {
         method: 'PATCH',

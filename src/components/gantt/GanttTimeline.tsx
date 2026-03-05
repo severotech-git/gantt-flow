@@ -2,7 +2,7 @@
 
 import { useRef, forwardRef, useImperativeHandle, useEffect, useLayoutEffect, useState, useCallback, useMemo } from 'react';
 import { useProjectStore } from '@/store/useProjectStore';
-import { GanttBar, GanttBarData } from './GanttBar';
+import { GanttBar } from './GanttBar';
 import { differenceInCalendarDays, parseISO, isValid, addDays, startOfWeek } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { useFormatter, type DateTimeFormatOptions } from 'next-intl';
@@ -155,7 +155,7 @@ export const GanttTimeline = forwardRef<GanttTimelineHandle, GanttTimelineProps>
     // When zoom changes, ensure canvas has enough days (zooming out needs more days)
     useEffect(() => {
       setLocalTotalDays((d) => Math.max(d, initialTotalDays(pxPerDay)));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+
     }, [pxPerDay]);
 
     // Apply scroll compensation for left extensions — must run before paint
