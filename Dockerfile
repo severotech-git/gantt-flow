@@ -1,35 +1,25 @@
 # syntax=docker/dockerfile:1
 
 # ──────────────────────────────────────────────
-# Stage 1: deps – install production dependencies
-# ──────────────────────────────────────────────
-FROM node:22-alpine AS deps
-RUN apk add --no-cache libc6-compat
-WORKDIR /app
-
-COPY package.json package-lock.json* ./
-RUN npm ci --omit=dev
-
-# ──────────────────────────────────────────────
-# Stage 2: builder – compile the Next.js app
+# Stage 1: builder – compile the Next.js app
 # ──────────────────────────────────────────────
 FROM node:22-alpine AS builder
 RUN apk add --no-cache libc6-compat
+RUN corepack enable && corepack prepare pnpm@latest --activate
 WORKDIR /app
 
-# Copy all deps (including devDeps needed for build)
-COPY package.json package-lock.json* ./
-RUN npm ci
+COPY package.json pnpm-lock.yaml ./
+RUN pnpm install --frozen-lockfile
 
 COPY . .
 
 # next build reads env vars at build time only for static generation;
 # runtime secrets are injected via the container, not baked in.
 ENV NEXT_TELEMETRY_DISABLED=1
-RUN npm run build
+RUN pnpm build
 
 # ──────────────────────────────────────────────
-# Stage 3: runner – minimal production image
+# Stage 2: runner – minimal production image
 # ──────────────────────────────────────────────
 FROM node:22-alpine AS runner
 RUN apk add --no-cache libc6-compat

@@ -3,6 +3,7 @@
 .env*
 node_modules
 .next
+package-lock.json
 Dockerfile
 .dockerignore
 README.md
