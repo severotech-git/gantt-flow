@@ -8,6 +8,7 @@ import User from '@/lib/models/User';
 import Account from '@/lib/models/Account';
 import EmailVerification from '@/lib/models/EmailVerification';
 import EmailOTP from '@/lib/models/EmailOTP';
+import TrustedDevice from '@/lib/models/TrustedDevice';
 import { seedAccountForNewUser } from '@/lib/seedWorkspace';
 import { authConfig } from '@/auth.config';
 import { checkRateLimit, getClientIp } from '@/lib/rateLimit';
@@ -155,8 +156,29 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           // Expired or missing bypass token — fall through to Branch C (MFA)
         }
 
-        // ── Branch C: Normal login → generate OTP ────────────────────────────
+        // ── Branch C: Normal login → check trusted device, then generate OTP ──
         const crypto = await import('crypto');
+
+        // If a trusted-device cookie is present and valid, skip OTP entirely
+        const cookieHeader2 = (request as Request).headers.get('cookie') ?? '';
+        const trustCookie = parseCookie(cookieHeader2, '__mfa_trust');
+        if (trustCookie) {
+          const trustHash = crypto.createHash('sha256').update(trustCookie).digest('hex');
+          const trusted = await TrustedDevice.findOne({
+            userId: user._id.toString(),
+            tokenHash: trustHash,
+            expiresAt: { $gt: new Date() },
+          });
+          if (trusted) {
+            return {
+              id: user._id.toString(),
+              email: user.email,
+              name: user.name,
+              image: user.image,
+            };
+          }
+        }
+
         const code = String(crypto.randomInt(100000, 999999));
         const codeHash = await bcrypt.default.hash(code, 10);
 

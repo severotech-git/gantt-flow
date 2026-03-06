@@ -142,7 +142,8 @@
       "resendSuccess": "A new code was sent to your inbox.",
       "resendFailed": "Failed to send. Please try again.",
       "resendCooldown": "Resend in {seconds}s",
-      "tooManyAttempts": "Too many attempts. Please wait before trying again."
+      "tooManyAttempts": "Too many attempts. Please wait before trying again.",
+      "trustDevice": "Trust this device for 30 days"
     },
     "login": {
       "title": "GanttFlow",

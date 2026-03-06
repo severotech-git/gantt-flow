@@ -32,6 +32,7 @@ function VerifyMFAContent() {
   const [code, setCode] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [trustDevice, setTrustDevice] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   // Resend state — starts locked because a code was already sent on page load
@@ -87,6 +88,10 @@ function VerifyMFAContent() {
       if (!errCode) {
         if (typeof window !== 'undefined') {
           sessionStorage.removeItem('mfa_pending_email');
+        }
+        if (trustDevice) {
+          // Fire-and-forget — don't block redirect on failure
+          fetch('/api/auth/mfa/trust', { method: 'POST', credentials: 'include' }).catch(() => {});
         }
         router.push('/projects');
       } else {
@@ -181,6 +186,15 @@ function VerifyMFAContent() {
             disabled={loading}
             className="text-center text-2xl tracking-[0.5em] font-mono"
           />
+          <label className="flex items-center gap-2 text-sm text-muted-foreground cursor-pointer select-none">
+            <input
+              type="checkbox"
+              checked={trustDevice}
+              onChange={(e) => setTrustDevice(e.target.checked)}
+              className="h-4 w-4 rounded border-border accent-primary"
+            />
+            {t('trustDevice')}
+          </label>
           <Button type="submit" className="w-full" disabled={loading || code.length !== 6}>
             {loading ? (
               <>
