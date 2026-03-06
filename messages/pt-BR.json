@@ -156,6 +156,8 @@
       "google": "Google",
       "noAccount": "Não tem uma conta?",
       "createOne": "Criar conta",
+      "forgotPassword": "Esqueceu a senha?",
+      "resetSuccess": "Senha atualizada. Faça login.",
       "errors": {
         "CredentialsSignin": "E-mail ou senha inválidos.",
         "MFARequired": "Código de verificação necessário.",
@@ -188,6 +190,26 @@
       "unexpectedError": "Ocorreu um erro inesperado",
       "alreadyHaveAccount": "Já tem uma conta?",
       "signIn": "Entrar"
+    },
+    "forgotPassword": {
+      "title": "Esqueceu sua senha?",
+      "description": "Digite seu e-mail e enviaremos um link para redefinir sua senha.",
+      "emailLabel": "E-mail",
+      "submitButton": "Enviar link de redefinição",
+      "successTitle": "Verifique seu e-mail",
+      "successDescription": "Se existe uma conta com esse e-mail, enviamos um link para redefinição de senha. Ele expira em 1 hora.",
+      "backToLogin": "Voltar ao login"
+    },
+    "resetPassword": {
+      "title": "Definir nova senha",
+      "description": "Escolha uma senha forte para sua conta.",
+      "newPassword": "Nova senha",
+      "confirmPassword": "Confirmar senha",
+      "submitButton": "Redefinir senha",
+      "successRedirecting": "Redirecionando…",
+      "invalidToken": "Link inválido ou expirado",
+      "tokenExpired": "Este link de redefinição de senha já foi usado ou expirou. Solicite um novo.",
+      "backToForgot": "Solicitar novo link de redefinição"
     }
   },
   "projects": {

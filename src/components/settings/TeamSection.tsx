@@ -28,6 +28,7 @@ export function TeamSection() {
   const removeMember = useAccountStore((s) => s.removeMember);
   const updateMemberRole = useAccountStore((s) => s.updateMemberRole);
   const cancelInvitation = useAccountStore((s) => s.cancelInvitation);
+  const fetchInvitations = useAccountStore((s) => s.fetchInvitations);
   const invitations = useAccountStore((s) => s.invitations);
   const { users } = useSettingsStore();
 
@@ -39,8 +40,11 @@ export function TeamSection() {
   const [cancellingToken, setCancellingToken] = useState<string | null>(null);
 
   useEffect(() => {
-    if (activeAccountId) fetchMembers(activeAccountId);
-  }, [activeAccountId, fetchMembers]);
+    if (activeAccountId) {
+      fetchMembers(activeAccountId);
+      fetchInvitations();
+    }
+  }, [activeAccountId, fetchMembers, fetchInvitations]);
 
   const currentUserId = session?.user?.id;
 

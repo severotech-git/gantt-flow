@@ -156,6 +156,8 @@
       "google": "Google",
       "noAccount": "Don't have an account?",
       "createOne": "Create one",
+      "forgotPassword": "Forgot password?",
+      "resetSuccess": "Password updated. Please log in.",
       "errors": {
         "CredentialsSignin": "Invalid email or password.",
         "MFARequired": "Verification code required.",
@@ -188,6 +190,26 @@
       "unexpectedError": "An unexpected error occurred",
       "alreadyHaveAccount": "Already have an account?",
       "signIn": "Sign in"
+    },
+    "forgotPassword": {
+      "title": "Forgot your password?",
+      "description": "Enter your email and we'll send you a link to reset your password.",
+      "emailLabel": "Email",
+      "submitButton": "Send reset link",
+      "successTitle": "Check your email",
+      "successDescription": "If an account with that email exists, we've sent a password reset link. It expires in 1 hour.",
+      "backToLogin": "Back to login"
+    },
+    "resetPassword": {
+      "title": "Set a new password",
+      "description": "Choose a strong password for your account.",
+      "newPassword": "New password",
+      "confirmPassword": "Confirm password",
+      "submitButton": "Reset password",
+      "successRedirecting": "Redirecting…",
+      "invalidToken": "Invalid or expired link",
+      "tokenExpired": "This password reset link has already been used or has expired. Request a new one.",
+      "backToForgot": "Request a new reset link"
     }
   },
   "projects": {

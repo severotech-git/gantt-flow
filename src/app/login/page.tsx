@@ -46,6 +46,7 @@ function LoginPageContent() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const { data: session, status } = useSession();
+  const resetSuccess = searchParams.get('reset') === '1';
 
   useEffect(() => {
     if (errorParam) setError(friendlyAuthError(errorParam));
@@ -108,6 +109,12 @@ function LoginPageContent() {
           </div>
         </div>
 
+        {resetSuccess && (
+          <div className="p-3 bg-green-100 border border-green-300 text-green-800 rounded text-sm">
+            {t('resetSuccess')}
+          </div>
+        )}
+
         {error && (
           <div className="p-3 bg-red-100 border border-red-300 text-red-800 rounded text-sm">
             {error}
@@ -130,9 +137,14 @@ function LoginPageContent() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-foreground mb-1">
-              {t('passwordLabel')}
-            </label>
+            <div className="flex items-center justify-between mb-1">
+              <label className="block text-sm font-medium text-foreground">
+                {t('passwordLabel')}
+              </label>
+              <Link href="/forgot-password" className="text-xs text-primary hover:underline">
+                {t('forgotPassword')}
+              </Link>
+            </div>
             <Input
               type="password"
               value={password}

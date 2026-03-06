@@ -206,6 +206,45 @@ export async function sendMFACode(to: string, code: string): Promise<void> {
   });
 }
 
+export async function sendPasswordResetEmail(
+  to: string,
+  resetUrl: string
+): Promise<void> {
+  const from = process.env.SMTP_FROM ?? 'noreply@mygant.app';
+  const subject = 'Reset your GanttFlow password';
+
+  const html = renderEmailLayout(subject, `
+    <h1 class="title">Reset Your Password</h1>
+    <div class="content">
+      <p>Hi,</p>
+      <p>We received a request to reset the password for your GanttFlow account. Click the button below to choose a new password.</p>
+    </div>
+    <div class="button-container">
+      <a href="${escapeHtml(resetUrl)}" class="button">Reset Password</a>
+    </div>
+    <div class="content">
+      <p style="font-size: 14px; color: ${MUTED_COLOR};">This link expires in 1 hour. If you did not request a password reset, you can safely ignore this email — your password will not be changed.</p>
+    </div>
+  `);
+
+  await transporter.sendMail({
+    from,
+    to,
+    subject,
+    text: [
+      `Reset your GanttFlow password`,
+      ``,
+      `Click the link below to reset your password:`,
+      resetUrl,
+      ``,
+      `This link expires in 1 hour.`,
+      ``,
+      `If you did not request a password reset, you can safely ignore this email.`,
+    ].join('\n'),
+    html,
+  });
+}
+
 export async function sendInvitationEmail(
   to: string,
   inviterName: string,

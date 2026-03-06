@@ -156,6 +156,8 @@
       "google": "Google",
       "noAccount": "¿No tienes una cuenta?",
       "createOne": "Crear una",
+      "forgotPassword": "¿Olvidaste tu contraseña?",
+      "resetSuccess": "Contraseña actualizada. Por favor inicia sesión.",
       "errors": {
         "CredentialsSignin": "Correo o contraseña inválidos.",
         "MFARequired": "Se requiere código de verificación.",
@@ -188,6 +190,26 @@
       "unexpectedError": "Ocurrió un error inesperado",
       "alreadyHaveAccount": "¿Ya tienes una cuenta?",
       "signIn": "Iniciar sesión"
+    },
+    "forgotPassword": {
+      "title": "¿Olvidaste tu contraseña?",
+      "description": "Ingresa tu correo y te enviaremos un enlace para restablecer tu contraseña.",
+      "emailLabel": "Correo electrónico",
+      "submitButton": "Enviar enlace de restablecimiento",
+      "successTitle": "Revisa tu correo",
+      "successDescription": "Si existe una cuenta con ese correo, enviamos un enlace para restablecer la contraseña. Expira en 1 hora.",
+      "backToLogin": "Volver al inicio de sesión"
+    },
+    "resetPassword": {
+      "title": "Establecer nueva contraseña",
+      "description": "Elige una contraseña segura para tu cuenta.",
+      "newPassword": "Nueva contraseña",
+      "confirmPassword": "Confirmar contraseña",
+      "submitButton": "Restablecer contraseña",
+      "successRedirecting": "Redirigiendo…",
+      "invalidToken": "Enlace inválido o expirado",
+      "tokenExpired": "Este enlace de restablecimiento ya fue usado o ha expirado. Solicita uno nuevo.",
+      "backToForgot": "Solicitar nuevo enlace de restablecimiento"
     }
   },
   "projects": {

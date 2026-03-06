@@ -19,6 +19,7 @@ interface AccountState {
 interface AccountActions {
   fetchAccounts: () => Promise<void>;
   fetchMembers: (accountId: string) => Promise<void>;
+  fetchInvitations: () => Promise<void>;
   fetchPendingInvitations: () => Promise<void>;
   sendInvitation: (email: string, role: string) => Promise<void>;
   acceptInvitation: (token: string) => Promise<string>; // returns accountId
@@ -64,6 +65,13 @@ export const useAccountStore = create<AccountState & AccountActions>()(
       if (!res.ok) return;
       const data = await res.json();
       set((s) => { s.members = data; });
+    },
+
+    fetchInvitations: async () => {
+      const res = await fetch('/api/invitations');
+      if (!res.ok) return;
+      const data = await res.json();
+      set((s) => { s.invitations = data; });
     },
 
     fetchPendingInvitations: async () => {

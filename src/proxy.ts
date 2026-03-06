@@ -4,7 +4,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getToken } from 'next-auth/jwt';
 
 // Fully public — no session required
-const PUBLIC_PATHS = ['/', '/login', '/register', '/api/auth', '/invite', '/api/invitations', '/verify-mfa'];
+const PUBLIC_PATHS = ['/', '/login', '/register', '/api/auth', '/invite', '/api/invitations', '/verify-mfa', '/forgot-password', '/reset-password'];
 
 // Accessible with a valid session even when email is not yet verified
 const UNVERIFIED_OK_PATHS = [
