@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import crypto from 'crypto';
 import bcrypt from 'bcryptjs';
 import { connectDB } from '@/lib/mongodb';
 import User from '@/lib/models/User';
@@ -44,7 +45,8 @@ export async function POST(request: NextRequest) {
   try {
     await connectDB();
 
-    const reset = await PasswordReset.findOne({ token });
+    const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
+    const reset = await PasswordReset.findOne({ token: tokenHash });
     if (!reset || reset.expiresAt < new Date()) {
       if (reset) await PasswordReset.deleteOne({ _id: reset._id });
       return NextResponse.json(

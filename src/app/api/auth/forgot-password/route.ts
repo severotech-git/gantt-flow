@@ -47,8 +47,9 @@ export async function POST(request: NextRequest) {
     await PasswordReset.deleteMany({ email });
 
     const token = crypto.randomBytes(32).toString('hex');
+    const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
     const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
-    await PasswordReset.create({ email, token, expiresAt });
+    await PasswordReset.create({ email, token: tokenHash, expiresAt });
 
     const appUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000';
     const resetUrl = `${appUrl}/reset-password?token=${token}`;
