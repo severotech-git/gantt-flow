@@ -17,12 +17,60 @@ export interface IAccount {
   _id: string;
   name: string;
   slug: string;
-  plan: 'trial' | 'monthly' | 'yearly';
+  plan: 'trial' | 'monthly-5' | 'yearly-5' | 'monthly-20' | 'yearly-20';
   trialEndsAt: string;
   status: 'active' | 'suspended' | 'cancelled';
   createdBy: string;
   members: IAccountMember[];
   settings: IWorkspaceSettings;
+  stripeCustomerId?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface IPlan {
+  _id: string;
+  name: string;
+  slug: string;
+  stripeProductId: string;
+  stripePriceId: string;
+  amount: number;
+  currency: string;
+  interval: 'month' | 'year';
+  maxMembers: number;
+  isActive: boolean;
+  displayOrder: number;
+}
+
+export interface ISubscription {
+  _id: string;
+  accountId: string;
+  stripeSubscriptionId: string;
+  stripeCustomerId: string;
+  planId: string;
+  plan?: IPlan;
+  status: 'active' | 'past_due' | 'canceled' | 'unpaid' | 'incomplete';
+  currentPeriodStart: string;
+  currentPeriodEnd: string;
+  cancelAtPeriodEnd: boolean;
+  canceledAt?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface IPayment {
+  _id: string;
+  accountId: string;
+  subscriptionId: string;
+  stripeInvoiceId: string;
+  amount: number;
+  currency: string;
+  status: 'paid' | 'open' | 'void' | 'uncollectible' | 'draft';
+  invoiceUrl?: string;
+  invoicePdf?: string;
+  periodStart: string;
+  periodEnd: string;
+  paidAt?: string;
   createdAt: string;
   updatedAt: string;
 }

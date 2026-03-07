@@ -26,12 +26,13 @@ export interface IEmbeddedSettings {
 export interface IAccountDocument extends Document {
   name: string;
   slug: string;
-  plan: 'trial' | 'monthly' | 'yearly';
+  plan: 'trial' | 'monthly-5' | 'yearly-5' | 'monthly-20' | 'yearly-20';
   trialEndsAt: Date;
   status: 'active' | 'suspended' | 'cancelled';
   createdBy: string;
   members: IEmbeddedMember[];
   settings: IEmbeddedSettings;
+  stripeCustomerId?: string;
 }
 
 const MemberSchema = new Schema<IEmbeddedMember>(
@@ -80,7 +81,8 @@ const AccountSchema = new Schema<IAccountDocument>(
   {
     name:        { type: String, required: true, trim: true },
     slug:        { type: String, required: true, unique: true, lowercase: true, trim: true },
-    plan:        { type: String, enum: ['trial', 'monthly', 'yearly'], default: 'trial' },
+    plan:        { type: String, enum: ['trial', 'monthly-5', 'yearly-5', 'monthly-20', 'yearly-20'], default: 'trial' },
+    stripeCustomerId: { type: String, sparse: true, index: true },
     trialEndsAt: { type: Date, required: true },
     status:      { type: String, enum: ['active', 'suspended', 'cancelled'], default: 'active' },
     createdBy:   { type: String, required: true, index: true },

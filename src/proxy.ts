@@ -4,13 +4,24 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getToken } from 'next-auth/jwt';
 
 // Fully public — no session required
-const PUBLIC_PATHS = ['/', '/login', '/register', '/api/auth', '/invite', '/api/invitations', '/verify-mfa', '/forgot-password', '/reset-password'];
+const PUBLIC_PATHS = ['/', '/login', '/register', '/api/auth', '/invite', '/api/invitations', '/verify-mfa', '/forgot-password', '/reset-password', '/api/billing/webhook', '/api/billing/plans'];
 
 // Accessible with a valid session even when email is not yet verified
 const UNVERIFIED_OK_PATHS = [
   ...PUBLIC_PATHS,
   '/verify-email',
   '/api/auth/verify-email',
+];
+
+// Allowed even when trial is expired or account is suspended
+const PAYWALL_OK_PATHS = [
+  '/settings',
+  '/api/settings',
+  '/api/billing',
+  '/api/accounts',
+  '/api/auth',
+  '/login',
+  '/register',
 ];
 
 export async function proxy(request: NextRequest) {
@@ -46,6 +57,44 @@ export async function proxy(request: NextRequest) {
     );
     if (!isUnverifiedOk) {
       return NextResponse.redirect(new URL('/verify-email', request.url));
+    }
+  }
+
+  // Paywall: trial expired or account suspended
+  const plan = token.plan as string | undefined;
+  const trialEndsAt = token.trialEndsAt as string | undefined;
+  const accountStatus = token.accountStatus as string | undefined;
+
+  const trialExpired =
+    plan === 'trial' &&
+    trialEndsAt &&
+    new Date(trialEndsAt).getTime() < Date.now();
+
+  const suspended = accountStatus === 'suspended';
+  const isBlocked = trialExpired || suspended;
+
+  if (isBlocked) {
+    const PAYWALL_OK_PATHS = [
+      '/api/billing',
+      '/api/accounts',
+      '/api/auth',
+      '/api/settings',
+      '/login',
+      '/register',
+    ];
+    const isPaywallOk = PAYWALL_OK_PATHS.some(
+      (p) => pathname === p || pathname.startsWith(p + '/')
+    );
+
+    // Allow /settings only when showing the billing section
+    const isBillingSettings =
+      pathname === '/settings' &&
+      request.nextUrl.searchParams.get('section') === 'billing';
+
+    if (!isPaywallOk && !isBillingSettings) {
+      return NextResponse.redirect(
+        new URL('/settings?section=billing&paywall=1', request.url)
+      );
     }
   }
 

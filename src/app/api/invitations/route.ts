@@ -7,6 +7,7 @@ import Account from '@/lib/models/Account';
 import User from '@/lib/models/User';
 import { sendInvitationEmail } from '@/lib/email';
 import { checkRateLimit } from '@/lib/rateLimit';
+import { canAddMember } from '@/lib/billing';
 
 export const runtime = 'nodejs';
 
@@ -57,6 +58,15 @@ export async function POST(req: NextRequest) {
     const posterRole = accountDoc?.members?.[0]?.role;
     if (!posterRole || !['owner', 'admin'].includes(posterRole)) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+
+    // Member limit check
+    const memberLimit = await canAddMember(accountId);
+    if (!memberLimit.allowed) {
+      return NextResponse.json(
+        { error: 'Member limit reached', max: memberLimit.max, current: memberLimit.current },
+        { status: 403 }
+      );
     }
 
     // Rate limit: 20 invitations per account per hour

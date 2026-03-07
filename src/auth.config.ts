@@ -39,7 +39,7 @@ export const authConfig = {
       return token;
     },
     session: async ({ session, token }: {
-      session: { user?: { id?: string; activeAccountId?: string; emailVerified?: boolean; locale?: string } } & Record<string, unknown>;
+      session: { user?: { id?: string; activeAccountId?: string; emailVerified?: boolean; locale?: string; plan?: string; trialEndsAt?: string; accountStatus?: string } } & Record<string, unknown>;
       token: Record<string, unknown>;
     }) => {
       if (session.user) {
@@ -47,6 +47,9 @@ export const authConfig = {
         session.user.activeAccountId = (token.activeAccountId as string) || '';
         session.user.emailVerified = (token.emailVerified as boolean) ?? false;
         session.user.locale = (token.locale as string) || 'en';
+        session.user.plan = token.plan as string | undefined;
+        session.user.trialEndsAt = token.trialEndsAt as string | undefined;
+        session.user.accountStatus = token.accountStatus as string | undefined;
       }
       return session;
     },

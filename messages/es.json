@@ -96,8 +96,12 @@
         "teamControls": "Controles Avanzados de Equipo",
         "dataExport": "Exportación de Datos y Acceso a API"
       },
+      "tabMonthly": "Mensual",
+      "tabYearly": "Anual",
       "startFreeTrial": "Iniciar Prueba Gratuita",
       "getStartedYearly": "Comenzar Plan Anual",
+      "subscribe": "Suscribirse",
+      "subscribeYearly": "Suscribirse Anualmente",
       "disclaimer": "Precios en Reales Brasileños (BRL). Cancela en cualquier momento durante tu prueba de 30 días."
     },
     "cta": {
@@ -408,7 +412,8 @@
         "calendar": "Calendario",
         "profile": "Mi Perfil",
         "theme": "Tema",
-        "language": "Idioma"
+        "language": "Idioma",
+        "billing": "Facturación"
       }
     },
     "readOnly": "Solo los propietarios y admins pueden cambiar esta configuración.",
@@ -509,6 +514,71 @@
       "allowWeekends": "Permitir fechas de fin de semana",
       "weekendsEnabled": "Las tareas pueden comenzar y terminar los sábados y domingos.",
       "weekendsDisabled": "Las fechas de inicio se ajustan al lunes y las de fin al viernes cuando se selecciona o arrastra a un fin de semana."
+    }
+  },
+  "billing": {
+    "planSelection": {
+      "title": "Elige un plan",
+      "monthLabel": "mes",
+      "yearLabel": "año",
+      "maxMembers": "Hasta {count} miembros",
+      "subscribe": "Suscribirse",
+      "currentPlan": "Plan actual",
+      "bestValue": "Mejor valor"
+    },
+    "paywall": {
+      "trialExpired": "Tu prueba gratuita ha expirado",
+      "subscribeToAccess": "Suscríbete a un plan para seguir usando GanttFlow.",
+      "contactOwner": "La prueba de tu espacio de trabajo ha expirado. Contacta al propietario para suscribirse.",
+      "nonOwnerSubtitle": "El período de prueba del workspace \"{workspace}\" ha terminado. Solo el propietario puede activar una suscripción.",
+      "workspaceOwner": "Propietario del workspace",
+      "ownerUnknown": "Propietario del workspace",
+      "contactCta": "Enviar correo",
+      "switchAccount": "Cambiar a otro workspace",
+      "logout": "Cerrar sesión"
+    },
+    "trialBanner": {
+      "message": "Tu prueba gratuita termina en {days} días.",
+      "lastDay": "¡Tu prueba gratuita termina hoy!",
+      "subscribeCta": "Suscríbete ahora",
+      "dismiss": "Cerrar"
+    },
+    "subscription": {
+      "title": "Suscripción",
+      "subtitle": "Gestiona tu plan actual.",
+      "currentPlan": "Plan actual",
+      "trial": "Período de prueba",
+      "trialEndsOn": "La prueba termina el {date}",
+      "renewsOn": "Se renueva el {date}",
+      "cancelsAt": "Se cancela el {date}",
+      "noPlan": "Sin plan activo",
+      "manageSubscription": "Gestionar suscripción",
+      "memberLimit": "Hasta {max} miembros"
+    },
+    "paymentHistory": {
+      "title": "Historial de pagos",
+      "date": "Fecha",
+      "amount": "Monto",
+      "status": "Estado",
+      "invoice": "Factura",
+      "viewInvoice": "Ver factura",
+      "downloadPdf": "Descargar PDF",
+      "noPayments": "Aún no hay pagos.",
+      "paid": "Pagado",
+      "open": "Abierto",
+      "failed": "Fallido"
+    },
+    "memberLimit": {
+      "reached": "Límite de miembros alcanzado ({current}/{max})",
+      "upgrade": "Actualiza para añadir más miembros"
+    },
+    "statusLabels": {
+      "active": "Activo",
+      "past_due": "Vencido",
+      "canceled": "Cancelado",
+      "suspended": "Suspendido",
+      "trial": "Prueba",
+      "incomplete": "Incompleto"
     }
   }
 }

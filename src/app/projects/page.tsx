@@ -28,7 +28,7 @@ export default function ProjectsPage() {
   useEffect(() => { fetchProjects(); }, [fetchProjects]);
 
   return (
-    <div className="flex h-screen overflow-hidden">
+    <div className="flex overflow-hidden" style={{ height: 'calc(100vh - var(--trial-banner-height, 0px))', marginTop: 'var(--trial-banner-height, 0px)' }}>
       <Sidebar collapsed={sidebarCollapsed} />
 
       <main className="flex-1 flex flex-col overflow-hidden">

@@ -96,8 +96,12 @@
         "teamControls": "Controles Avançados de Equipe",
         "dataExport": "Exportação de Dados e Acesso à API"
       },
+      "tabMonthly": "Mensal",
+      "tabYearly": "Anual",
       "startFreeTrial": "Iniciar Teste Gratuito",
       "getStartedYearly": "Começar Plano Anual",
+      "subscribe": "Assinar",
+      "subscribeYearly": "Assinar Plano Anual",
       "disclaimer": "Preços em Reais (BRL). Cancele a qualquer momento durante o período de teste."
     },
     "cta": {
@@ -408,7 +412,8 @@
         "calendar": "Calendário",
         "profile": "Meu Perfil",
         "theme": "Tema",
-        "language": "Idioma"
+        "language": "Idioma",
+        "billing": "Cobrança"
       }
     },
     "readOnly": "Apenas proprietários e admins podem alterar esta configuração.",
@@ -509,6 +514,71 @@
       "allowWeekends": "Permitir datas de fim de semana",
       "weekendsEnabled": "Tarefas podem começar e terminar aos sábados e domingos.",
       "weekendsDisabled": "Datas de início se ajustam para segunda-feira, e datas de fim para sexta-feira quando um fim de semana é selecionado ou arrastado."
+    }
+  },
+  "billing": {
+    "planSelection": {
+      "title": "Escolha um plano",
+      "monthLabel": "mês",
+      "yearLabel": "ano",
+      "maxMembers": "Até {count} membros",
+      "subscribe": "Assinar",
+      "currentPlan": "Plano atual",
+      "bestValue": "Melhor custo-benefício"
+    },
+    "paywall": {
+      "trialExpired": "Seu período de teste gratuito expirou",
+      "subscribeToAccess": "Assine um plano para continuar usando o GanttFlow.",
+      "contactOwner": "O período de teste do seu workspace expirou. Entre em contato com o proprietário para assinar.",
+      "nonOwnerSubtitle": "O período de teste do workspace \"{workspace}\" terminou. Apenas o proprietário pode ativar uma assinatura.",
+      "workspaceOwner": "Proprietário do workspace",
+      "ownerUnknown": "Proprietário do workspace",
+      "contactCta": "Enviar e-mail",
+      "switchAccount": "Mudar para outro workspace",
+      "logout": "Sair"
+    },
+    "trialBanner": {
+      "message": "Seu teste gratuito termina em {days} dias.",
+      "lastDay": "Seu teste gratuito termina hoje!",
+      "subscribeCta": "Assine agora",
+      "dismiss": "Fechar"
+    },
+    "subscription": {
+      "title": "Assinatura",
+      "subtitle": "Gerencie seu plano atual.",
+      "currentPlan": "Plano atual",
+      "trial": "Período de Teste",
+      "trialEndsOn": "Teste termina em {date}",
+      "renewsOn": "Renova em {date}",
+      "cancelsAt": "Cancela em {date}",
+      "noPlan": "Nenhum plano ativo",
+      "manageSubscription": "Gerenciar assinatura",
+      "memberLimit": "Até {max} membros"
+    },
+    "paymentHistory": {
+      "title": "Histórico de pagamentos",
+      "date": "Data",
+      "amount": "Valor",
+      "status": "Status",
+      "invoice": "Nota fiscal",
+      "viewInvoice": "Ver nota fiscal",
+      "downloadPdf": "Baixar PDF",
+      "noPayments": "Nenhum pagamento ainda.",
+      "paid": "Pago",
+      "open": "Aberto",
+      "failed": "Falhou"
+    },
+    "memberLimit": {
+      "reached": "Limite de membros atingido ({current}/{max})",
+      "upgrade": "Atualize para adicionar mais membros"
+    },
+    "statusLabels": {
+      "active": "Ativo",
+      "past_due": "Atrasado",
+      "canceled": "Cancelado",
+      "suspended": "Suspenso",
+      "trial": "Teste",
+      "incomplete": "Incompleto"
     }
   }
 }

@@ -4,6 +4,7 @@ import { requireAuth } from '@/lib/apiAuth';
 import Invitation from '@/lib/models/Invitation';
 import Account from '@/lib/models/Account';
 import User from '@/lib/models/User';
+import { canAddMember } from '@/lib/billing';
 
 export const runtime = 'nodejs';
 
@@ -34,6 +35,15 @@ export async function POST(_req: NextRequest, { params }: Params) {
 
     const account = await Account.findById(accountId);
     if (!account) return NextResponse.json({ error: 'Account not found' }, { status: 404 });
+
+    // Member limit check
+    const memberLimit = await canAddMember(accountId.toString());
+    if (!memberLimit.allowed) {
+      return NextResponse.json(
+        { error: 'Member limit reached', max: memberLimit.max, current: memberLimit.current },
+        { status: 403 }
+      );
+    }
 
     // Atomically add member only if not already present (prevents duplicates under any race condition)
     await Account.updateOne(

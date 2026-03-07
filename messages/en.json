@@ -96,8 +96,12 @@
         "teamControls": "Advanced Team Controls",
         "dataExport": "Data Export & API Access"
       },
+      "tabMonthly": "Monthly",
+      "tabYearly": "Yearly",
       "startFreeTrial": "Start Free Trial",
       "getStartedYearly": "Get Started Yearly",
+      "subscribe": "Subscribe",
+      "subscribeYearly": "Subscribe Yearly",
       "disclaimer": "Prices are in Brazilian Real (BRL). Cancel anytime during your 30-day trial."
     },
     "cta": {
@@ -408,7 +412,8 @@
         "calendar": "Calendar",
         "profile": "My Profile",
         "theme": "Theme",
-        "language": "Language"
+        "language": "Language",
+        "billing": "Billing"
       }
     },
     "readOnly": "Only owners and admins can change this setting.",
@@ -509,6 +514,71 @@
       "allowWeekends": "Allow weekend dates",
       "weekendsEnabled": "Tasks can start and end on Saturdays and Sundays.",
       "weekendsDisabled": "Start dates snap to Monday, end dates snap to Friday when a weekend is selected or dragged to."
+    }
+  },
+  "billing": {
+    "planSelection": {
+      "title": "Choose a plan",
+      "monthLabel": "month",
+      "yearLabel": "year",
+      "maxMembers": "Up to {count} members",
+      "subscribe": "Subscribe",
+      "currentPlan": "Current plan",
+      "bestValue": "Best value"
+    },
+    "paywall": {
+      "trialExpired": "Your free trial has expired",
+      "subscribeToAccess": "Subscribe to a plan to continue using GanttFlow.",
+      "contactOwner": "Your workspace trial has expired. Please contact the workspace owner to subscribe.",
+      "nonOwnerSubtitle": "The \"{workspace}\" workspace trial has ended. Only the owner can activate a subscription.",
+      "workspaceOwner": "Workspace owner",
+      "ownerUnknown": "Workspace owner",
+      "contactCta": "Send email",
+      "switchAccount": "Switch to another workspace",
+      "logout": "Log out"
+    },
+    "trialBanner": {
+      "message": "Your free trial ends in {days} days.",
+      "lastDay": "Your free trial ends today!",
+      "subscribeCta": "Subscribe now",
+      "dismiss": "Dismiss"
+    },
+    "subscription": {
+      "title": "Subscription",
+      "subtitle": "Manage your current plan.",
+      "currentPlan": "Current plan",
+      "trial": "Free Trial",
+      "trialEndsOn": "Trial ends on {date}",
+      "renewsOn": "Renews on {date}",
+      "cancelsAt": "Cancels on {date}",
+      "noPlan": "No active plan",
+      "manageSubscription": "Manage subscription",
+      "memberLimit": "Up to {max} members"
+    },
+    "paymentHistory": {
+      "title": "Payment history",
+      "date": "Date",
+      "amount": "Amount",
+      "status": "Status",
+      "invoice": "Invoice",
+      "viewInvoice": "View invoice",
+      "downloadPdf": "Download PDF",
+      "noPayments": "No payments yet.",
+      "paid": "Paid",
+      "open": "Open",
+      "failed": "Failed"
+    },
+    "memberLimit": {
+      "reached": "Member limit reached ({current}/{max})",
+      "upgrade": "Upgrade to add more members"
+    },
+    "statusLabels": {
+      "active": "Active",
+      "past_due": "Past due",
+      "canceled": "Canceled",
+      "suspended": "Suspended",
+      "trial": "Trial",
+      "incomplete": "Incomplete"
     }
   }
 }

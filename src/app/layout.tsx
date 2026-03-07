@@ -7,6 +7,7 @@ import { AuthProvider } from '@/components/providers/AuthProvider';
 import { AccountProvider } from '@/components/providers/AccountProvider';
 import { NextIntlClientProvider } from 'next-intl';
 import { getMessages, getLocale } from 'next-intl/server';
+import { TrialBanner } from '@/components/billing/TrialBanner';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter', display: 'swap' });
 
@@ -26,7 +27,10 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           <AuthProvider>
             <ThemeProvider>
               <AccountProvider>
-                <TooltipProvider delayDuration={300}>{children}</TooltipProvider>
+                <TooltipProvider delayDuration={300}>
+                  <TrialBanner />
+                  {children}
+                </TooltipProvider>
               </AccountProvider>
             </ThemeProvider>
           </AuthProvider>

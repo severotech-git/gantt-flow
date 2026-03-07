@@ -6,6 +6,9 @@ declare module '@auth/core/types' {
       activeAccountId: string;
       emailVerified: boolean;
       locale?: string;
+      plan?: string;
+      trialEndsAt?: string;
+      accountStatus?: string;
       email?: string | null;
       name?: string | null;
       image?: string | null;
@@ -16,6 +19,9 @@ declare module '@auth/core/types' {
     activeAccountId?: string;
     emailVerified?: boolean;
     locale?: string;
+    plan?: string;
+    trialEndsAt?: string;
+    accountStatus?: string;
   }
 }
 
@@ -27,6 +33,9 @@ declare module 'next-auth' {
       activeAccountId: string;
       emailVerified: boolean;
       locale?: string;
+      plan?: string;
+      trialEndsAt?: string;
+      accountStatus?: string;
       email?: string | null;
       name?: string | null;
       image?: string | null;
@@ -40,5 +49,8 @@ declare module 'next-auth/jwt' {
     activeAccountId?: string;
     emailVerified?: boolean;
     locale?: string;
+    plan?: string;
+    trialEndsAt?: string;
+    accountStatus?: string;
   }
 }

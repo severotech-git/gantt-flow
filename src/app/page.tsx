@@ -25,6 +25,7 @@ import { cn } from '@/lib/utils';
 import { useTranslations } from 'next-intl';
 import { LanguageSwitcher } from '@/components/shared/LanguageSwitcher';
 import { ThemeToggle } from '@/components/shared/ThemeToggle';
+import { LandingPricing } from '@/components/billing/LandingPricing';
 
 // Static imports for images to ensure reliable resolution
 import logoIcon from '../../public/icon.png';
@@ -351,77 +352,7 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* Pricing Section */}
-        <section id="pricing" className="py-24 border-t border-border/40">
-          <div className="container mx-auto px-4">
-            <div className="text-center mb-16">
-              <h2 className="text-3xl md:text-4xl font-bold mb-4">{t('pricing.sectionTitle')}</h2>
-              <p className="text-muted-foreground max-w-xl mx-auto">{t('pricing.sectionSubtitle')}</p>
-            </div>
-
-            <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-              {/* Monthly Plan */}
-              <div className="relative p-8 rounded-3xl border border-border bg-surface-2 flex flex-col">
-                <div className="mb-6">
-                  <h3 className="text-xl font-bold mb-2">{t('pricing.monthly.title')}</h3>
-                  <div className="flex items-baseline gap-1">
-                    <span className="text-4xl font-extrabold tracking-tight">{t('pricing.monthly.price')}</span>
-                    <span className="text-muted-foreground text-sm">{t('pricing.monthly.period')}</span>
-                  </div>
-                </div>
-
-                <ul className="space-y-4 mb-8 flex-grow">
-                  {(['unlimitedProjects','freeTrial','versionSnapshots','hierarchical','customStatuses','support'] as const).map((key) => (
-                    <li key={key} className="flex items-center gap-3 text-sm">
-                      <div className="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                        <Check className="w-3.5 h-3.5 text-primary" />
-                      </div>
-                      {t(`pricing.features.${key}`)}
-                    </li>
-                  ))}
-                </ul>
-
-                <Link href="/register">
-                  <Button variant="outline" className="w-full h-12 text-base font-semibold">{t('pricing.startFreeTrial')}</Button>
-                </Link>
-              </div>
-
-              {/* Yearly Plan */}
-              <div className="relative p-8 rounded-3xl border-2 border-primary bg-surface-2 flex flex-col shadow-xl shadow-primary/10">
-                <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground text-xs font-bold px-4 py-1.5 rounded-full uppercase tracking-wider">
-                  {t('pricing.yearly.badge')}
-                </div>
-
-                <div className="mb-6">
-                  <h3 className="text-xl font-bold mb-2">{t('pricing.yearly.title')}</h3>
-                  <div className="flex items-baseline gap-1">
-                    <span className="text-4xl font-extrabold tracking-tight">{t('pricing.yearly.price')}</span>
-                    <span className="text-muted-foreground text-sm">{t('pricing.yearly.period')}</span>
-                  </div>
-                </div>
-
-                <ul className="space-y-4 mb-8 flex-grow">
-                  {(['everythingMonthly','freeTrial','annualSavings','priorityFeatures','teamControls','dataExport'] as const).map((key) => (
-                    <li key={key} className="flex items-center gap-3 text-sm">
-                      <div className="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                        <Check className="w-3.5 h-3.5 text-primary" />
-                      </div>
-                      {t(`pricing.features.${key}`)}
-                    </li>
-                  ))}
-                </ul>
-
-                <Link href="/register">
-                  <Button className="w-full h-12 text-base font-semibold shadow-lg shadow-primary/20">{t('pricing.getStartedYearly')}</Button>
-                </Link>
-              </div>
-            </div>
-
-            <p className="text-center mt-12 text-sm text-muted-foreground">
-              {t('pricing.disclaimer')}
-            </p>
-          </div>
-        </section>
+        <LandingPricing />
 
         {/* CTA Section */}
         <section className="py-24 bg-primary text-primary-foreground relative overflow-hidden">

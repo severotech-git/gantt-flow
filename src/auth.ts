@@ -268,6 +268,24 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         }
       }
 
+      // Always refresh billing fields from DB so subscribers don't see stale plan/status
+      // after webhook updates without requiring re-login.
+      if (!user && !trigger && base.activeAccountId) {
+        try {
+          await connectDB();
+          const acct = await Account.findById(base.activeAccountId as string, { plan: 1, trialEndsAt: 1, status: 1 }).lean();
+          if (acct) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const a = acct as any;
+            base.plan = a.plan as string;
+            base.trialEndsAt = (a.trialEndsAt as Date)?.toISOString();
+            base.accountStatus = a.status as string;
+          }
+        } catch (err) {
+          console.error('[auth jwt] Failed to refresh billing fields', err);
+        }
+      }
+
       // On update trigger: sync name from client session update
       if (trigger === 'update' && session?.name && typeof session.name === 'string') {
         base.name = session.name.trim();
@@ -284,12 +302,17 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         try {
           await connectDB();
           const uid = (base.uid ?? token.uid) as string;
-          const membership = await Account.findOne(
+          const acct = await Account.findOne(
             { _id: session.activeAccountId as string, 'members.userId': uid },
-            { _id: 1 }
+            { _id: 1, plan: 1, trialEndsAt: 1, status: 1 }
           ).lean();
-          if (membership) {
+          if (acct) {
             base.activeAccountId = session.activeAccountId;
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const acctAny = acct as any;
+            base.plan = acctAny.plan as string;
+            base.trialEndsAt = (acctAny.trialEndsAt as Date)?.toISOString();
+            base.accountStatus = acctAny.status as string;
           }
         } catch (err) {
           console.error('[auth jwt] Failed to validate activeAccountId membership', err);
@@ -325,16 +348,32 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             base.emailVerified = !!dbUser.emailVerified;
             base.locale = dbUser.locale ?? 'en';
             const mongoId = dbUser._id.toString();
+            let resolvedAccountId: string | undefined;
             if (dbUser.mainAccountId) {
               base.activeAccountId = dbUser.mainAccountId;
+              resolvedAccountId = dbUser.mainAccountId;
             } else if (!base.activeAccountId) {
               // Fall back to the first account the user is a member of
               const account = await Account.findOne(
                 { 'members.userId': mongoId },
-                { _id: 1 }
+                { _id: 1, plan: 1, trialEndsAt: 1, status: 1 }
               ).sort({ createdAt: 1 });
               if (account) {
                 base.activeAccountId = account._id.toString();
+                resolvedAccountId = account._id.toString();
+                base.plan = account.plan;
+                base.trialEndsAt = account.trialEndsAt?.toISOString();
+                base.accountStatus = account.status;
+              }
+            }
+            if (resolvedAccountId && !base.plan) {
+              const acct = await Account.findById(resolvedAccountId, { plan: 1, trialEndsAt: 1, status: 1 }).lean();
+              if (acct) {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                const acctAny = acct as any;
+                base.plan = acctAny.plan as string;
+                base.trialEndsAt = (acctAny.trialEndsAt as Date)?.toISOString();
+                base.accountStatus = acctAny.status as string;
               }
             }
           }

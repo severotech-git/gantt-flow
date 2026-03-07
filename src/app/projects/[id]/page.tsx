@@ -57,7 +57,7 @@ export default function ProjectPage({ params }: ProjectPageProps) {
 
   if (isLoadingProject) {
     return (
-      <div className="flex h-screen items-center justify-center bg-background">
+      <div className="flex items-center justify-center bg-background" style={{ height: 'calc(100vh - var(--trial-banner-height, 0px))', marginTop: 'var(--trial-banner-height, 0px)' }}>
         <div className="animate-pulse space-y-4 text-center">
           <div className="h-12 w-12 bg-primary/20 rounded-full mx-auto" />
           <p className="text-muted-foreground text-sm">Loading project...</p>
@@ -69,7 +69,7 @@ export default function ProjectPage({ params }: ProjectPageProps) {
   // If there's an error that isn't a 404 (handled by redirect), show it here
   if (projectError && projectError !== 'Not found') {
     return (
-      <div className="flex h-screen items-center justify-center bg-background p-4">
+      <div className="flex items-center justify-center bg-background p-4" style={{ height: 'calc(100vh - var(--trial-banner-height, 0px))', marginTop: 'var(--trial-banner-height, 0px)' }}>
         <div className="text-center space-y-4">
           <p className="text-red-500 font-medium">{projectError}</p>
           <button 
@@ -88,7 +88,7 @@ export default function ProjectPage({ params }: ProjectPageProps) {
   if (!project) return null;
 
   return (
-    <div className="flex h-screen overflow-hidden">
+    <div className="flex overflow-hidden" style={{ height: 'calc(100vh - var(--trial-banner-height, 0px))', marginTop: 'var(--trial-banner-height, 0px)' }}>
       <Sidebar collapsed={!sidebarOpen} />
 
       <div className="flex flex-col flex-1 overflow-hidden">

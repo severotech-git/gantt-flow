@@ -34,7 +34,7 @@ export function Sidebar({ collapsed = false }: SidebarProps) {
     <>
     <aside
       className={cn(
-        'flex flex-col h-screen bg-surface-2 border-r border-border select-none overflow-hidden transition-all duration-200',
+        'flex flex-col h-full bg-surface-2 border-r border-border select-none overflow-hidden transition-all duration-200',
         collapsed ? 'w-0 border-r-0' : 'w-48 min-w-[192px]',
       )}
     >

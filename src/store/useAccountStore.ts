@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
-import { IAccount, IAccountMember, IInvitation } from '@/types';
+import { IAccount, IAccountMember, IInvitation, IPlan, ISubscription, IPayment } from '@/types';
 
 interface EnrichedMember extends IAccountMember {
   user?: { name: string; email: string; image?: string } | null;
@@ -14,6 +14,9 @@ interface AccountState {
   invitations: IInvitation[];
   pendingInvites: IInvitation[];
   isLoading: boolean;
+  subscription: ISubscription | null;
+  plans: IPlan[];
+  payments: IPayment[];
 }
 
 interface AccountActions {
@@ -32,6 +35,11 @@ interface AccountActions {
   removeMember: (accountId: string, userId: string) => Promise<void>;
   updateMemberRole: (accountId: string, userId: string, role: 'admin' | 'member') => Promise<void>;
   createAccount: (name: string) => Promise<void>;
+  fetchPlans: () => Promise<void>;
+  fetchSubscription: () => Promise<void>;
+  fetchPayments: () => Promise<void>;
+  createCheckout: (priceId: string) => Promise<string>;
+  createPortalSession: () => Promise<string>;
 }
 
 // Suppress unused-get warning; kept for future actions that need current state
@@ -44,6 +52,9 @@ export const useAccountStore = create<AccountState & AccountActions>()(
     invitations: [],
     pendingInvites: [],
     isLoading: false,
+    subscription: null,
+    plans: [],
+    payments: [],
 
     fetchAccounts: async () => {
       set((s) => { s.isLoading = true; });
@@ -227,6 +238,51 @@ export const useAccountStore = create<AccountState & AccountActions>()(
       }
       const acc = await res.json();
       set((s) => { s.accounts.push(acc); });
+    },
+
+    fetchPlans: async () => {
+      const res = await fetch('/api/billing/plans');
+      if (!res.ok) return;
+      const data = await res.json();
+      set((s) => { s.plans = data; });
+    },
+
+    fetchSubscription: async () => {
+      const res = await fetch('/api/billing/subscription');
+      if (!res.ok) return;
+      const data = await res.json();
+      set((s) => { s.subscription = data; });
+    },
+
+    fetchPayments: async () => {
+      const res = await fetch('/api/billing/payments');
+      if (!res.ok) return;
+      const data = await res.json();
+      set((s) => { s.payments = data; });
+    },
+
+    createCheckout: async (priceId) => {
+      const res = await fetch('/api/billing/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ priceId }),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error ?? 'Failed to create checkout session');
+      }
+      const { url } = await res.json();
+      return url as string;
+    },
+
+    createPortalSession: async () => {
+      const res = await fetch('/api/billing/portal', { method: 'POST' });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error ?? 'Failed to create portal session');
+      }
+      const { url } = await res.json();
+      return url as string;
     },
   }))
 );
