@@ -258,6 +258,8 @@
       "owner": "Owner",
       "status": "Status",
       "pct": "%",
+      "expandAll": "Expand all",
+      "collapseAll": "Collapse all",
       "noItems": "No items yet.",
       "addItem": "New {level}",
       "unassigned": "Unassigned",

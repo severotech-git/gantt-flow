@@ -258,6 +258,8 @@
       "owner": "Resp.",
       "status": "Status",
       "pct": "%",
+      "expandAll": "Expandir tudo",
+      "collapseAll": "Recolher tudo",
       "noItems": "Nenhum item ainda.",
       "addItem": "Novo {level}",
       "unassigned": "Não atribuído",

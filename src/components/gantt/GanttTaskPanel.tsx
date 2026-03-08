@@ -6,7 +6,7 @@ import { OwnerAvatar } from '@/components/shared/OwnerAvatar';
 import { useProjectStore } from '@/store/useProjectStore';
 import { useSettingsStore } from '@/store/useSettingsStore';
 import { cn } from '@/lib/utils';
-import { ChevronRight, ChevronDown, Plus, Trash2, Check } from 'lucide-react';
+import { ChevronRight, ChevronDown, ChevronsDownUp, ChevronsUpDown, Plus, Trash2, Check } from 'lucide-react';
 import { getDelayDays } from '@/lib/dateUtils';
 import {
   DropdownMenu,
@@ -292,9 +292,23 @@ function ContinuationLine({ active }: { active: boolean }) {
 
 function PanelHeader() {
   const t = useTranslations('gantt.taskPanel');
+  const expandedEpicIds = useProjectStore((s) => s.expandedEpicIds);
+  const expandAll = useProjectStore((s) => s.expandAll);
+  const collapseAll = useProjectStore((s) => s.collapseAll);
+  const hasExpanded = expandedEpicIds.size > 0;
+
   return (
     <>
-      <div className="flex-1 px-3">{t('name')}</div>
+      <div className="flex-1 px-3 flex items-center gap-1.5">
+        <button
+          onClick={hasExpanded ? collapseAll : expandAll}
+          className="p-0.5 rounded hover:bg-muted/60 text-muted-foreground hover:text-foreground transition-colors"
+          title={hasExpanded ? t('collapseAll') : t('expandAll')}
+        >
+          {hasExpanded ? <ChevronsDownUp size={14} /> : <ChevronsUpDown size={14} />}
+        </button>
+        {t('name')}
+      </div>
       <div className="w-7 text-center">{t('owner')}</div>
       <div className="w-[88px] text-center">{t('status')}</div>
       <div className="w-14 text-center">{t('pct')}</div>

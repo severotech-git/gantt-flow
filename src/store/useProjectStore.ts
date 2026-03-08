@@ -91,6 +91,8 @@ interface ProjectActions {
   // UI toggles
   toggleEpic: (epicId: string) => void;
   toggleFeature: (featureId: string) => void;
+  expandAll: () => void;
+  collapseAll: () => void;
   setFocusedBarId: (id: string | null) => void;
 
   // Persist to server
@@ -561,6 +563,26 @@ export const useProjectStore = create<ProjectStore>()(
         } else {
           s.expandedFeatureIds.add(featureId);
         }
+      });
+    },
+
+    expandAll: () => {
+      set((s) => {
+        const project = s.activeProject;
+        if (!project) return;
+        for (const epic of project.epics) {
+          s.expandedEpicIds.add(epic._id);
+          for (const feat of epic.features) {
+            s.expandedFeatureIds.add(feat._id);
+          }
+        }
+      });
+    },
+
+    collapseAll: () => {
+      set((s) => {
+        s.expandedEpicIds.clear();
+        s.expandedFeatureIds.clear();
       });
     },
 
