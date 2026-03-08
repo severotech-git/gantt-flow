@@ -37,6 +37,7 @@
       "headline": "Domine seus Prazos com",
       "subtitle": "A ferramenta profissional de gestão de projetos para equipes que precisam de mais do que uma lista. Visualize, acompanhe e entregue roadmaps complexos com facilidade.",
       "cta": "Iniciar Teste Gratuito de 30 Dias",
+      "goToProjects": "Ir para Projetos",
       "noCreditCard": "Sem cartão de crédito. Configure em 2 minutos."
     },
     "features": {
@@ -102,6 +103,16 @@
       "getStartedYearly": "Começar Plano Anual",
       "subscribe": "Assinar",
       "subscribeYearly": "Assinar Plano Anual",
+      "currentPlan": "Plano atual",
+      "changePlan": "Alterar plano",
+      "members": "{count, plural, one {# membro} other {# membros}}",
+      "nonOwner": {
+        "title": "Assinatura gerenciada pelo proprietário do workspace",
+        "description": "Apenas o proprietário de \"{workspace}\" pode gerenciar a cobrança e assinar um plano. Entre em contato para fazer o upgrade.",
+        "contact": "Contatar",
+        "emailSubject": "Upgrade da assinatura GanttFlow",
+        "ctaDisabled": "Contate o proprietário"
+      },
       "disclaimer": "Preços em Reais (BRL). Cancele a qualquer momento durante o período de teste."
     },
     "cta": {

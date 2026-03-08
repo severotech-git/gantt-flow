@@ -1,9 +1,8 @@
 'use client';
 
-import { useSession } from 'next-auth/react';
+import { useSession, signOut } from 'next-auth/react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import {
   Check,
@@ -18,7 +17,10 @@ import {
   Clock,
   ShieldCheck,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  LogOut,
+  User,
+  CreditCard,
 } from 'lucide-react';
 import Image, { type StaticImageData } from 'next/image';
 import { cn } from '@/lib/utils';
@@ -26,6 +28,14 @@ import { useTranslations } from 'next-intl';
 import { LanguageSwitcher } from '@/components/shared/LanguageSwitcher';
 import { ThemeToggle } from '@/components/shared/ThemeToggle';
 import { LandingPricing } from '@/components/billing/LandingPricing';
+import { OwnerAvatar } from '@/components/shared/OwnerAvatar';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 // Static imports for images to ensure reliable resolution
 import logoIcon from '../../public/icon.png';
@@ -105,15 +115,10 @@ function ImageCarousel({ images }: { images: StaticImageData[] }) {
 
 export default function LandingPage() {
   const { data: session, status } = useSession();
-  const router = useRouter();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const t = useTranslations('landing');
-
-  useEffect(() => {
-    if (status === 'authenticated' && session?.user) {
-      router.push('/projects');
-    }
-  }, [status, session, router]);
+  const tNav = useTranslations('layout.navbar');
+  const isLoggedIn = status === 'authenticated' && !!session?.user;
 
   if (status === 'loading') {
     return (
@@ -125,6 +130,7 @@ export default function LandingPage() {
       </div>
     );
   }
+
 
   const features = [
     {
@@ -178,6 +184,10 @@ export default function LandingPage() {
               className="h-8 w-auto object-contain"
               priority
             />
+            <span className="flex flex-col leading-tight">
+              <span className="font-bold text-sm">GanttFlow</span>
+              <span className="text-[9px] text-muted-foreground">by SeveroTech</span>
+            </span>
           </Link>
 
           {/* Desktop Nav */}
@@ -187,12 +197,65 @@ export default function LandingPage() {
             <div className="flex items-center gap-3 ml-4">
               <ThemeToggle />
               <LanguageSwitcher />
-              <Link href="/login">
-                <Button variant="ghost" size="sm">{t('nav.login')}</Button>
-              </Link>
-              <Link href="/register">
-                <Button size="sm">{t('nav.tryForFree')}</Button>
-              </Link>
+              {isLoggedIn ? (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button className="flex items-center gap-2.5 p-1 rounded-lg hover:bg-accent transition-colors focus:outline-none text-left">
+                      <OwnerAvatar
+                        name={session.user?.name || 'User'}
+                        avatar={session.user?.image ?? undefined}
+                        size={28}
+                        className="shrink-0"
+                      />
+                      <div className="flex flex-col pr-1">
+                        <p className="text-[13px] font-medium leading-none text-foreground truncate max-w-[120px]">
+                          {session.user?.name}
+                        </p>
+                        <p className="text-[11px] leading-none text-muted-foreground truncate max-w-[120px] mt-1">
+                          {session.user?.email}
+                        </p>
+                      </div>
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-56">
+                    <Link href="/settings?section=profile">
+                      <DropdownMenuItem className="cursor-pointer">
+                        <User className="mr-2 h-4 w-4" />
+                        <span>{tNav('myProfile')}</span>
+                      </DropdownMenuItem>
+                    </Link>
+                    <Link href="/settings?section=billing">
+                      <DropdownMenuItem className="cursor-pointer">
+                        <CreditCard className="mr-2 h-4 w-4" />
+                        <span>{tNav('billing')}</span>
+                      </DropdownMenuItem>
+                    </Link>
+                    <Link href="/settings">
+                      <DropdownMenuItem className="cursor-pointer">
+                        <Settings className="mr-2 h-4 w-4" />
+                        <span>{tNav('settings')}</span>
+                      </DropdownMenuItem>
+                    </Link>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      className="cursor-pointer text-red-500 focus:text-red-500 focus:bg-red-500/10"
+                      onClick={() => signOut({ callbackUrl: '/login' })}
+                    >
+                      <LogOut className="mr-2 h-4 w-4" />
+                      <span>{tNav('logOut')}</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              ) : (
+                <>
+                  <Link href="/login">
+                    <Button variant="ghost" size="sm">{t('nav.login')}</Button>
+                  </Link>
+                  <Link href="/register">
+                    <Button size="sm">{t('nav.tryForFree')}</Button>
+                  </Link>
+                </>
+              )}
             </div>
           </div>
 
@@ -212,12 +275,47 @@ export default function LandingPage() {
               <ThemeToggle />
               <LanguageSwitcher variant="pills" />
             </div>
-            <Link href="/login" className="w-full">
-              <Button variant="outline" className="w-full">{t('nav.login')}</Button>
-            </Link>
-            <Link href="/register" className="w-full">
-              <Button className="w-full">{t('nav.tryForFree')}</Button>
-            </Link>
+            {isLoggedIn ? (
+              <>
+                <div className="flex items-center gap-3 px-2 py-2">
+                  <OwnerAvatar
+                    name={session.user?.name || 'User'}
+                    avatar={session.user?.image ?? undefined}
+                    size={32}
+                    className="shrink-0"
+                  />
+                  <div className="flex flex-col min-w-0">
+                    <p className="text-sm font-medium truncate">{session.user?.name}</p>
+                    <p className="text-xs text-muted-foreground truncate">{session.user?.email}</p>
+                  </div>
+                </div>
+                <Link href="/settings?section=profile" onClick={() => setIsMenuOpen(false)} className="flex items-center gap-3 px-4 py-2 text-sm hover:bg-accent rounded-md">
+                  <User size={16} className="text-muted-foreground" /> {tNav('myProfile')}
+                </Link>
+                <Link href="/settings?section=billing" onClick={() => setIsMenuOpen(false)} className="flex items-center gap-3 px-4 py-2 text-sm hover:bg-accent rounded-md">
+                  <CreditCard size={16} className="text-muted-foreground" /> {tNav('billing')}
+                </Link>
+                <Link href="/settings" onClick={() => setIsMenuOpen(false)} className="flex items-center gap-3 px-4 py-2 text-sm hover:bg-accent rounded-md">
+                  <Settings size={16} className="text-muted-foreground" /> {tNav('settings')}
+                </Link>
+                <hr className="border-border" />
+                <button
+                  onClick={() => signOut({ callbackUrl: '/login' })}
+                  className="flex items-center gap-3 px-4 py-2 text-sm text-red-500 hover:bg-red-500/10 rounded-md w-full"
+                >
+                  <LogOut size={16} /> {tNav('logOut')}
+                </button>
+              </>
+            ) : (
+              <>
+                <Link href="/login" className="w-full">
+                  <Button variant="outline" className="w-full">{t('nav.login')}</Button>
+                </Link>
+                <Link href="/register" className="w-full">
+                  <Button className="w-full">{t('nav.tryForFree')}</Button>
+                </Link>
+              </>
+            )}
           </div>
         )}
       </nav>
@@ -244,7 +342,10 @@ export default function LandingPage() {
                     className="relative rounded-2xl shadow-2xl"
                   />
                 </div>
-                GanttFlow
+                <span className="flex flex-col leading-tight">
+                  <span>GanttFlow</span>
+                  <span className="text-sm font-normal text-muted-foreground bg-none [-webkit-text-fill-color:unset]">by SeveroTech</span>
+                </span>
               </div>
             </h1>
             <p className="max-w-2xl mx-auto text-xl text-muted-foreground mb-10 leading-relaxed">
@@ -253,15 +354,17 @@ export default function LandingPage() {
 
             <div className="flex flex-col items-center gap-4 justify-center mb-16">
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Link href="/register">
+                <Link href={isLoggedIn ? '/projects' : '/register'}>
                   <Button size="lg" className="h-12 px-8 text-base font-semibold gap-2">
-                    {t('hero.cta')} <ArrowRight className="w-4 h-4" />
+                    {isLoggedIn ? t('hero.goToProjects') : t('hero.cta')} <ArrowRight className="w-4 h-4" />
                   </Button>
                 </Link>
               </div>
-              <p className="text-xs text-muted-foreground font-medium italic">
-                {t('hero.noCreditCard')}
-              </p>
+              {!isLoggedIn && (
+                <p className="text-xs text-muted-foreground font-medium italic">
+                  {t('hero.noCreditCard')}
+                </p>
+              )}
             </div>
 
             {/* Product Screenshot Container */}
@@ -362,9 +465,9 @@ export default function LandingPage() {
               {t('cta.subtitle')}
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link href="/register">
+              <Link href={isLoggedIn ? '/projects' : '/register'}>
                 <Button size="lg" variant="secondary" className="h-14 px-10 text-lg font-bold">
-                  {t('cta.button')}
+                  {isLoggedIn ? t('hero.goToProjects') : t('cta.button')}
                 </Button>
               </Link>
             </div>
@@ -387,6 +490,10 @@ export default function LandingPage() {
                 height={28}
                 className="h-7 w-auto object-contain"
               />
+              <span className="flex flex-col leading-tight">
+                <span className="font-bold text-sm">GanttFlow</span>
+                <span className="text-[9px] text-muted-foreground">by SeveroTech</span>
+              </span>
             </Link>
 
             <div className="flex gap-8 text-sm">

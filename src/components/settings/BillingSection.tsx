@@ -22,19 +22,15 @@ export function BillingSection() {
   const t = useTranslations('billing');
   const { data: session } = useSession();
   const subscription = useAccountStore((s) => s.subscription);
-  const fetchPlans = useAccountStore((s) => s.fetchPlans);
   const fetchSubscription = useAccountStore((s) => s.fetchSubscription);
-  const createCheckout = useAccountStore((s) => s.createCheckout);
   const createPortalSession = useAccountStore((s) => s.createPortalSession);
   const accounts = useAccountStore((s) => s.accounts);
 
-  const [checkoutLoading, setCheckoutLoading] = useState<string | null>(null);
   const [portalLoading, setPortalLoading] = useState(false);
 
   useEffect(() => {
-    fetchPlans();
     fetchSubscription();
-  }, [fetchPlans, fetchSubscription]);
+  }, [fetchSubscription]);
 
   const activeAccountId = session?.user?.activeAccountId;
   const currentAccount = accounts.find((a) => a._id === activeAccountId);
@@ -43,17 +39,6 @@ export function BillingSection() {
 
   const plan = session?.user?.plan ?? 'trial';
   const trialEndsAt = session?.user?.trialEndsAt;
-
-  const handleSubscribe = async (priceId: string) => {
-    setCheckoutLoading(priceId);
-    try {
-      const url = await createCheckout(priceId);
-      window.location.href = url;
-    } catch (err) {
-      console.error(err);
-      setCheckoutLoading(null);
-    }
-  };
 
   const handlePortal = async () => {
     setPortalLoading(true);
@@ -66,7 +51,6 @@ export function BillingSection() {
     }
   };
 
-  const currentPlanSlug = subscription?.plan?.slug ?? (plan === 'trial' ? null : plan);
   const statusKey = subscription?.status ?? (plan === 'trial' ? 'trial' : 'active');
 
   return (
@@ -112,19 +96,11 @@ export function BillingSection() {
         </div>
       </div>
 
-      {/* Plan selection (shown to owners without active subscription) */}
-      {isOwner && !subscription && (
-        <div>
-          <h3 className="text-sm font-semibold mb-2">{t('planSelection.title')}</h3>
-          <LandingPricing
-            onSubscribe={handleSubscribe}
-            currentPlanSlug={currentPlanSlug}
-            checkoutLoading={checkoutLoading}
-            showHeading={false}
-          />
-        </div>
-      )}
-
+      {/* Plan selection */}
+      <div>
+        <h3 className="text-sm font-semibold mb-2">{t('planSelection.title')}</h3>
+        <LandingPricing showHeading={false} />
+      </div>
     </div>
   );
 }

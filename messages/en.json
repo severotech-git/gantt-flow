@@ -37,6 +37,7 @@
       "headline": "Master Your Timeline with",
       "subtitle": "The professional project management tool designed for teams who need more than just a list. Visualize, track, and deliver complex roadmaps with ease.",
       "cta": "Start 30-Day Free Trial",
+      "goToProjects": "Go to Projects",
       "noCreditCard": "No credit card required. Setup in 2 minutes."
     },
     "features": {
@@ -102,6 +103,16 @@
       "getStartedYearly": "Get Started Yearly",
       "subscribe": "Subscribe",
       "subscribeYearly": "Subscribe Yearly",
+      "currentPlan": "Current plan",
+      "changePlan": "Change plan",
+      "members": "{count, plural, one {# member} other {# members}}",
+      "nonOwner": {
+        "title": "Subscription managed by your workspace owner",
+        "description": "Only the owner of \"{workspace}\" can manage billing and subscribe to a plan. Reach out to them to upgrade.",
+        "contact": "Contact",
+        "emailSubject": "GanttFlow subscription upgrade",
+        "ctaDisabled": "Contact workspace owner"
+      },
       "disclaimer": "Prices are in Brazilian Real (BRL). Cancel anytime during your 30-day trial."
     },
     "cta": {

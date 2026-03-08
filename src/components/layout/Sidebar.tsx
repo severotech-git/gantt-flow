@@ -43,7 +43,10 @@ export function Sidebar({ collapsed = false }: SidebarProps) {
         <span className="w-5 h-5 flex items-center justify-center shrink-0">
           <Image src={logoIcon} alt="GanttFlow Logo" width={20} height={20} className="object-contain" />
         </span>
-        <span className="font-bold text-sm tracking-tight text-foreground">GanttFlow</span>
+        <span className="flex flex-col leading-tight">
+          <span className="font-bold text-sm tracking-tight text-foreground">GanttFlow</span>
+          <span className="text-[9px] text-muted-foreground -mt-0.5">by SeveroTech</span>
+        </span>
       </Link>
 
       <div className="mt-1 border-b border-border">

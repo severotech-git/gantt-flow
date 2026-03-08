@@ -147,7 +147,10 @@ function VerifyMFAContent() {
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-bold flex items-center gap-2">
             <Image src={logoIcon} alt="GanttFlow Logo" height={32} className="h-8 w-auto object-contain" priority />
-            GanttFlow
+            <span className="flex flex-col leading-tight">
+              <span>GanttFlow</span>
+              <span className="text-[10px] font-normal text-muted-foreground">by SeveroTech</span>
+            </span>
           </h1>
           <div className="flex items-center gap-1">
             <ThemeToggle />

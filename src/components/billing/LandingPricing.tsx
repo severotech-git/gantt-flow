@@ -2,10 +2,13 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Check, Loader2 } from 'lucide-react';
+import { Check, Loader2, Info, Mail } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { useTranslations } from 'next-intl';
+import { useSession } from 'next-auth/react';
+import { useAccountStore } from '@/store/useAccountStore';
+import { OwnerAvatar } from '@/components/shared/OwnerAvatar';
 import { IPlan } from '@/types';
 
 const MONTHLY_FEATURES = [
@@ -26,6 +29,8 @@ const YEARLY_FEATURES = [
   'dataExport',
 ] as const;
 
+// ─── PlanCard ────────────────────────────────────────────────────────────────
+
 function PlanCard({
   plan,
   featKeys,
@@ -34,6 +39,10 @@ function PlanCard({
   isCurrent,
   isLoading,
   onSubscribe,
+  disabledLabel,
+  onChangePlan,
+  changePlanLabel,
+  changePlanLoading,
 }: {
   plan: IPlan;
   featKeys: readonly string[];
@@ -42,38 +51,69 @@ function PlanCard({
   isCurrent?: boolean;
   isLoading?: boolean;
   onSubscribe?: (priceId: string) => void;
+  disabledLabel?: string;
+  onChangePlan?: () => void;
+  changePlanLabel?: string;
+  changePlanLoading?: boolean;
 }) {
   const t = useTranslations('landing');
   const price = plan.amount / 100;
   const isYearly = plan.interval === 'year';
   const savePct = isYearly ? 16 : 0;
 
-  const cta = onSubscribe ? (
-    <Button
-      className="w-full h-12 text-base font-semibold mt-auto"
-      variant={featured ? 'default' : 'outline'}
-      size="lg"
-      disabled={isCurrent || isLoading}
-      onClick={() => onSubscribe(plan.stripePriceId)}
-    >
-      {isLoading ? <Loader2 size={16} className="animate-spin mr-2" /> : null}
-      {isCurrent ? (
+  let cta: React.ReactNode;
+
+  if (disabledLabel) {
+    cta = (
+      <Button className="w-full h-12 text-base font-semibold mt-auto" variant="outline" size="lg" disabled>
+        {disabledLabel}
+      </Button>
+    );
+  } else if (onChangePlan) {
+    cta = isCurrent ? (
+      <Button className="w-full h-12 text-base font-semibold mt-auto" variant="default" size="lg" disabled>
         <span className="flex items-center gap-1.5">
           <Check size={14} /> {t('pricing.currentPlan')}
         </span>
-      ) : ctaLabel}
-    </Button>
-  ) : (
-    <Link href="/register" className="mt-auto">
+      </Button>
+    ) : (
       <Button
-        className="w-full h-12 text-base font-semibold"
+        className="w-full h-12 text-base font-semibold mt-auto"
+        variant="outline"
+        size="lg"
+        disabled={changePlanLoading}
+        onClick={onChangePlan}
+      >
+        {changePlanLoading ? <Loader2 size={16} className="animate-spin mr-2" /> : null}
+        {changePlanLabel}
+      </Button>
+    );
+  } else if (onSubscribe) {
+    cta = (
+      <Button
+        className="w-full h-12 text-base font-semibold mt-auto"
         variant={featured ? 'default' : 'outline'}
         size="lg"
+        disabled={isCurrent || isLoading}
+        onClick={() => onSubscribe(plan.stripePriceId)}
       >
-        {ctaLabel}
+        {isLoading ? <Loader2 size={16} className="animate-spin mr-2" /> : null}
+        {isCurrent ? (
+          <span className="flex items-center gap-1.5">
+            <Check size={14} /> {t('pricing.currentPlan')}
+          </span>
+        ) : ctaLabel}
       </Button>
-    </Link>
-  );
+    );
+  } else {
+    cta = (
+      <Link href="/register" className="mt-auto">
+        <Button className="w-full h-12 text-base font-semibold" variant={featured ? 'default' : 'outline'} size="lg">
+          {ctaLabel}
+        </Button>
+      </Link>
+    );
+  }
 
   return (
     <div
@@ -85,21 +125,19 @@ function PlanCard({
         isCurrent && 'ring-2 ring-primary/40'
       )}
     >
-      {/* Badge */}
       {featured && savePct > 0 && (
         <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground text-[11px] font-bold px-4 py-1.5 rounded-full uppercase tracking-wider whitespace-nowrap">
           {t('pricing.yearly.badge')}
         </div>
       )}
 
-      {/* Header */}
       <div className="mb-6">
         <div className="flex items-center justify-between mb-3">
           <h3 className="text-xl font-bold">
             {isYearly ? t('pricing.yearly.title') : t('pricing.monthly.title')}
           </h3>
           <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-muted text-muted-foreground">
-            {plan.maxMembers} {plan.maxMembers === 1 ? 'member' : 'members'}
+            {t('pricing.members', { count: plan.maxMembers })}
           </span>
         </div>
         <div className="flex items-baseline gap-1.5">
@@ -112,7 +150,6 @@ function PlanCard({
         </div>
       </div>
 
-      {/* Features */}
       <ul className="space-y-3.5 mb-8 flex-grow">
         {featKeys.map((key) => (
           <li key={key} className="flex items-center gap-3 text-sm text-foreground/80">
@@ -132,26 +169,168 @@ function PlanCard({
   );
 }
 
+// ─── Non-owner notice ────────────────────────────────────────────────────────
+
+function NonOwnerNotice({
+  workspaceName,
+  ownerName,
+  ownerEmail,
+}: {
+  workspaceName: string;
+  ownerName: string | null;
+  ownerEmail: string | null;
+}) {
+  const t = useTranslations('landing');
+
+  return (
+    <div className="max-w-2xl mx-auto mt-10">
+      <div className="rounded-2xl border border-primary/20 bg-primary/5 backdrop-blur-sm p-5 flex items-start gap-4">
+        <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
+          <Info size={18} className="text-primary" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-semibold text-foreground">
+            {t('pricing.nonOwner.title')}
+          </p>
+          <p className="text-sm text-muted-foreground mt-1">
+            {t('pricing.nonOwner.description', { workspace: workspaceName })}
+          </p>
+
+          {ownerName && (
+            <div className="mt-3 flex items-center gap-3 rounded-xl border border-border bg-background/60 p-3">
+              <OwnerAvatar name={ownerName} size={36} className="shrink-0" />
+              <div className="flex-1 min-w-0">
+                <p className="text-[13px] font-medium truncate">{ownerName}</p>
+                {ownerEmail && (
+                  <p className="text-xs text-muted-foreground truncate">{ownerEmail}</p>
+                )}
+              </div>
+              {ownerEmail && (
+                <a
+                  href={`mailto:${ownerEmail}?subject=${encodeURIComponent(t('pricing.nonOwner.emailSubject'))}`}
+                  className="shrink-0 inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
+                >
+                  <Mail size={13} />
+                  {t('pricing.nonOwner.contact')}
+                </a>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Billing logic hook ──────────────────────────────────────────────────────
+
+function useBillingState() {
+  const { data: session, status } = useSession();
+  const accounts = useAccountStore((s) => s.accounts);
+  const fetchAccounts = useAccountStore((s) => s.fetchAccounts);
+  const members = useAccountStore((s) => s.members);
+  const fetchMembers = useAccountStore((s) => s.fetchMembers);
+  const subscription = useAccountStore((s) => s.subscription);
+  const fetchSubscription = useAccountStore((s) => s.fetchSubscription);
+  const createCheckout = useAccountStore((s) => s.createCheckout);
+  const createPortalSession = useAccountStore((s) => s.createPortalSession);
+
+  const [checkoutLoading, setCheckoutLoading] = useState<string | null>(null);
+  const [portalLoading, setPortalLoading] = useState(false);
+
+  const isLoggedIn = status === 'authenticated' && !!session?.user;
+  const activeAccountId = session?.user?.activeAccountId;
+
+  useEffect(() => {
+    if (isLoggedIn) {
+      fetchAccounts();
+      fetchSubscription();
+    }
+  }, [isLoggedIn, fetchAccounts, fetchSubscription]);
+
+  useEffect(() => {
+    if (isLoggedIn && activeAccountId) {
+      fetchMembers(activeAccountId);
+    }
+  }, [isLoggedIn, activeAccountId, fetchMembers]);
+
+  const currentAccount = accounts.find((a) => a._id === activeAccountId);
+  const isOwner = currentAccount?.members?.find((m) => m.userId === session?.user?.id)?.role === 'owner';
+  const canSubscribe = isLoggedIn && isOwner && !subscription;
+  const hasSubscription = isLoggedIn && isOwner && !!subscription;
+  const isNonOwnerMember = isLoggedIn && !!currentAccount && !isOwner;
+
+  // Resolve owner info
+  const ownerMemberId = currentAccount?.members?.find((m) => m.role === 'owner')?.userId;
+  const ownerEnriched = members.find((m) => m.userId === ownerMemberId);
+  const ownerSettingsUser = currentAccount?.settings?.users?.find((u: { uid: string }) => u.uid === ownerMemberId);
+  const ownerName = ownerEnriched?.user?.name ?? ownerSettingsUser?.name ?? null;
+  const ownerEmail = ownerEnriched?.user?.email ?? null;
+
+  const currentPlanSlug = subscription?.plan?.slug ?? (session?.user?.plan === 'trial' ? null : (session?.user?.plan ?? null));
+
+  const handleSubscribe = async (priceId: string) => {
+    setCheckoutLoading(priceId);
+    try {
+      const url = await createCheckout(priceId);
+      window.location.href = url;
+    } catch (err) {
+      console.error(err);
+      setCheckoutLoading(null);
+    }
+  };
+
+  const handlePortal = async () => {
+    setPortalLoading(true);
+    try {
+      const url = await createPortalSession();
+      window.location.href = url;
+    } catch (err) {
+      console.error(err);
+      setPortalLoading(false);
+    }
+  };
+
+  return {
+    canSubscribe,
+    hasSubscription,
+    isNonOwnerMember,
+    currentPlanSlug,
+    checkoutLoading,
+    portalLoading,
+    handleSubscribe,
+    handlePortal,
+    ownerName,
+    ownerEmail,
+    workspaceName: currentAccount?.name ?? '',
+  };
+}
+
+// ─── LandingPricing ──────────────────────────────────────────────────────────
+
 interface LandingPricingProps {
-  /** When provided, renders subscribe buttons instead of register links */
-  onSubscribe?: (priceId: string) => void;
-  /** Slug of the plan the user is currently on */
-  currentPlanSlug?: string | null;
-  /** priceId currently being checked out */
-  checkoutLoading?: string | null;
   /** Hide the section heading (useful when embedded in settings) */
   showHeading?: boolean;
 }
 
-export function LandingPricing({
-  onSubscribe,
-  currentPlanSlug,
-  checkoutLoading,
-  showHeading = true,
-}: LandingPricingProps) {
+export function LandingPricing({ showHeading = true }: LandingPricingProps) {
   const t = useTranslations('landing');
   const [plans, setPlans] = useState<IPlan[]>([]);
   const [tab, setTab] = useState<'month' | 'year'>('month');
+
+  const {
+    canSubscribe,
+    hasSubscription,
+    isNonOwnerMember,
+    currentPlanSlug,
+    checkoutLoading,
+    portalLoading,
+    handleSubscribe,
+    handlePortal,
+    ownerName,
+    ownerEmail,
+    workspaceName,
+  } = useBillingState();
 
   useEffect(() => {
     fetch('/api/billing/plans')
@@ -163,6 +342,12 @@ export function LandingPricing({
   const visible = plans.filter((p) => p.interval === tab);
   const sorted = [...visible].sort((a, b) => a.maxMembers - b.maxMembers);
   const yearlyTab = tab === 'year';
+
+  // Derive card props based on billing state
+  const disabledLabel = isNonOwnerMember ? t('pricing.nonOwner.ctaDisabled') : undefined;
+  const onSubscribe = canSubscribe ? handleSubscribe : undefined;
+  const onChangePlan = hasSubscription ? handlePortal : undefined;
+  const changePlanLabel = hasSubscription ? t('pricing.changePlan') : undefined;
 
   return (
     <section id="pricing" className="py-24 border-t border-border/40">
@@ -225,6 +410,10 @@ export function LandingPricing({
                   isCurrent={plan.slug === currentPlanSlug}
                   isLoading={checkoutLoading === plan.stripePriceId}
                   onSubscribe={onSubscribe}
+                  disabledLabel={disabledLabel}
+                  onChangePlan={onChangePlan}
+                  changePlanLabel={changePlanLabel}
+                  changePlanLoading={portalLoading}
                 />
               );
             })}
@@ -235,6 +424,15 @@ export function LandingPricing({
               <div key={i} className="h-96 rounded-3xl border border-border bg-surface-2 animate-pulse" />
             ))}
           </div>
+        )}
+
+        {/* Non-owner notice */}
+        {isNonOwnerMember && (
+          <NonOwnerNotice
+            workspaceName={workspaceName}
+            ownerName={ownerName}
+            ownerEmail={ownerEmail}
+          />
         )}
 
         <p className="text-center mt-12 text-sm text-muted-foreground">

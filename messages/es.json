@@ -37,6 +37,7 @@
       "headline": "Domina tu Cronograma con",
       "subtitle": "La herramienta profesional de gestión de proyectos diseñada para equipos que necesitan más que una lista. Visualiza, rastrea y entrega roadmaps complejos con facilidad.",
       "cta": "Iniciar Prueba Gratuita de 30 Días",
+      "goToProjects": "Ir a Proyectos",
       "noCreditCard": "Sin tarjeta de crédito. Configura en 2 minutos."
     },
     "features": {
@@ -102,6 +103,16 @@
       "getStartedYearly": "Comenzar Plan Anual",
       "subscribe": "Suscribirse",
       "subscribeYearly": "Suscribirse Anualmente",
+      "currentPlan": "Plan actual",
+      "changePlan": "Cambiar plan",
+      "members": "{count, plural, one {# miembro} other {# miembros}}",
+      "nonOwner": {
+        "title": "Suscripción gestionada por el propietario del workspace",
+        "description": "Solo el propietario de \"{workspace}\" puede gestionar la facturación y suscribirse a un plan. Contacta con él para hacer el upgrade.",
+        "contact": "Contactar",
+        "emailSubject": "Upgrade de suscripción GanttFlow",
+        "ctaDisabled": "Contacta al propietario"
+      },
       "disclaimer": "Precios en Reales Brasileños (BRL). Cancela en cualquier momento durante tu prueba de 30 días."
     },
     "cta": {
