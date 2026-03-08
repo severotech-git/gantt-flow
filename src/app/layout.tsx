@@ -12,6 +12,7 @@ import { TrialBanner } from '@/components/billing/TrialBanner';
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter', display: 'swap' });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXTAUTH_URL || 'http://localhost:3000'),
   title: 'GanttFlow – Project Roadmap',
   description: 'Plan, track, and visualize your projects with interactive Gantt charts.',
   openGraph: {
