@@ -353,7 +353,8 @@
       "cancel": "Cancel",
       "sending": "Sending…",
       "sendButton": "Send Invitation",
-      "failedError": "Failed to send invitation"
+      "failedError": "Failed to send invitation",
+      "memberLimitReached": "Member limit reached. Upgrade your plan to add more members."
     }
   },
   "layout": {
@@ -362,6 +363,7 @@
       "showSidebar": "Show sidebar",
       "myProfile": "My Profile",
       "settings": "Settings",
+      "billing": "Billing",
       "logOut": "Log out"
     },
     "accountSwitcher": {
@@ -471,6 +473,7 @@
       "noMembers": "No members yet.",
       "pendingInvitations": "Pending Invitations",
       "pendingBadge": "pending",
+      "expiresLabel": "Expires {time}",
       "cancelInvitationTitle": "Cancel invitation",
       "removeMemberTitle": "Remove member",
       "roles": {
@@ -515,6 +518,31 @@
       "weekendsEnabled": "Tasks can start and end on Saturdays and Sundays.",
       "weekendsDisabled": "Start dates snap to Monday, end dates snap to Friday when a weekend is selected or dragged to."
     }
+  },
+  "apiErrors": {
+    "EMAIL_ALREADY_IN_USE": "This email is already registered.",
+    "EMAIL_INVALID": "Please enter a valid email address.",
+    "PASSWORD_MISMATCH": "Passwords do not match.",
+    "NAME_TOO_LONG": "Name must be 100 characters or fewer.",
+    "MISSING_FIELDS": "Please fill in all required fields.",
+    "EMAIL_REQUIRED": "Email address is required.",
+    "TOO_MANY_ATTEMPTS": "Too many attempts. Please try again later.",
+    "TOKEN_INVALID_OR_EXPIRED": "This link is invalid or has expired.",
+    "TOKEN_REQUIRED": "Reset token is missing.",
+    "ALREADY_MEMBER": "This user is already a member of this workspace.",
+    "INVITE_ALREADY_SENT": "An invitation has already been sent to this email.",
+    "INVALID_ROLE": "Invalid role selected.",
+    "INVITE_NOT_FOUND": "Invitation not found or already used.",
+    "INVITE_EXPIRED": "This invitation has expired.",
+    "INVITE_EMAIL_MISMATCH": "This invitation was sent to a different email address.",
+    "ACCOUNT_NOT_FOUND": "Account not found.",
+    "MEMBER_LIMIT_REACHED": "Member limit reached. Upgrade your plan to add more members.",
+    "OWNER_ONLY": "Only the account owner can perform this action.",
+    "OWNER_ONLY_BILLING": "Only the account owner can manage billing.",
+    "PRICE_ID_REQUIRED": "No plan selected.",
+    "PLAN_NOT_FOUND": "Selected plan not found.",
+    "NO_STRIPE_CUSTOMER": "No billing account found. Please subscribe first.",
+    "GENERIC": "Something went wrong. Please try again."
   },
   "billing": {
     "planSelection": {

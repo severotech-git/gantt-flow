@@ -14,6 +14,7 @@ import logoIcon from '../../../public/icon.png';
 
 function ForgotPasswordContent() {
   const t = useTranslations('auth.forgotPassword');
+  const tErr = useTranslations('apiErrors');
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
@@ -34,11 +35,11 @@ function ForgotPasswordContent() {
       if (res.ok) {
         setSent(true);
       } else {
-        const data = await res.json();
-        setError(data.error || 'An error occurred. Please try again.');
+        const data = await res.json().catch(() => ({}));
+        setError(data.code ? tErr(data.code as never) : tErr('GENERIC'));
       }
     } catch {
-      setError('An unexpected error occurred.');
+      setError(tErr('GENERIC'));
     } finally {
       setLoading(false);
     }

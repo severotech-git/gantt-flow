@@ -34,7 +34,7 @@ export async function GET() {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    const invitations = await Invitation.find({ accountId, status: 'pending' })
+    const invitations = await Invitation.find({ accountId, status: 'pending', expiresAt: { $gt: new Date() } })
       .sort({ createdAt: -1 })
       .lean();
 
@@ -64,7 +64,7 @@ export async function POST(req: NextRequest) {
     const memberLimit = await canAddMember(accountId);
     if (!memberLimit.allowed) {
       return NextResponse.json(
-        { error: 'Member limit reached', max: memberLimit.max, current: memberLimit.current },
+        { error: 'Member limit reached', code: 'MEMBER_LIMIT_REACHED', max: memberLimit.max, current: memberLimit.current },
         { status: 403 }
       );
     }
@@ -73,7 +73,7 @@ export async function POST(req: NextRequest) {
     const rl = checkRateLimit(`invite:${accountId}`, 20, 60 * 60 * 1000);
     if (!rl.ok) {
       return NextResponse.json(
-        { error: 'Too many invitations sent. Please try again later.' },
+        { error: 'Too many invitations sent. Please try again later.', code: 'TOO_MANY_ATTEMPTS' },
         { status: 429, headers: { 'Retry-After': String(rl.retryAfterSeconds) } }
       );
     }
@@ -82,10 +82,10 @@ export async function POST(req: NextRequest) {
     const { email, role = 'member' } = body;
 
     if (!email || typeof email !== 'string') {
-      return NextResponse.json({ error: 'email is required' }, { status: 400 });
+      return NextResponse.json({ error: 'email is required', code: 'EMAIL_REQUIRED' }, { status: 400 });
     }
     if (!['admin', 'member'].includes(role)) {
-      return NextResponse.json({ error: 'Invalid role' }, { status: 400 });
+      return NextResponse.json({ error: 'Invalid role', code: 'INVALID_ROLE' }, { status: 400 });
     }
 
     const normalizedEmail = email.toLowerCase().trim();
@@ -95,7 +95,7 @@ export async function POST(req: NextRequest) {
     if (existingUser) {
       const fullAccount = await Account.findOne({ _id: accountId, 'members.userId': existingUser._id.toString() }, { _id: 1 }).lean();
       if (fullAccount) {
-        return NextResponse.json({ error: 'User is already a member' }, { status: 400 });
+        return NextResponse.json({ error: 'User is already a member', code: 'ALREADY_MEMBER' }, { status: 400 });
       }
     }
 
@@ -103,7 +103,7 @@ export async function POST(req: NextRequest) {
     const existingInvite = await Invitation.findOne({ accountId, email: normalizedEmail, status: 'pending' });
     if (existingInvite) {
       if (existingInvite.expiresAt > new Date()) {
-        return NextResponse.json({ error: 'An invitation has already been sent to this email' }, { status: 400 });
+        return NextResponse.json({ error: 'An invitation has already been sent to this email', code: 'INVITE_ALREADY_SENT' }, { status: 400 });
       }
       await existingInvite.deleteOne();
     }

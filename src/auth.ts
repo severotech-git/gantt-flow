@@ -112,13 +112,15 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
         const email = (credentials.email as string).toLowerCase();
         const user = await User.findOne({ email }).select('+passwordHash');
-        if (!user) throw new Error('Invalid email or password');
+        // Return null (not throw) so NextAuth sets result.error = 'CredentialsSignin',
+        // which the login page maps to a proper "Invalid email or password" message.
+        if (!user) return null;
 
         const passwordMatch = await bcrypt.default.compare(
           credentials.password as string,
           user.passwordHash || ''
         );
-        if (!passwordMatch) throw new Error('Invalid email or password');
+        if (!passwordMatch) return null;
 
         // ── Branch B: bypassToken (post-registration auto-login) ──────────────
         // The client sends the sentinel '__use_cookie__'; the actual token lives
@@ -283,6 +285,21 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           }
         } catch (err) {
           console.error('[auth jwt] Failed to refresh billing fields', err);
+        }
+      }
+
+      // Self-heal: if the token says not verified but the DB has since verified, fix it.
+      // Runs on every refresh for unverified users only — stops once emailVerified becomes true.
+      if (!base.emailVerified && base.uid && !user) {
+        try {
+          await connectDB();
+          const dbUser = await User.findById(base.uid as string, { emailVerified: 1 }).lean();
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          if (dbUser && (dbUser as any).emailVerified) {
+            base.emailVerified = true;
+          }
+        } catch (err) {
+          console.error('[auth jwt] Failed to re-check emailVerified', err);
         }
       }
 

@@ -11,6 +11,7 @@ import { useTranslations } from 'next-intl';
 export function ProfileSection() {
   const { data: session, update: updateSession } = useSession();
   const t = useTranslations('settings.profile');
+  const tErr = useTranslations('apiErrors');
   const [name, setName] = useState(session?.user?.name || '');
   const [email] = useState(session?.user?.email || '');
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
@@ -31,19 +32,21 @@ export function ProfileSection() {
       });
 
       if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error || 'Failed to update profile');
+        const data = await res.json().catch(() => ({}));
+        setStatus('error');
+        setMessage(data.code ? tErr(data.code as never) : tErr('GENERIC'));
+        return;
       }
 
       // Update next-auth session
       await updateSession({ name });
 
       setStatus('success');
-      setMessage('Profile updated successfully');
+      setMessage(t('successMessage'));
       setTimeout(() => { setStatus('idle'); setMessage(''); }, 3000);
-    } catch (err: unknown) {
+    } catch {
       setStatus('error');
-      setMessage(err instanceof Error ? err.message : 'Something went wrong');
+      setMessage(tErr('GENERIC'));
     } finally {
       // loading state already reset by setStatus above
     }

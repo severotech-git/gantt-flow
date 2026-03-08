@@ -353,7 +353,8 @@
       "cancel": "Cancelar",
       "sending": "Enviando…",
       "sendButton": "Enviar Convite",
-      "failedError": "Falha ao enviar o convite"
+      "failedError": "Falha ao enviar o convite",
+      "memberLimitReached": "Limite de membros atingido. Faça upgrade do seu plano para adicionar mais membros."
     }
   },
   "layout": {
@@ -362,6 +363,7 @@
       "showSidebar": "Mostrar barra lateral",
       "myProfile": "Meu Perfil",
       "settings": "Configurações",
+      "billing": "Cobrança",
       "logOut": "Sair"
     },
     "accountSwitcher": {
@@ -471,6 +473,7 @@
       "noMembers": "Nenhum membro ainda.",
       "pendingInvitations": "Convites Pendentes",
       "pendingBadge": "pendente",
+      "expiresLabel": "Expira {time}",
       "cancelInvitationTitle": "Cancelar convite",
       "removeMemberTitle": "Remover membro",
       "roles": {
@@ -515,6 +518,31 @@
       "weekendsEnabled": "Tarefas podem começar e terminar aos sábados e domingos.",
       "weekendsDisabled": "Datas de início se ajustam para segunda-feira, e datas de fim para sexta-feira quando um fim de semana é selecionado ou arrastado."
     }
+  },
+  "apiErrors": {
+    "EMAIL_ALREADY_IN_USE": "Este e-mail já está cadastrado.",
+    "EMAIL_INVALID": "Por favor, insira um endereço de e-mail válido.",
+    "PASSWORD_MISMATCH": "As senhas não coincidem.",
+    "NAME_TOO_LONG": "O nome deve ter no máximo 100 caracteres.",
+    "MISSING_FIELDS": "Por favor, preencha todos os campos obrigatórios.",
+    "EMAIL_REQUIRED": "O endereço de e-mail é obrigatório.",
+    "TOO_MANY_ATTEMPTS": "Muitas tentativas. Por favor, tente novamente mais tarde.",
+    "TOKEN_INVALID_OR_EXPIRED": "Este link é inválido ou expirou.",
+    "TOKEN_REQUIRED": "O token de redefinição está ausente.",
+    "ALREADY_MEMBER": "Este usuário já é membro deste workspace.",
+    "INVITE_ALREADY_SENT": "Um convite já foi enviado para este e-mail.",
+    "INVALID_ROLE": "Função inválida selecionada.",
+    "INVITE_NOT_FOUND": "Convite não encontrado ou já utilizado.",
+    "INVITE_EXPIRED": "Este convite expirou.",
+    "INVITE_EMAIL_MISMATCH": "Este convite foi enviado para um endereço de e-mail diferente.",
+    "ACCOUNT_NOT_FOUND": "Conta não encontrada.",
+    "MEMBER_LIMIT_REACHED": "Limite de membros atingido. Faça upgrade do seu plano para adicionar mais membros.",
+    "OWNER_ONLY": "Apenas o proprietário da conta pode realizar esta ação.",
+    "OWNER_ONLY_BILLING": "Apenas o proprietário da conta pode gerenciar a cobrança.",
+    "PRICE_ID_REQUIRED": "Nenhum plano selecionado.",
+    "PLAN_NOT_FOUND": "Plano selecionado não encontrado.",
+    "NO_STRIPE_CUSTOMER": "Nenhuma conta de cobrança encontrada. Por favor, assine primeiro.",
+    "GENERIC": "Algo deu errado. Por favor, tente novamente."
   },
   "billing": {
     "planSelection": {

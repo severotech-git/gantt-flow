@@ -26,7 +26,7 @@ export async function POST(request: NextRequest) {
   }
 
   if (!email) {
-    return NextResponse.json({ error: 'Email is required.' }, { status: 400 });
+    return NextResponse.json({ error: 'Email is required.', code: 'EMAIL_REQUIRED' }, { status: 400 });
   }
 
   const emailLimit = checkRateLimit(`forgot:email:${email}`, 3, 60 * 60 * 1000);

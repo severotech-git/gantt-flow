@@ -21,26 +21,26 @@ export async function POST(_req: NextRequest, { params }: Params) {
     const { token } = await params;
 
     const invitation = await Invitation.findOne({ token, status: 'pending' });
-    if (!invitation) return NextResponse.json({ error: 'Invitation not found or already used' }, { status: 404 });
+    if (!invitation) return NextResponse.json({ error: 'Invitation not found or already used', code: 'INVITE_NOT_FOUND' }, { status: 404 });
     if (invitation.expiresAt < new Date()) {
-      return NextResponse.json({ error: 'Invitation expired' }, { status: 410 });
+      return NextResponse.json({ error: 'Invitation expired', code: 'INVITE_EXPIRED' }, { status: 410 });
     }
 
     const user = await User.findById(userId);
     if (!user || user.email !== invitation.email) {
-      return NextResponse.json({ error: 'This invitation was sent to a different email address' }, { status: 403 });
+      return NextResponse.json({ error: 'This invitation was sent to a different email address', code: 'INVITE_EMAIL_MISMATCH' }, { status: 403 });
     }
 
     const accountId = invitation.accountId;
 
     const account = await Account.findById(accountId);
-    if (!account) return NextResponse.json({ error: 'Account not found' }, { status: 404 });
+    if (!account) return NextResponse.json({ error: 'Account not found', code: 'ACCOUNT_NOT_FOUND' }, { status: 404 });
 
     // Member limit check
     const memberLimit = await canAddMember(accountId.toString());
     if (!memberLimit.allowed) {
       return NextResponse.json(
-        { error: 'Member limit reached', max: memberLimit.max, current: memberLimit.current },
+        { error: 'Member limit reached', code: 'MEMBER_LIMIT_REACHED', max: memberLimit.max, current: memberLimit.current },
         { status: 403 }
       );
     }

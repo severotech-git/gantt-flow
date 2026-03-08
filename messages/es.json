@@ -353,7 +353,8 @@
       "cancel": "Cancelar",
       "sending": "Enviando…",
       "sendButton": "Enviar Invitación",
-      "failedError": "Error al enviar la invitación"
+      "failedError": "Error al enviar la invitación",
+      "memberLimitReached": "Límite de miembros alcanzado. Actualiza tu plan para agregar más miembros."
     }
   },
   "layout": {
@@ -362,6 +363,7 @@
       "showSidebar": "Mostrar barra lateral",
       "myProfile": "Mi Perfil",
       "settings": "Configuración",
+      "billing": "Facturación",
       "logOut": "Cerrar sesión"
     },
     "accountSwitcher": {
@@ -471,6 +473,7 @@
       "noMembers": "Sin miembros aún.",
       "pendingInvitations": "Invitaciones Pendientes",
       "pendingBadge": "pendiente",
+      "expiresLabel": "Expira {time}",
       "cancelInvitationTitle": "Cancelar invitación",
       "removeMemberTitle": "Eliminar miembro",
       "roles": {
@@ -515,6 +518,31 @@
       "weekendsEnabled": "Las tareas pueden comenzar y terminar los sábados y domingos.",
       "weekendsDisabled": "Las fechas de inicio se ajustan al lunes y las de fin al viernes cuando se selecciona o arrastra a un fin de semana."
     }
+  },
+  "apiErrors": {
+    "EMAIL_ALREADY_IN_USE": "Este correo ya está registrado.",
+    "EMAIL_INVALID": "Por favor, ingresa una dirección de correo válida.",
+    "PASSWORD_MISMATCH": "Las contraseñas no coinciden.",
+    "NAME_TOO_LONG": "El nombre debe tener 100 caracteres o menos.",
+    "MISSING_FIELDS": "Por favor, completa todos los campos requeridos.",
+    "EMAIL_REQUIRED": "La dirección de correo es obligatoria.",
+    "TOO_MANY_ATTEMPTS": "Demasiados intentos. Por favor, intenta de nuevo más tarde.",
+    "TOKEN_INVALID_OR_EXPIRED": "Este enlace es inválido o ha expirado.",
+    "TOKEN_REQUIRED": "El token de restablecimiento no está presente.",
+    "ALREADY_MEMBER": "Este usuario ya es miembro de este workspace.",
+    "INVITE_ALREADY_SENT": "Ya se envió una invitación a este correo.",
+    "INVALID_ROLE": "Rol inválido seleccionado.",
+    "INVITE_NOT_FOUND": "Invitación no encontrada o ya utilizada.",
+    "INVITE_EXPIRED": "Esta invitación ha expirado.",
+    "INVITE_EMAIL_MISMATCH": "Esta invitación fue enviada a una dirección de correo diferente.",
+    "ACCOUNT_NOT_FOUND": "Cuenta no encontrada.",
+    "MEMBER_LIMIT_REACHED": "Límite de miembros alcanzado. Actualiza tu plan para agregar más miembros.",
+    "OWNER_ONLY": "Solo el propietario de la cuenta puede realizar esta acción.",
+    "OWNER_ONLY_BILLING": "Solo el propietario de la cuenta puede gestionar la facturación.",
+    "PRICE_ID_REQUIRED": "Ningún plan seleccionado.",
+    "PLAN_NOT_FOUND": "Plan seleccionado no encontrado.",
+    "NO_STRIPE_CUSTOMER": "No se encontró cuenta de facturación. Por favor, suscríbete primero.",
+    "GENERIC": "Algo salió mal. Por favor, intenta de nuevo."
   },
   "billing": {
     "planSelection": {

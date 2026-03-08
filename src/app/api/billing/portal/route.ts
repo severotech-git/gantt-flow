@@ -20,10 +20,10 @@ export async function POST() {
     ).lean();
     const role = account?.members?.[0]?.role;
     if (role !== 'owner') {
-      return NextResponse.json({ error: 'Only the account owner can manage billing' }, { status: 403 });
+      return NextResponse.json({ error: 'Only the account owner can manage billing', code: 'OWNER_ONLY_BILLING' }, { status: 403 });
     }
     if (!account?.stripeCustomerId) {
-      return NextResponse.json({ error: 'No Stripe customer found' }, { status: 400 });
+      return NextResponse.json({ error: 'No Stripe customer found', code: 'NO_STRIPE_CUSTOMER' }, { status: 400 });
     }
 
     const baseUrl = process.env.NEXTAUTH_URL ?? 'http://localhost:3000';

@@ -16,6 +16,7 @@ import logoIcon from '../../../public/icon.png';
 
 function ResetPasswordContent() {
   const t = useTranslations('auth.resetPassword');
+  const tErr = useTranslations('apiErrors');
   const router = useRouter();
   const searchParams = useSearchParams();
   const token = searchParams.get('token') ?? '';
@@ -35,7 +36,7 @@ function ResetPasswordContent() {
     if (pwError) { setError(pwError); return; }
 
     if (password !== confirmPassword) {
-      setError('Passwords do not match.');
+      setError(tErr('PASSWORD_MISMATCH'));
       return;
     }
 
@@ -54,10 +55,10 @@ function ResetPasswordContent() {
       } else if (res.status === 404) {
         setInvalidToken(true);
       } else {
-        setError(data.error || 'An error occurred. Please try again.');
+        setError(data.code ? tErr(data.code as never) : tErr('GENERIC'));
       }
     } catch {
-      setError('An unexpected error occurred.');
+      setError(tErr('GENERIC'));
     } finally {
       setLoading(false);
     }

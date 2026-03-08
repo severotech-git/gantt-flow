@@ -23,7 +23,7 @@ export function TrialBanner() {
   });
 
   const daysLeft = trialEndsAt ? differenceInDays(new Date(trialEndsAt), new Date()) : -1;
-  const visible = plan === 'trial' && !!trialEndsAt && !dismissed && daysLeft >= 0;
+  const visible = plan === 'trial' && !!trialEndsAt && !dismissed && daysLeft >= 0 && daysLeft <= 15;
 
   // Expose banner height as a CSS variable so app pages can offset their layout.
   useEffect(() => {

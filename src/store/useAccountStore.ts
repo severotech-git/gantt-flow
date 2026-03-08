@@ -100,7 +100,9 @@ export const useAccountStore = create<AccountState & AccountActions>()(
       });
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
-        throw new Error(err.error ?? 'Failed to send invitation');
+        const e = new Error(err.error ?? 'Failed to send invitation') as Error & { code?: string };
+        if (err.code) e.code = err.code;
+        throw e;
       }
       const inv = await res.json();
       set((s) => {
@@ -113,7 +115,9 @@ export const useAccountStore = create<AccountState & AccountActions>()(
       const res = await fetch(`/api/invitations/${token}/accept`, { method: 'POST' });
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
-        throw new Error(err.error ?? 'Failed to accept invitation');
+        const e = new Error(err.error ?? 'Failed to accept invitation') as Error & { code?: string };
+        if (err.code) e.code = err.code;
+        throw e;
       }
       const data = await res.json();
       // Remove from pendingInvites
@@ -125,7 +129,9 @@ export const useAccountStore = create<AccountState & AccountActions>()(
       const res = await fetch(`/api/invitations/${token}/reject`, { method: 'POST' });
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
-        throw new Error(err.error ?? 'Failed to reject invitation');
+        const e = new Error(err.error ?? 'Failed to reject invitation') as Error & { code?: string };
+        if (err.code) e.code = err.code;
+        throw e;
       }
       set((s) => { s.pendingInvites = s.pendingInvites.filter((i) => i.token !== token); });
     },
@@ -138,7 +144,9 @@ export const useAccountStore = create<AccountState & AccountActions>()(
       });
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
-        throw new Error(err.error ?? 'Failed to rename account');
+        const e = new Error(err.error ?? 'Failed to rename account') as Error & { code?: string };
+        if (err.code) e.code = err.code;
+        throw e;
       }
       set((s) => {
         const acc = s.accounts.find((a) => a._id === accountId);
@@ -155,7 +163,9 @@ export const useAccountStore = create<AccountState & AccountActions>()(
       });
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
-        throw new Error(err.error ?? 'Failed to switch account');
+        const e = new Error(err.error ?? 'Failed to switch account') as Error & { code?: string };
+        if (err.code) e.code = err.code;
+        throw e;
       }
       // Session update (activeAccountId in JWT) is handled by the caller
       // via useSession().update({ activeAccountId }) — then a page reload.
@@ -170,7 +180,9 @@ export const useAccountStore = create<AccountState & AccountActions>()(
       });
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
-        throw new Error(err.error ?? 'Failed to set main account');
+        const e = new Error(err.error ?? 'Failed to set main account') as Error & { code?: string };
+        if (err.code) e.code = err.code;
+        throw e;
       }
     },
 
@@ -178,7 +190,9 @@ export const useAccountStore = create<AccountState & AccountActions>()(
       const res = await fetch(`/api/accounts/${accountId}`, { method: 'DELETE' });
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
-        throw new Error(err.error ?? 'Failed to delete account');
+        const e = new Error(err.error ?? 'Failed to delete account') as Error & { code?: string };
+        if (err.code) e.code = err.code;
+        throw e;
       }
       set((s) => { s.accounts = s.accounts.filter((a) => a._id !== accountId); });
     },
@@ -187,7 +201,9 @@ export const useAccountStore = create<AccountState & AccountActions>()(
       const res = await fetch(`/api/accounts/${accountId}/members/${userId}`, { method: 'DELETE' });
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
-        throw new Error(err.error ?? 'Failed to remove member');
+        const e = new Error(err.error ?? 'Failed to remove member') as Error & { code?: string };
+        if (err.code) e.code = err.code;
+        throw e;
       }
       set((s) => {
         s.members = s.members.filter((m) => m.userId !== userId);
@@ -200,7 +216,9 @@ export const useAccountStore = create<AccountState & AccountActions>()(
       const res = await fetch(`/api/invitations/${token}`, { method: 'PATCH' });
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
-        throw new Error(err.error ?? 'Failed to cancel invitation');
+        const e = new Error(err.error ?? 'Failed to cancel invitation') as Error & { code?: string };
+        if (err.code) e.code = err.code;
+        throw e;
       }
       set((s) => { s.invitations = s.invitations.filter((i) => i.token !== token); });
     },
@@ -213,7 +231,9 @@ export const useAccountStore = create<AccountState & AccountActions>()(
       });
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
-        throw new Error(err.error ?? 'Failed to update role');
+        const e = new Error(err.error ?? 'Failed to update role') as Error & { code?: string };
+        if (err.code) e.code = err.code;
+        throw e;
       }
       set((s) => {
         const m = s.members.find((m) => m.userId === userId);
@@ -234,7 +254,9 @@ export const useAccountStore = create<AccountState & AccountActions>()(
       });
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
-        throw new Error(err.error ?? 'Failed to create account');
+        const e = new Error(err.error ?? 'Failed to create account') as Error & { code?: string };
+        if (err.code) e.code = err.code;
+        throw e;
       }
       const acc = await res.json();
       set((s) => { s.accounts.push(acc); });
@@ -269,7 +291,9 @@ export const useAccountStore = create<AccountState & AccountActions>()(
       });
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
-        throw new Error(err.error ?? 'Failed to create checkout session');
+        const e = new Error(err.error ?? 'Failed to create checkout session') as Error & { code?: string };
+        if (err.code) e.code = err.code;
+        throw e;
       }
       const { url } = await res.json();
       return url as string;
@@ -279,7 +303,9 @@ export const useAccountStore = create<AccountState & AccountActions>()(
       const res = await fetch('/api/billing/portal', { method: 'POST' });
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
-        throw new Error(err.error ?? 'Failed to create portal session');
+        const e = new Error(err.error ?? 'Failed to create portal session') as Error & { code?: string };
+        if (err.code) e.code = err.code;
+        throw e;
       }
       const { url } = await res.json();
       return url as string;

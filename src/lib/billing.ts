@@ -1,5 +1,6 @@
 import { connectDB } from '@/lib/mongodb';
 import Account from '@/lib/models/Account';
+import Invitation from '@/lib/models/Invitation';
 import Subscription from '@/lib/models/Subscription';
 import Plan from '@/lib/models/Plan';
 import type { ISubscriptionDocument } from '@/lib/models/Subscription';
@@ -32,10 +33,11 @@ export async function canAddMember(
   accountId: string
 ): Promise<{ allowed: boolean; current: number; max: number }> {
   await connectDB();
-  const [account, max] = await Promise.all([
+  const [account, pendingCount, max] = await Promise.all([
     Account.findById(accountId, { members: 1 }).lean(),
+    Invitation.countDocuments({ accountId, status: 'pending', expiresAt: { $gt: new Date() } }),
     getMaxMembers(accountId),
   ]);
-  const current = account?.members?.length ?? 0;
+  const current = (account?.members?.length ?? 0) + pendingCount;
   return { allowed: current < max, current, max };
 }

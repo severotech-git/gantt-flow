@@ -14,7 +14,7 @@ export async function POST(request: NextRequest) {
   const ipLimit = checkRateLimit(`resetpwd:ip:${ip}`, 5, 15 * 60 * 1000);
   if (!ipLimit.ok) {
     return NextResponse.json(
-      { error: 'Too many attempts. Please wait before trying again.' },
+      { error: 'Too many attempts. Please wait before trying again.', code: 'TOO_MANY_ATTEMPTS' },
       { status: 429 }
     );
   }
@@ -30,11 +30,11 @@ export async function POST(request: NextRequest) {
   }
 
   if (!token) {
-    return NextResponse.json({ error: 'Token is required.' }, { status: 400 });
+    return NextResponse.json({ error: 'Token is required.', code: 'TOKEN_REQUIRED' }, { status: 400 });
   }
 
   if (password !== confirmPassword) {
-    return NextResponse.json({ error: 'Passwords do not match.' }, { status: 400 });
+    return NextResponse.json({ error: 'Passwords do not match.', code: 'PASSWORD_MISMATCH' }, { status: 400 });
   }
 
   const pwError = validatePassword(password);
@@ -50,7 +50,7 @@ export async function POST(request: NextRequest) {
     if (!reset || reset.expiresAt < new Date()) {
       if (reset) await PasswordReset.deleteOne({ _id: reset._id });
       return NextResponse.json(
-        { error: 'This reset link is invalid or has expired.' },
+        { error: 'This reset link is invalid or has expired.', code: 'TOKEN_INVALID_OR_EXPIRED' },
         { status: 404 }
       );
     }

@@ -9,6 +9,7 @@ import { IInvitation } from '@/types';
 import { Loader2, Users } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { ThemeToggle } from '@/components/shared/ThemeToggle';
+import { useTranslations } from 'next-intl';
 
 interface InvitePageProps {
   params: Promise<{ token: string }>;
@@ -18,6 +19,7 @@ export default function InvitePage({ params }: InvitePageProps) {
   const { token } = use(params);
   const { data: session, status: authStatus, update } = useSession();
   const router = useRouter();
+  const tErr = useTranslations('apiErrors');
 
   const [invitation, setInvitation] = useState<IInvitation | null>(null);
   const [loading, setLoading] = useState(true);
@@ -30,14 +32,15 @@ export default function InvitePage({ params }: InvitePageProps) {
       .then(async (res) => {
         if (!res.ok) {
           const body = await res.json().catch(() => ({}));
-          setError(body.error ?? 'Invitation not found or expired');
+          setError(body.code ? tErr(body.code as never) : tErr('INVITE_NOT_FOUND'));
         } else {
           const data = await res.json();
           setInvitation(data);
         }
       })
-      .catch(() => setError('Failed to load invitation'))
+      .catch(() => setError(tErr('GENERIC')))
       .finally(() => setLoading(false));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token]);
 
   // Auto-accept if user is authenticated and this page loaded post-registration
@@ -54,13 +57,16 @@ export default function InvitePage({ params }: InvitePageProps) {
     try {
       const res = await fetch(`/api/invitations/${token}/accept`, { method: 'POST' });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? 'Failed to accept');
+      if (!res.ok) {
+        setError(data.code ? tErr(data.code as never) : tErr('GENERIC'));
+        return;
+      }
       setDone(true);
       // Switch to the newly joined account
       await update({ activeAccountId: data.accountId });
       router.push('/projects');
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Failed to accept invitation');
+    } catch {
+      setError(tErr('GENERIC'));
     } finally {
       setActing(false);
     }
@@ -72,12 +78,13 @@ export default function InvitePage({ params }: InvitePageProps) {
       const res = await fetch(`/api/invitations/${token}/reject`, { method: 'POST' });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        throw new Error(data.error ?? 'Failed to decline');
+        setError(data.code ? tErr(data.code as never) : tErr('GENERIC'));
+        return;
       }
       setDone(true);
       router.push('/projects');
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Failed to decline invitation');
+    } catch {
+      setError(tErr('GENERIC'));
     } finally {
       setActing(false);
     }

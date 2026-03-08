@@ -1,6 +1,6 @@
 'use client';
 
-import { PanelLeftClose, PanelLeftOpen, LogOut, User, Settings as SettingsIcon } from 'lucide-react';
+import { PanelLeftClose, PanelLeftOpen, LogOut, User, Settings as SettingsIcon, CreditCard } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { useSession, signOut } from 'next-auth/react';
 import { OwnerAvatar } from '@/components/shared/OwnerAvatar';
@@ -102,6 +102,12 @@ export function PageNavbar({
                 <DropdownMenuItem className="cursor-pointer">
                   <User className="mr-2 h-4 w-4" />
                   <span>{t('myProfile')}</span>
+                </DropdownMenuItem>
+              </Link>
+              <Link href="/settings?section=billing">
+                <DropdownMenuItem className="cursor-pointer">
+                  <CreditCard className="mr-2 h-4 w-4" />
+                  <span>{t('billing')}</span>
                 </DropdownMenuItem>
               </Link>
               <Link href="/settings">

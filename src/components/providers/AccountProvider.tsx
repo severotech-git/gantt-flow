@@ -8,12 +8,11 @@ import { useSettingsStore } from '@/store/useSettingsStore';
 import { PendingInvitesDialog } from '@/components/dialogs/PendingInvitesDialog';
 
 export function AccountProvider({ children }: { children: React.ReactNode }) {
-  const { status } = useSession();
+  const { status, data: session } = useSession();
   const router = useRouter();
   const fetchAccounts = useAccountStore((s) => s.fetchAccounts);
   const fetchPendingInvitations = useAccountStore((s) => s.fetchPendingInvitations);
   const fetchSettings = useSettingsStore((s) => s.fetchSettings);
-  const pendingInvites = useAccountStore((s) => s.pendingInvites);
   const [showPendingDialog, setShowPendingDialog] = useState(false);
 
   useEffect(() => {
@@ -36,15 +35,13 @@ export function AccountProvider({ children }: { children: React.ReactNode }) {
     });
     fetchPendingInvitations().then(() => {
       const { pendingInvites: invites } = useAccountStore.getState();
-      if (invites.length > 0) setShowPendingDialog(true);
+      if (invites.length > 0 && session?.user?.emailVerified) {
+        setTimeout(() => setShowPendingDialog(true), 5000);
+      }
     });
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [status]); // router/fetch refs are stable; re-running only on auth status change is intentional
 
-  // Show dialog whenever new pending invites arrive
-  useEffect(() => {
-    if (pendingInvites.length > 0) setShowPendingDialog(true);
-  }, [pendingInvites.length]);
 
   return (
     <>

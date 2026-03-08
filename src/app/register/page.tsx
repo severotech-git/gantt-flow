@@ -31,6 +31,7 @@ function detectLocale(): AppLocale {
 
 function RegisterPageContent() {
   const t = useTranslations('auth.register');
+  const tErr = useTranslations('apiErrors');
   const router = useRouter();
   const searchParams = useSearchParams();
   const inviteToken = searchParams.get('inviteToken');
@@ -78,7 +79,7 @@ function RegisterPageContent() {
       const data = await response.json();
 
       if (!response.ok) {
-        setError(data.error || 'Registration failed');
+        setError(data.code ? tErr(data.code as never) : tErr('GENERIC'));
         return;
       }
 

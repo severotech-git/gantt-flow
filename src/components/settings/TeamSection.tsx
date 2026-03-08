@@ -16,10 +16,12 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { InviteMemberDialog } from '@/components/dialogs/InviteMemberDialog';
 import { UserPlus, Trash2, Loader2, ChevronDown, Check } from 'lucide-react';
-import { useTranslations } from 'next-intl';
+import { useTranslations, useFormatter, useNow } from 'next-intl';
 
 export function TeamSection() {
   const t = useTranslations('settings.team');
+  const format = useFormatter();
+  const now = useNow();
   const router = useRouter();
   const { data: session } = useSession();
   const activeAccountId = session?.user?.activeAccountId;
@@ -208,6 +210,9 @@ export function TeamSection() {
                 <div key={inv._id} className="flex items-center gap-3 px-4 py-3">
                   <div className="flex-1 min-w-0">
                     <p className="text-sm truncate">{inv.email}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {t('expiresLabel', { time: format.relativeTime(new Date(inv.expiresAt), now) })}
+                    </p>
                   </div>
                   <Badge variant="outline" className="text-[10px] shrink-0">{inv.role}</Badge>
                   <Badge className="text-[10px] shrink-0 bg-yellow-100 text-yellow-800 border-yellow-200">

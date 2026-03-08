@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
     const rl = checkRateLimit(`register:${ip}`, 5, 60 * 60 * 1000);
     if (!rl.ok) {
       return NextResponse.json(
-        { error: 'Too many requests. Please try again later.' },
+        { error: 'Too many requests. Please try again later.', code: 'TOO_MANY_ATTEMPTS' },
         { status: 429, headers: { 'Retry-After': String(rl.retryAfterSeconds) } }
       );
     }
@@ -29,20 +29,20 @@ export async function POST(request: NextRequest) {
     // Validation
     if (!name || !email || !password || !confirmPassword) {
       return NextResponse.json(
-        { error: 'Missing required fields' },
+        { error: 'Missing required fields', code: 'MISSING_FIELDS' },
         { status: 400 }
       );
     }
     if (typeof name !== 'string' || name.trim().length > 100) {
-      return NextResponse.json({ error: 'name must be 100 characters or fewer' }, { status: 400 });
+      return NextResponse.json({ error: 'name must be 100 characters or fewer', code: 'NAME_TOO_LONG' }, { status: 400 });
     }
     if (typeof email !== 'string' || email.length > 254) {
-      return NextResponse.json({ error: 'Invalid email format' }, { status: 400 });
+      return NextResponse.json({ error: 'Invalid email format', code: 'EMAIL_INVALID' }, { status: 400 });
     }
 
     if (password !== confirmPassword) {
       return NextResponse.json(
-        { error: 'Passwords do not match' },
+        { error: 'Passwords do not match', code: 'PASSWORD_MISMATCH' },
         { status: 400 }
       );
     }
@@ -55,7 +55,7 @@ export async function POST(request: NextRequest) {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       return NextResponse.json(
-        { error: 'Invalid email format' },
+        { error: 'Invalid email format', code: 'EMAIL_INVALID' },
         { status: 400 }
       );
     }
@@ -66,7 +66,7 @@ export async function POST(request: NextRequest) {
     const existingUser = await User.findOne({ email: email.toLowerCase() });
     if (existingUser) {
       return NextResponse.json(
-        { error: 'Email already in use' },
+        { error: 'Email already in use', code: 'EMAIL_ALREADY_IN_USE' },
         { status: 400 }
       );
     }

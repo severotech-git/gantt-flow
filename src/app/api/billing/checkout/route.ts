@@ -23,14 +23,14 @@ export async function POST(req: NextRequest) {
     ).lean();
     const role = account?.members?.[0]?.role;
     if (role !== 'owner') {
-      return NextResponse.json({ error: 'Only the account owner can subscribe' }, { status: 403 });
+      return NextResponse.json({ error: 'Only the account owner can subscribe', code: 'OWNER_ONLY' }, { status: 403 });
     }
 
     const { priceId } = await req.json();
-    if (!priceId) return NextResponse.json({ error: 'priceId is required' }, { status: 400 });
+    if (!priceId) return NextResponse.json({ error: 'priceId is required', code: 'PRICE_ID_REQUIRED' }, { status: 400 });
 
     const plan = await Plan.findOne({ stripePriceId: priceId, isActive: true }).lean();
-    if (!plan) return NextResponse.json({ error: 'Plan not found' }, { status: 404 });
+    if (!plan) return NextResponse.json({ error: 'Plan not found', code: 'PLAN_NOT_FOUND' }, { status: 404 });
 
     let stripeCustomerId = account?.stripeCustomerId;
     if (!stripeCustomerId) {
@@ -55,6 +55,9 @@ export async function POST(req: NextRequest) {
       cancel_url: `${baseUrl}/settings?section=billing&checkout=cancelled`,
       metadata: { accountId },
       subscription_data: { metadata: { accountId } },
+      tax_id_collection: { enabled: true },
+      billing_address_collection: 'required',
+      customer_update: { address: 'auto', name: 'auto' },
     });
 
     return NextResponse.json({ url: session.url });

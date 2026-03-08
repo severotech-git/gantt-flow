@@ -29,6 +29,7 @@ interface InviteMemberDialogProps {
 
 export function InviteMemberDialog({ open, onOpenChange }: InviteMemberDialogProps) {
   const t = useTranslations('dialogs.inviteMember');
+  const tErr = useTranslations('apiErrors');
   const sendInvitation = useAccountStore((s) => s.sendInvitation);
   const [email, setEmail] = useState('');
   const [role, setRole] = useState('member');
@@ -50,7 +51,12 @@ export function InviteMemberDialog({ open, onOpenChange }: InviteMemberDialogPro
         onOpenChange(false);
       }, 1500);
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : t('failedError'));
+      const e = err as Error & { code?: string };
+      if (e.code) {
+        setError(tErr(e.code as never));
+      } else {
+        setError(e.message || t('failedError'));
+      }
     } finally {
       setLoading(false);
     }
