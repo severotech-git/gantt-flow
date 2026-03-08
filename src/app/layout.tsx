@@ -13,7 +13,26 @@ const inter = Inter({ subsets: ['latin'], variable: '--font-inter', display: 'sw
 
 export const metadata: Metadata = {
   title: 'GanttFlow – Project Roadmap',
-  description: 'Personal Gantt chart and project management tool',
+  description: 'Plan, track, and visualize your projects with interactive Gantt charts.',
+  openGraph: {
+    title: 'GanttFlow – Project Roadmap',
+    description: 'Plan, track, and visualize your projects with interactive Gantt charts.',
+    siteName: 'GanttFlow',
+    type: 'website',
+    locale: 'en_US',
+    images: [
+      {
+        url: '/logo.png',
+        alt: 'GanttFlow Logo',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary',
+    title: 'GanttFlow – Project Roadmap',
+    description: 'Plan, track, and visualize your projects with interactive Gantt charts.',
+    images: ['/logo.png'],
+  },
 };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {

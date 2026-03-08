@@ -7,9 +7,10 @@ export const runtime = 'nodejs';
 
 export async function GET(request: NextRequest) {
   const token = request.nextUrl.searchParams.get('token');
+  const baseUrl = process.env.NEXTAUTH_URL || request.url;
 
   if (!token) {
-    return NextResponse.redirect(new URL('/verify-email?error=missing', request.url));
+    return NextResponse.redirect(new URL('/verify-email?error=missing', baseUrl));
   }
 
   try {
@@ -21,12 +22,12 @@ export async function GET(request: NextRequest) {
     // attackers from distinguishing "token doesn't exist" vs "token expired"
     // (which would allow them to map valid token patterns).
     if (!verification) {
-      return NextResponse.redirect(new URL('/verify-email?error=invalid', request.url));
+      return NextResponse.redirect(new URL('/verify-email?error=invalid', baseUrl));
     }
 
     if (verification.expiresAt < new Date()) {
       await EmailVerification.deleteOne({ _id: verification._id });
-      return NextResponse.redirect(new URL('/verify-email?error=invalid', request.url));
+      return NextResponse.redirect(new URL('/verify-email?error=invalid', baseUrl));
     }
 
     // Mark user as verified
@@ -37,9 +38,9 @@ export async function GET(request: NextRequest) {
     // Remove the verification doc (or leave for TTL — delete immediately is cleaner)
     await EmailVerification.deleteOne({ _id: verification._id });
 
-    return NextResponse.redirect(new URL('/verify-email?success=1', request.url));
+    return NextResponse.redirect(new URL('/verify-email?success=1', baseUrl));
   } catch (err) {
     console.error('[verify-email] Error:', err);
-    return NextResponse.redirect(new URL('/verify-email?error=server', request.url));
+    return NextResponse.redirect(new URL('/verify-email?error=server', baseUrl));
   }
 }
