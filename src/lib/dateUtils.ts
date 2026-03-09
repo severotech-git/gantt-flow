@@ -173,6 +173,33 @@ export function getDelayDays(plannedEnd: string, actualEnd?: string): number {
   return differenceInCalendarDays(actual, planned);
 }
 
+/** Count calendar or business days from start to end (inclusive). */
+export function countDays(start: Date, end: Date, allowWeekends: boolean): number {
+  if (allowWeekends) return differenceInCalendarDays(end, start) + 1;
+  let count = 0;
+  let cur = start;
+  while (cur <= end) {
+    const d = cur.getDay();
+    if (d !== 0 && d !== 6) count++;
+    cur = addDays(cur, 1);
+  }
+  return Math.max(count, 1);
+}
+
+/** Add N calendar or business days to start (1 = same day). */
+export function addWorkdays(start: Date, n: number, allowWeekends: boolean): Date {
+  const days = Math.max(n - 1, 0);
+  if (allowWeekends) return addDays(start, days);
+  let remaining = days;
+  let cur = start;
+  while (remaining > 0) {
+    cur = addDays(cur, 1);
+    const d = cur.getDay();
+    if (d !== 0 && d !== 6) remaining--;
+  }
+  return cur;
+}
+
 /**
  * If weekends are disabled, snap a date to the nearest workday.
  * Start dates snap forward (Mon), end dates snap backward (Fri).

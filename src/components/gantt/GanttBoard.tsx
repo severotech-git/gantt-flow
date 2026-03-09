@@ -52,7 +52,7 @@ export function GanttBoard() {
   const project = useProjectStore(selectDisplayProject);
   const {
     timelineScale,
-    updateTask, updateFeature, updateEpic,
+    updateTask, updateFeature, updateEpic, updateDayCount,
     expandedEpicIds, expandedFeatureIds,
     isVersionReadOnly, isLoadingProject,
     zoomLevel, setZoomLevel,
@@ -147,6 +147,7 @@ export function GanttBoard() {
         plannedEnd: epic.plannedEnd,
         actualStart: epic.actualStart,
         actualEnd: epic.actualEnd,
+        dayCount: epic.dayCount,
         isExpanded: expandedEpicIds.has(epic._id),
         hasWarning: epicHasIssue,
         bar: {
@@ -180,6 +181,7 @@ export function GanttBoard() {
           plannedEnd: feat.plannedEnd,
           actualStart: feat.actualStart,
           actualEnd: feat.actualEnd,
+          dayCount: feat.dayCount,
           isExpanded: expandedFeatureIds.has(feat._id),
           hasWarning: featHasIssue,
           bar: {
@@ -215,6 +217,7 @@ export function GanttBoard() {
             plannedEnd: task.plannedEnd,
             actualStart: task.actualStart,
             actualEnd: task.actualEnd,
+            dayCount: task.dayCount,
             bar: {
               id: `bar-task-${task._id}`,
               epicId: epic._id,
@@ -447,6 +450,7 @@ export function GanttBoard() {
             onScrollY={onTaskPanelScroll}
             onAddFeature={(epicId) => setAddDialog({ mode: 'feature', epicId })}
             onAddTask={(epicId, featureId) => setAddDialog({ mode: 'task', epicId, featureId })}
+            onDayCountChange={(epicId, featureId, taskId, n) => updateDayCount(epicId, featureId, taskId, n)}
           />
 
           <GanttTimeline
@@ -508,6 +512,8 @@ export function GanttBoard() {
               width={activeDrag.overlayWidth}
               readonly
               isOverlay
+              pxPerDay={pxPerDay}
+              allowWeekends={allowWeekends}
             />
           </div>
         )}

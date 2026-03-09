@@ -4,8 +4,8 @@ import { useDraggable } from '@dnd-kit/core';
 import { CSS } from '@dnd-kit/utilities';
 import { cn } from '@/lib/utils';
 import { useSettingsStore } from '@/store/useSettingsStore';
-import { getDelayDays } from '@/lib/dateUtils';
-import { differenceInCalendarDays, parseISO, isValid } from 'date-fns';
+import { getDelayDays, countDays, snapToWorkday } from '@/lib/dateUtils';
+import { differenceInCalendarDays, parseISO, isValid, addDays } from 'date-fns';
 import {
   Tooltip,
   TooltipContent,
@@ -37,6 +37,8 @@ interface GanttBarProps extends GanttBarData {
   readonly: boolean;
   isOverlay?: boolean;
   dragDelta?: { id: string; x: number } | null;
+  pxPerDay?: number;
+  allowWeekends?: boolean;
 }
 
 // Level-specific bar heights (px)
@@ -74,8 +76,11 @@ export function GanttBar({
   ownerId,
   dragDelta,
   hasWarning,
+  pxPerDay = 28,
+  allowWeekends = true,
 }: GanttBarProps) {
   const t = useTranslations('gantt.bar');
+  const fmt = useFormatter();
   const statuses = useSettingsStore((s) => s.statuses);
   const users = useSettingsStore((s) => s.users);
   const ownerUser = users.find((u) => u.uid === ownerId);
@@ -107,14 +112,38 @@ export function GanttBar({
   let finalWidth = width;
   let finalTransform = transform ? CSS.Translate.toString(transform) : undefined;
   let isResizing = false;
+  const isResizingLeft = dragDelta?.id === `resize-left:${id}`;
+  const isResizingRight = dragDelta?.id === `resize-right:${id}`;
+
+  // Compute live dates for drag tooltip (move or resize)
+  let liveStart = parseISO(plannedStart);
+  let liveEnd = parseISO(plannedEnd);
+  if (isResizingLeft && dragDelta) {
+    const raw = addDays(liveStart, Math.round(dragDelta.x / pxPerDay));
+    liveStart = allowWeekends ? raw : snapToWorkday(raw, 'forward');
+  } else if (isResizingRight && dragDelta) {
+    const raw = addDays(liveEnd, Math.round(dragDelta.x / pxPerDay));
+    liveEnd = allowWeekends ? raw : snapToWorkday(raw, 'backward');
+  } else if (isMoving && transform) {
+    const deltaDays = Math.round(transform.x / pxPerDay);
+    const rawStart = addDays(liveStart, deltaDays);
+    const rawEnd = addDays(liveEnd, deltaDays);
+    liveStart = allowWeekends ? rawStart : snapToWorkday(rawStart, 'forward');
+    liveEnd = allowWeekends ? rawEnd : snapToWorkday(rawEnd, 'backward');
+  }
+  const showTooltip = (isResizingLeft || isResizingRight || isMoving);
+  const liveDayCount = showTooltip ? countDays(liveStart, liveEnd, allowWeekends) : 0;
+
+  const fmtShort = (d: Date) =>
+    isValid(d) ? fmt.dateTime(d, { month: 'short', day: 'numeric' }) : '—';
 
   if (dragDelta) {
-    if (dragDelta.id === `resize-left:${id}`) {
+    if (isResizingLeft) {
       isResizing = true;
       finalLeft = left + Math.min(dragDelta.x, width - 8);
       finalWidth = Math.max(width - dragDelta.x, 8);
       finalTransform = undefined;
-    } else if (dragDelta.id === `resize-right:${id}`) {
+    } else if (isResizingRight) {
       isResizing = true;
       finalWidth = Math.max(width + dragDelta.x, 8);
       finalTransform = undefined;
@@ -179,6 +208,17 @@ export function GanttBar({
       {!isOverlay && isDelayed && (
         <div className="absolute right-full top-1/2 -translate-y-1/2 pr-1.5 text-[10px] font-semibold whitespace-nowrap pointer-events-none text-red-400">
           +{delayDays}d
+        </div>
+      )}
+
+      {/* Drag tooltip (move or resize) */}
+      {showTooltip && !isOverlay && (
+        <div className="absolute -top-7 left-1/2 -translate-x-1/2 whitespace-nowrap bg-popover border border-border text-popover-foreground text-[11px] font-medium px-2 py-0.5 rounded shadow-lg pointer-events-none z-50 flex items-center gap-1.5">
+          <span>{fmtShort(liveStart)}</span>
+          <span className="opacity-40">·</span>
+          <span>{fmtShort(liveEnd)}</span>
+          <span className="opacity-40">·</span>
+          <span className="tabular-nums">{liveDayCount}d</span>
         </div>
       )}
 

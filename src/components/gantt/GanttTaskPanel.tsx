@@ -31,6 +31,7 @@ export interface VisibleRow {
   plannedStart: string;
   actualStart?: string;
   actualEnd?: string;
+  dayCount?: number;
   isExpanded?: boolean;
   bar?: GanttBarData;
   hasWarning?: boolean;
@@ -114,10 +115,11 @@ interface GanttTaskPanelProps {
   onScrollY: (scrollTop: number) => void;
   onAddFeature: (epicId: string) => void;
   onAddTask: (epicId: string, featureId: string) => void;
+  onDayCountChange: (epicId: string, featureId: string | undefined, taskId: string | undefined, n: number) => void;
 }
 
 export const GanttTaskPanel = forwardRef<HTMLDivElement, GanttTaskPanelProps>(
-  function GanttTaskPanel({ visibleRows, onScrollY, onAddFeature, onAddTask }, ref) {
+  function GanttTaskPanel({ visibleRows, onScrollY, onAddFeature, onAddTask, onDayCountChange }, ref) {
     const {
       toggleEpic, toggleFeature,
       expandedEpicIds, expandedFeatureIds,
@@ -217,6 +219,7 @@ export const GanttTaskPanel = forwardRef<HTMLDivElement, GanttTaskPanelProps>(
                   else if (row.level === 'feature' && row.featureId)
                     updateFeature(row.epicId, row.featureId, { completionPct: pct });
                 }}
+                onDayCountChange={(n) => onDayCountChange(row.epicId, row.featureId, row.taskId, n)}
                 onNameChange={(name) => {
                   if (row.level === 'epic') updateEpic(row.epicId, { name });
                   else if (row.level === 'feature' && row.featureId) updateFeature(row.epicId, row.featureId, { name });
@@ -311,6 +314,7 @@ function PanelHeader() {
       </div>
       <div className="w-7 text-center">{t('owner')}</div>
       <div className="w-[88px] text-center">{t('status')}</div>
+      <div className="w-12 text-center">{t('days')}</div>
       <div className="w-14 text-center">{t('pct')}</div>
     </>
   );
@@ -377,6 +381,7 @@ interface TaskRowProps {
   onStatusChange: (s: string) => void;
   onOwnerChange: (uid: string | undefined) => void;
   onPctChange: (n: number) => void;
+  onDayCountChange: (n: number) => void;
   onNameChange: (s: string) => void;
 }
 
@@ -394,6 +399,7 @@ function TaskRow({
   onStatusChange,
   onOwnerChange,
   onPctChange,
+  onDayCountChange,
   onNameChange,
 }: TaskRowProps) {
   const { statuses, users } = useSettingsStore();
@@ -558,6 +564,17 @@ function TaskRow({
         )}
       </div>
 
+      {/* Days (click to edit) */}
+      <div className="w-12 flex items-center justify-center shrink-0">
+        {!readonly ? (
+          <DayEditor value={row.dayCount} onChange={onDayCountChange} />
+        ) : (
+          <span className="text-[11px] text-muted-foreground tabular-nums">
+            {row.dayCount != null ? `${row.dayCount}d` : '—'}
+          </span>
+        )}
+      </div>
+
       {/* Completion % (click to edit on tasks/features) */}
       <div className="w-14 flex items-center justify-center shrink-0">
         {!readonly && row.level !== 'epic' ? (
@@ -641,6 +658,46 @@ function NameEditor({ value, onChange, readonly, className }: { value: string; o
       onBlur={commit}
       onKeyDown={(e) => { if (e.key === 'Enter') commit(); if (e.key === 'Escape') { setDraft(value); setEditing(false); } }}
       className="flex-1 bg-muted border border-blue-500/50 rounded px-1 -ml-1 outline-none text-[inherit] font-[inherit]"
+      autoFocus
+    />
+  );
+}
+
+// ─── Inline Days editor ──────────────────────────────────────────────────────
+
+function DayEditor({ value, onChange }: { value: number | undefined; onChange: (n: number) => void }) {
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(value != null ? String(value) : '');
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  function commit() {
+    const n = parseInt(draft, 10);
+    if (!isNaN(n) && n >= 1 && n !== value) onChange(n);
+    setEditing(false);
+  }
+
+  if (!editing) {
+    return (
+      <button
+        onClick={() => { setDraft(value != null ? String(value) : ''); setEditing(true); setTimeout(() => inputRef.current?.select(), 0); }}
+        className="text-[11px] text-muted-foreground hover:text-foreground hover:bg-muted px-1.5 py-0.5 rounded transition-colors tabular-nums"
+        title="Click to edit days"
+      >
+        {value != null ? `${value}d` : '—'}
+      </button>
+    );
+  }
+
+  return (
+    <input
+      ref={inputRef}
+      type="number"
+      min={1}
+      value={draft}
+      onChange={(e) => setDraft(e.target.value)}
+      onBlur={commit}
+      onKeyDown={(e) => { if (e.key === 'Enter') commit(); if (e.key === 'Escape') setEditing(false); }}
+      className="w-12 text-[11px] text-foreground bg-muted border border-blue-500/50 rounded px-1 py-0.5 text-center outline-none tabular-nums"
       autoFocus
     />
   );

@@ -267,7 +267,8 @@
       "selectProject": "Selecione um projeto na barra lateral",
       "addFeature": "Adicionar funcionalidade",
       "addTask": "Adicionar tarefa",
-      "deleteTitle": "Excluir"
+      "deleteTitle": "Excluir",
+      "days": "Dias"
     },
     "footer": {
       "tasks": "{count} tarefas",

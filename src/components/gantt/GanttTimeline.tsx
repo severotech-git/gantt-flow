@@ -2,6 +2,7 @@
 
 import { useRef, forwardRef, useImperativeHandle, useEffect, useLayoutEffect, useState, useCallback, useMemo } from 'react';
 import { useProjectStore } from '@/store/useProjectStore';
+import { useSettingsStore } from '@/store/useSettingsStore';
 import { GanttBar } from './GanttBar';
 import { differenceInCalendarDays, parseISO, isValid, addDays, startOfWeek } from 'date-fns';
 import { cn } from '@/lib/utils';
@@ -97,6 +98,7 @@ function buildHeader(scale: string, timelineStart: Date, totalDays: number, fmtD
 export const GanttTimeline = forwardRef<GanttTimelineHandle, GanttTimelineProps>(
   function GanttTimeline({ visibleRows, onScrollY, dragDelta }, ref) {
     const { timelineScale, timelineStartDate: storeStartDate, isVersionReadOnly, focusedBarId, setFocusedBarId, zoomLevel, timelineScrollTarget, clearTimelineScrollTarget } = useProjectStore();
+    const allowWeekends = useSettingsStore((s) => s.allowWeekends);
     const scrollRef = useRef<HTMLDivElement>(null);
     const fmt = useFormatter();
     const fmtDate: FmtDate = (date, opts) => fmt.dateTime(date, opts);
@@ -317,6 +319,8 @@ export const GanttTimeline = forwardRef<GanttTimelineHandle, GanttTimelineProps>
                     width={barWidth(row.bar.plannedStart, row.bar.plannedEnd)}
                     readonly={isVersionReadOnly}
                     dragDelta={(dragDelta?.id === row.bar.id || dragDelta?.id.endsWith(`:${row.bar.id}`)) ? dragDelta : null}
+                    pxPerDay={pxPerDay}
+                    allowWeekends={allowWeekends}
                   />
                 )}
               </div>

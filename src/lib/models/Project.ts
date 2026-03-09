@@ -14,6 +14,7 @@ const TaskSchema = new Schema(
     actualEnd:     { type: Date },
     notes:         { type: String },
     color:         { type: String },
+    dayCount:      { type: Number },
   },
   { _id: true }
 );
@@ -29,6 +30,7 @@ const FeatureSchema = new Schema(
     actualStart:   { type: Date },
     actualEnd:     { type: Date },
     color:         { type: String },
+    dayCount:      { type: Number },
     tasks:         { type: [TaskSchema], default: [] },
   },
   { _id: true }
@@ -45,6 +47,7 @@ const EpicSchema = new Schema(
     actualStart:   { type: Date },
     actualEnd:     { type: Date },
     color:         { type: String },
+    dayCount:      { type: Number },
     features:      { type: [FeatureSchema], default: [] },
   },
   { _id: true }

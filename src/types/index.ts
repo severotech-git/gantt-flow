@@ -130,6 +130,7 @@ export interface ITask {
   actualEnd?: string;
   notes?: string;
   color?: string;
+  dayCount?: number;
 }
 
 export interface IFeature {
@@ -144,6 +145,7 @@ export interface IFeature {
   actualEnd?: string;
   tasks: ITask[];
   color?: string;
+  dayCount?: number;
 }
 
 export interface IEpic {
@@ -158,6 +160,7 @@ export interface IEpic {
   actualEnd?: string;
   features: IFeature[];
   color?: string;
+  dayCount?: number;
 }
 
 export interface IProject {

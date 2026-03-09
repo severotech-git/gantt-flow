@@ -267,7 +267,8 @@
       "selectProject": "Select a project from the sidebar",
       "addFeature": "Add feature",
       "addTask": "Add task",
-      "deleteTitle": "Delete"
+      "deleteTitle": "Delete",
+      "days": "Days"
     },
     "footer": {
       "tasks": "{count} tasks",

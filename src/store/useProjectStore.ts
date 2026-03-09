@@ -2,8 +2,16 @@ import { enableMapSet } from 'immer';
 import { create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
 import { IEpic, IFeature, IProject, IProjectSnapshot, ITask, TimelineScale } from '@/types';
-import { rollupEpicDates, rollupFeatureDates, getDefaultStartDate, getProjectTimelineStart } from '@/lib/dateUtils';
+import { rollupEpicDates, rollupFeatureDates, getDefaultStartDate, getProjectTimelineStart, countDays, addWorkdays } from '@/lib/dateUtils';
+import { parseISO, isValid } from 'date-fns';
 import { useSettingsStore } from '@/store/useSettingsStore';
+
+function computeDayCount(s: string, e: string, allowWeekends: boolean): number {
+  const start = parseISO(s);
+  const end = parseISO(e);
+  if (!isValid(start) || !isValid(end)) return 0;
+  return countDays(start, end, allowWeekends);
+}
 
 // Required for Immer to draft Map and Set instances
 enableMapSet();
@@ -87,6 +95,7 @@ interface ProjectActions {
   addTask: (epicId: string, featureId: string, task: Omit<ITask, '_id'>) => Promise<void>;
   updateTask: (epicId: string, featureId: string, taskId: string, patch: Partial<ITask>) => Promise<void>;
   removeTask: (epicId: string, featureId: string, taskId: string) => Promise<void>;
+  updateDayCount: (epicId: string, featureId: string | undefined, taskId: string | undefined, n: number) => Promise<void>;
 
   // UI toggles
   toggleEpic: (epicId: string) => void;
@@ -431,7 +440,10 @@ export const useProjectStore = create<ProjectStore>()(
     addEpic: async (epic) => {
       set((s) => {
         if (!s.activeProject) return;
-        s.activeProject.epics.push({ ...epic, _id: tempId() } as IEpic);
+        const allowWeekends = useSettingsStore.getState().allowWeekends;
+        const newEpic = { ...epic, _id: tempId() } as IEpic;
+        newEpic.dayCount = computeDayCount(newEpic.plannedStart, newEpic.plannedEnd, allowWeekends);
+        s.activeProject.epics.push(newEpic);
       });
       await get().persistProject();
     },
@@ -442,6 +454,9 @@ export const useProjectStore = create<ProjectStore>()(
         const idx = s.activeProject.epics.findIndex((e) => e._id === epicId);
         if (idx === -1) return;
         s.activeProject.epics[idx] = { ...s.activeProject.epics[idx], ...patch };
+        const epic = s.activeProject.epics[idx];
+        const allowWeekends = useSettingsStore.getState().allowWeekends;
+        epic.dayCount = computeDayCount(epic.plannedStart, epic.plannedEnd, allowWeekends);
       });
       await get().persistProject();
     },
@@ -460,9 +475,13 @@ export const useProjectStore = create<ProjectStore>()(
         if (!s.activeProject) return;
         const epic = s.activeProject.epics.find((e) => e._id === epicId);
         if (!epic) return;
-        epic.features.push({ ...feature, _id: tempId() } as IFeature);
+        const allowWeekends = useSettingsStore.getState().allowWeekends;
+        const newFeat = { ...feature, _id: tempId() } as IFeature;
+        newFeat.dayCount = computeDayCount(newFeat.plannedStart, newFeat.plannedEnd, allowWeekends);
+        epic.features.push(newFeat);
         const rolledEpic = rollupEpicDates(epic as IEpic);
         Object.assign(epic, rolledEpic);
+        epic.dayCount = computeDayCount(epic.plannedStart, epic.plannedEnd, allowWeekends);
       });
       await get().persistProject();
     },
@@ -474,9 +493,13 @@ export const useProjectStore = create<ProjectStore>()(
         if (!epic) return;
         const fIdx = epic.features.findIndex((f) => f._id === featureId);
         if (fIdx === -1) return;
+        const allowWeekends = useSettingsStore.getState().allowWeekends;
         epic.features[fIdx] = { ...epic.features[fIdx], ...patch } as IFeature;
+        const feat = epic.features[fIdx];
+        feat.dayCount = computeDayCount(feat.plannedStart, feat.plannedEnd, allowWeekends);
         const rolledEpic = rollupEpicDates(epic as IEpic);
         Object.assign(epic, rolledEpic);
+        epic.dayCount = computeDayCount(epic.plannedStart, epic.plannedEnd, allowWeekends);
       });
       await get().persistProject();
     },
@@ -501,11 +524,16 @@ export const useProjectStore = create<ProjectStore>()(
         if (!epic) return;
         const feature = epic.features.find((f) => f._id === featureId);
         if (!feature) return;
-        feature.tasks.push({ ...task, _id: tempId() } as ITask);
+        const allowWeekends = useSettingsStore.getState().allowWeekends;
+        const newTask = { ...task, _id: tempId() } as ITask;
+        newTask.dayCount = computeDayCount(newTask.plannedStart, newTask.plannedEnd, allowWeekends);
+        feature.tasks.push(newTask);
         const rolledFeature = rollupFeatureDates(feature as IFeature);
         Object.assign(feature, rolledFeature);
+        feature.dayCount = computeDayCount(feature.plannedStart, feature.plannedEnd, allowWeekends);
         const rolledEpic = rollupEpicDates(epic as IEpic);
         Object.assign(epic, rolledEpic);
+        epic.dayCount = computeDayCount(epic.plannedStart, epic.plannedEnd, allowWeekends);
       });
       await get().persistProject();
     },
@@ -519,12 +547,17 @@ export const useProjectStore = create<ProjectStore>()(
         if (!feature) return;
         const tIdx = feature.tasks.findIndex((t) => t._id === taskId);
         if (tIdx === -1) return;
+        const allowWeekends = useSettingsStore.getState().allowWeekends;
         feature.tasks[tIdx] = { ...feature.tasks[tIdx], ...patch } as ITask;
+        const taskItem = feature.tasks[tIdx];
+        taskItem.dayCount = computeDayCount(taskItem.plannedStart, taskItem.plannedEnd, allowWeekends);
         // Rollup dates bottom-up
         const rolledFeature = rollupFeatureDates(feature as IFeature);
         Object.assign(feature, rolledFeature);
+        feature.dayCount = computeDayCount(feature.plannedStart, feature.plannedEnd, allowWeekends);
         const rolledEpic = rollupEpicDates(epic as IEpic);
         Object.assign(epic, rolledEpic);
+        epic.dayCount = computeDayCount(epic.plannedStart, epic.plannedEnd, allowWeekends);
       });
       await get().persistProject();
     },
@@ -543,6 +576,29 @@ export const useProjectStore = create<ProjectStore>()(
         Object.assign(epic, rolledEpic);
       });
       await get().persistProject();
+    },
+
+    updateDayCount: async (epicId, featureId, taskId, n) => {
+      const { allowWeekends } = useSettingsStore.getState();
+      if (taskId && featureId) {
+        const project = get().activeProject;
+        const task = project?.epics.find((e) => e._id === epicId)?.features.find((f) => f._id === featureId)?.tasks.find((t) => t._id === taskId);
+        if (!task?.plannedStart) return;
+        const newEnd = addWorkdays(parseISO(task.plannedStart), n, allowWeekends).toISOString();
+        await get().updateTask(epicId, featureId, taskId, { plannedEnd: newEnd, dayCount: n });
+      } else if (featureId) {
+        const project = get().activeProject;
+        const feat = project?.epics.find((e) => e._id === epicId)?.features.find((f) => f._id === featureId);
+        if (!feat?.plannedStart) return;
+        const newEnd = addWorkdays(parseISO(feat.plannedStart), n, allowWeekends).toISOString();
+        await get().updateFeature(epicId, featureId, { plannedEnd: newEnd, dayCount: n });
+      } else {
+        const project = get().activeProject;
+        const epic = project?.epics.find((e) => e._id === epicId);
+        if (!epic?.plannedStart) return;
+        const newEnd = addWorkdays(parseISO(epic.plannedStart), n, allowWeekends).toISOString();
+        await get().updateEpic(epicId, { plannedEnd: newEnd, dayCount: n });
+      }
     },
 
     // ── UI toggles ───────────────────────────────────────────────────────────
