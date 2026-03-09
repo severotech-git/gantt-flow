@@ -96,9 +96,6 @@ function RegisterPageContent() {
         } else {
           router.push('/projects');
         }
-      } else if (signInResult?.code === 'MFARequired') {
-        sessionStorage.setItem('mfa_pending_email', formData.email);
-        router.push(`/verify-mfa?email=${encodeURIComponent(formData.email)}`);
       } else {
         setError(t('autoLoginFailed'));
       }

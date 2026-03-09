@@ -159,6 +159,18 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         }
 
         // ── Branch C: Normal login → check trusted device, then generate OTP ──
+
+        // Skip MFA for unverified emails — middleware will redirect them to
+        // /verify-email anyway, and MFA before verification is pointless.
+        if (!user.emailVerified) {
+          return {
+            id: user._id.toString(),
+            email: user.email,
+            name: user.name,
+            image: user.image,
+          };
+        }
+
         const crypto = await import('crypto');
 
         // If a trusted-device cookie is present and valid, skip OTP entirely
