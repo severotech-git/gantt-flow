@@ -8,6 +8,7 @@ import { AccountProvider } from '@/components/providers/AccountProvider';
 import { NextIntlClientProvider } from 'next-intl';
 import { getMessages, getLocale } from 'next-intl/server';
 import { TrialBanner } from '@/components/billing/TrialBanner';
+import { GoogleAnalytics } from '@/components/analytics/GoogleAnalytics';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter', display: 'swap' });
 
@@ -42,6 +43,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
   return (
     <html lang={locale} className="dark">
+      <GoogleAnalytics />
       <body className={`${inter.variable} font-sans antialiased bg-background text-foreground`}>
         <NextIntlClientProvider locale={locale} messages={messages}>
           <AuthProvider>

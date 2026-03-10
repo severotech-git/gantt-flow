@@ -3,7 +3,8 @@
 import { useSession, signOut } from 'next-auth/react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { trackEvent, trackConversion } from '@/lib/analytics';
 import {
   Check,
   Layers,
@@ -120,6 +121,20 @@ export default function LandingPage() {
   const tNav = useTranslations('layout.navbar');
   const isLoggedIn = status === 'authenticated' && !!session?.user;
 
+  const pricingRef = useRef<HTMLDivElement>(null);
+  const featuresContainerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const el = pricingRef.current;
+    if (!el) return;
+    const obs = new IntersectionObserver(
+      ([entry]) => { if (entry.isIntersecting) { trackEvent('pricing_section_view'); obs.disconnect(); } },
+      { threshold: 0.3 }
+    );
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, []);
+
   if (status === 'loading') {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
@@ -170,6 +185,26 @@ export default function LandingPage() {
       image: timelineImg
     }
   ];
+
+  useEffect(() => {
+    const container = featuresContainerRef.current;
+    if (!container) return;
+    const obs = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            const idx = Number(entry.target.getAttribute('data-feature-index'));
+            trackEvent('feature_view', { feature_title: features[idx]?.title });
+            obs.unobserve(entry.target);
+          }
+        });
+      },
+      { threshold: 0.4 }
+    );
+    container.querySelectorAll('[data-feature-index]').forEach((el) => obs.observe(el));
+    return () => obs.disconnect();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col">
@@ -311,7 +346,11 @@ export default function LandingPage() {
                 <Link href="/login" className="w-full">
                   <Button variant="outline" className="w-full">{t('nav.login')}</Button>
                 </Link>
-                <Link href="/register" className="w-full">
+                <Link
+                  href="/register"
+                  className="w-full"
+                  onClick={() => { trackEvent('trial_signup_click', { location: 'mobile_nav' }); trackConversion(); }}
+                >
                   <Button className="w-full">{t('nav.tryForFree')}</Button>
                 </Link>
               </>
@@ -354,7 +393,10 @@ export default function LandingPage() {
 
             <div className="flex flex-col items-center gap-4 justify-center mb-16">
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Link href={isLoggedIn ? '/projects' : '/register'}>
+                <Link
+                  href={isLoggedIn ? '/projects' : '/register'}
+                  onClick={() => { if (!isLoggedIn) { trackEvent('trial_signup_click', { location: 'hero' }); trackConversion(); } }}
+                >
                   <Button size="lg" className="h-12 px-8 text-base font-semibold gap-2">
                     {isLoggedIn ? t('hero.goToProjects') : t('hero.cta')} <ArrowRight className="w-4 h-4" />
                   </Button>
@@ -401,10 +443,11 @@ export default function LandingPage() {
               <p className="text-muted-foreground max-w-xl mx-auto text-lg">{t('features.sectionSubtitle')}</p>
             </div>
 
-            <div className="space-y-32">
+            <div className="space-y-32" ref={featuresContainerRef}>
               {features.map((feature, index) => (
                 <div
                   key={index}
+                  data-feature-index={index}
                   className={cn(
                     "flex flex-col gap-12 lg:gap-24 items-center",
                     index % 2 === 0 ? "lg:flex-row" : "lg:flex-row-reverse"
@@ -455,7 +498,9 @@ export default function LandingPage() {
           </div>
         </section>
 
-        <LandingPricing />
+        <div ref={pricingRef}>
+          <LandingPricing />
+        </div>
 
         {/* CTA Section */}
         <section className="py-24 bg-primary text-primary-foreground relative overflow-hidden">
@@ -465,7 +510,10 @@ export default function LandingPage() {
               {t('cta.subtitle')}
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link href={isLoggedIn ? '/projects' : '/register'}>
+              <Link
+                href={isLoggedIn ? '/projects' : '/register'}
+                onClick={() => { if (!isLoggedIn) { trackEvent('trial_signup_click', { location: 'cta_section' }); trackConversion(); } }}
+              >
                 <Button size="lg" variant="secondary" className="h-14 px-10 text-lg font-bold">
                   {isLoggedIn ? t('hero.goToProjects') : t('cta.button')}
                 </Button>

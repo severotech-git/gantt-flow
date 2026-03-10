@@ -55,5 +55,5 @@ export const authConfig = {
     },
   },
   // Only trust X-Forwarded-Host in development; in production set NEXTAUTH_URL explicitly.
-  trustHost: process.env.NODE_ENV !== 'production',
+  trustHost: true,
 } satisfies NextAuthConfig;
