@@ -16,6 +16,10 @@ COPY . .
 # next build reads env vars at build time only for static generation;
 # runtime secrets are injected via the container, not baked in.
 ENV NEXT_TELEMETRY_DISABLED=1
+
+ARG NEXT_PUBLIC_GADS_CONVERSION_ID
+ENV NEXT_PUBLIC_GADS_CONVERSION_ID=$NEXT_PUBLIC_GADS_CONVERSION_ID
+
 RUN pnpm build
 
 # ──────────────────────────────────────────────
