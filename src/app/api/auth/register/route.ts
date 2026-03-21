@@ -13,9 +13,9 @@ export const runtime = 'nodejs';
 
 export async function POST(request: NextRequest) {
   try {
-    // Rate limit: 5 registrations per IP per hour
-    const ip = getClientIp(request.headers);
-    const rl = checkRateLimit(`register:${ip}`, 5, 60 * 60 * 1000);
+    // Rate limit: 3 registrations per IP per 24 hours
+    const ip = getClientIp(request.headers, (request as unknown as { ip?: string }).ip);
+    const rl = checkRateLimit(`register:${ip}`, 3, 24 * 60 * 60 * 1000);
     if (!rl.ok) {
       return NextResponse.json(
         { error: 'Too many requests. Please try again later.', code: 'TOO_MANY_ATTEMPTS' },

@@ -11,8 +11,13 @@ export const PASSWORD_RULES: PasswordRule[] = [
   { label: 'One special character',       test: (pw) => /[^A-Za-z0-9]/.test(pw) },
 ];
 
+const MAX_PASSWORD_LENGTH = 128;
+
 /** Returns an error message if the password fails any rule, or null if valid. */
 export function validatePassword(password: string): string | null {
+  if (password.length > MAX_PASSWORD_LENGTH) {
+    return `Password must be ${MAX_PASSWORD_LENGTH} characters or fewer.`;
+  }
   for (const rule of PASSWORD_RULES) {
     if (!rule.test(password)) return rule.label + ' is required.';
   }

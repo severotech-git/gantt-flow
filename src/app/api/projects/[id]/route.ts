@@ -36,6 +36,20 @@ export async function PATCH(req: NextRequest, { params }: Params) {
     const { id } = await params;
     const body = await req.json();
 
+    // Field-level validation
+    if ('name' in body && (typeof body.name !== 'string' || body.name.trim().length === 0 || body.name.length > 255)) {
+      return NextResponse.json({ error: 'name must be a non-empty string of 255 characters or fewer' }, { status: 400 });
+    }
+    if ('description' in body && body.description !== null && typeof body.description !== 'string') {
+      return NextResponse.json({ error: 'description must be a string' }, { status: 400 });
+    }
+    if ('description' in body && typeof body.description === 'string' && body.description.length > 5000) {
+      return NextResponse.json({ error: 'description must be 5000 characters or fewer' }, { status: 400 });
+    }
+    if ('color' in body && body.color !== null && !/^#[0-9A-Fa-f]{6}$/.test(body.color)) {
+      return NextResponse.json({ error: 'color must be a valid 6-digit hex color (e.g. #ff0000)' }, { status: 400 });
+    }
+
     const allowedFields = ['name', 'description', 'color', 'currentVersion', 'archived', 'epics'];
     const update: Record<string, unknown> = {};
     for (const key of allowedFields) {

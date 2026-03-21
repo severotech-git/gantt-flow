@@ -11,7 +11,7 @@ export const runtime = 'nodejs';
 const GENERIC_OK = { message: 'If that email exists, a reset link has been sent.' };
 
 export async function POST(request: NextRequest) {
-  const ip = getClientIp(request.headers);
+  const ip = getClientIp(request.headers, (request as unknown as { ip?: string }).ip);
   const ipLimit = checkRateLimit(`forgot:ip:${ip}`, 5, 60 * 60 * 1000);
   if (!ipLimit.ok) {
     return NextResponse.json(GENERIC_OK, { status: 200 });

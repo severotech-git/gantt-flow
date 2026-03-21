@@ -173,17 +173,27 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
         const crypto = await import('crypto');
 
-        // If a trusted-device cookie is present and valid, skip OTP entirely
+        // If a trusted-device cookie is present and valid, skip OTP entirely.
+        // findOneAndDelete is used so that two concurrent requests with the same
+        // cookie cannot both succeed (race-condition prevention). The token is
+        // immediately re-created so the device stays trusted for another 30 days.
         const cookieHeader2 = (request as Request).headers.get('cookie') ?? '';
         const trustCookie = parseCookie(cookieHeader2, '__mfa_trust');
         if (trustCookie) {
           const trustHash = crypto.createHash('sha256').update(trustCookie).digest('hex');
-          const trusted = await TrustedDevice.findOne({
+          const trusted = await TrustedDevice.findOneAndDelete({
             userId: user._id.toString(),
             tokenHash: trustHash,
             expiresAt: { $gt: new Date() },
           });
           if (trusted) {
+            // Re-issue the same token so the browser cookie continues to work.
+            // Ignore duplicate-key errors from any concurrent request that already recreated it.
+            await TrustedDevice.create({
+              userId: user._id.toString(),
+              tokenHash: trustHash,
+              expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+            }).catch(() => { /* concurrent request already recreated it — harmless */ });
             return {
               id: user._id.toString(),
               email: user.email,

@@ -58,8 +58,11 @@ export function checkRateLimit(
  * through a trusted reverse proxy first.  Set TRUSTED_PROXY=1 in your
  * environment (e.g. behind Nginx, AWS ALB, Cloudflare) to enable XFF trust.
  * Without it the headers are ignored to prevent rate-limit bypass via spoofing.
+ *
+ * Pass `directIp` (e.g. `NextRequest.ip`) as a fallback when the runtime
+ * provides the connection IP directly without a proxy header.
  */
-export function getClientIp(headers: Headers): string {
+export function getClientIp(headers: Headers, directIp?: string | null): string {
   if (process.env.TRUSTED_PROXY === '1') {
     const forwarded = headers.get('x-forwarded-for');
     if (forwarded) {
@@ -68,6 +71,13 @@ export function getClientIp(headers: Headers): string {
     }
     const realIp = headers.get('x-real-ip');
     if (realIp && isValidIp(realIp)) return realIp;
+  }
+  if (directIp && isValidIp(directIp)) return directIp;
+  if (process.env.NODE_ENV === 'production') {
+    console.warn(
+      '[rateLimit] getClientIp: no valid client IP resolved — all requests share the same ' +
+      'rate-limit bucket. Set TRUSTED_PROXY=1 behind a reverse proxy (Nginx, ALB, Cloudflare).'
+    );
   }
   return '127.0.0.1';
 }
