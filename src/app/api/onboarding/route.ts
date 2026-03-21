@@ -9,40 +9,41 @@ import { AppLocale, SUPPORTED_LOCALES } from '@/types';
 export const runtime = 'nodejs';
 
 const VALID_INDUSTRIES: IndustryKey[] = ['software', 'marketing', 'construction', 'education', 'events', 'product', 'other'];
+const VALID_TEAM_SIZES = ['solo', 'small', 'medium', 'large'];
+const VALID_USE_CASES  = ['project-tracking', 'sprint-planning', 'roadmap', 'campaign', 'general'];
 
 export async function POST(request: Request) {
   try {
     const authResult = await requireAuth();
     if (authResult instanceof NextResponse) return authResult;
-    const { userId, accountId } = authResult;
+    const { userId, accountId, locale: sessionLocale } = authResult;
 
     await connectDB();
 
-    // Idempotency: skip if already completed
-    const account = await Account.findById(accountId, { onboardingComplete: 1 }).lean();
-    if (account?.onboardingComplete) {
-      return NextResponse.json({ ok: true, alreadyComplete: true });
-    }
-
     const body = await request.json();
 
-    // Validate industry
+    // Validate and normalise inputs
     const industry: IndustryKey = VALID_INDUSTRIES.includes(body.industry) ? body.industry : 'other';
-
-    // Get user locale from session
-    const { auth } = await import('@/auth');
-    const session = await auth();
-    const sessionLocale = session?.user?.locale;
-    const locale: AppLocale = sessionLocale && SUPPORTED_LOCALES.includes(sessionLocale as AppLocale)
+    const teamSize: string = VALID_TEAM_SIZES.includes(body.teamSize) ? body.teamSize : 'solo';
+    const useCase:  string = VALID_USE_CASES.includes(body.useCase)   ? body.useCase  : 'general';
+    const locale: AppLocale = SUPPORTED_LOCALES.includes(sessionLocale as AppLocale)
       ? (sessionLocale as AppLocale)
       : 'en';
 
+    // Atomically claim the onboarding slot and persist the answers.
+    // findOneAndUpdate returns null when no document matched (already complete or not found).
+    const claimed = await Account.findOneAndUpdate(
+      { _id: accountId, onboardingComplete: { $ne: true } },
+      { $set: { onboardingComplete: true, onboardingAnswers: { industry, teamSize, useCase } } },
+      { new: false, projection: { _id: 1 } }
+    ).lean();
+
+    if (!claimed) {
+      return NextResponse.json({ ok: true, alreadyComplete: true });
+    }
+
     // Generate and create the sample project
-    const projectData = generateSampleProject({
-      industry,
-      locale,
-      userId,
-    });
+    const projectData = generateSampleProject({ industry, locale, userId });
 
     const project = await Project.create({
       ...projectData,
@@ -50,9 +51,6 @@ export async function POST(request: Request) {
       createdBy: userId,
       archived: false,
     });
-
-    // Mark onboarding as complete
-    await Account.findByIdAndUpdate(accountId, { $set: { onboardingComplete: true } });
 
     return NextResponse.json({ _id: project._id.toString(), name: project.name }, { status: 201 });
   } catch (err) {

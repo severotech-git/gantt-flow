@@ -23,6 +23,12 @@ export interface IEmbeddedSettings {
   allowWeekends: boolean;
 }
 
+export interface IOnboardingAnswers {
+  industry: string;
+  teamSize: string;
+  useCase: string;
+}
+
 export interface IAccountDocument extends Document {
   name: string;
   slug: string;
@@ -34,6 +40,7 @@ export interface IAccountDocument extends Document {
   settings: IEmbeddedSettings;
   stripeCustomerId?: string;
   onboardingComplete: boolean;
+  onboardingAnswers?: IOnboardingAnswers;
 }
 
 const MemberSchema = new Schema<IEmbeddedMember>(
@@ -85,6 +92,17 @@ const AccountSchema = new Schema<IAccountDocument>(
     plan:        { type: String, enum: ['trial', 'monthly-5', 'yearly-5', 'monthly-20', 'yearly-20'], default: 'trial' },
     stripeCustomerId: { type: String, sparse: true, index: true },
     onboardingComplete: { type: Boolean, default: false },
+    onboardingAnswers: {
+      type: new Schema(
+        {
+          industry: { type: String },
+          teamSize:  { type: String },
+          useCase:   { type: String },
+        },
+        { _id: false }
+      ),
+      default: undefined,
+    },
     trialEndsAt: { type: Date, required: true },
     status:      { type: String, enum: ['active', 'suspended', 'cancelled'], default: 'active' },
     createdBy:   { type: String, required: true, index: true },

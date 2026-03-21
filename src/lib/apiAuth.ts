@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server';
 export interface AuthResult {
   userId: string;
   accountId: string;
+  locale: string;
 }
 
 /**
@@ -26,6 +27,7 @@ export async function requireAuth(): Promise<AuthResult | NextResponse> {
   return {
     userId: session.user.id,
     accountId: session.user.activeAccountId,
+    locale: session.user.locale ?? 'en',
   };
 }
 
