@@ -272,7 +272,7 @@ export function GanttBoard() {
     }
 
     return rows;
-  }, [project, expandedEpicIds, expandedFeatureIds, isVersionReadOnly]);
+  }, [project, expandedEpicIds, expandedFeatureIds, isVersionReadOnly, statuses]);
 
   // ── DnD ────────────────────────────────────────────────────────────────
   const sensors = useSensors(

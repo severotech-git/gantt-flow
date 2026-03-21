@@ -203,7 +203,9 @@ export function getBarStyle(
 export function getDelayDays(plannedEnd: string, actualEnd?: string, isFinal?: boolean): number {
   const planned = toDate(plannedEnd);
   if (!planned) return 0;
-  // Only use actualEnd for finished items; in-progress items compare against today
+  // Final items without an actualEnd have no measurable delay
+  if (isFinal && !actualEnd) return 0;
+  // Final items compare against actualEnd; in-progress items compare against today
   const actual = (isFinal && actualEnd) ? toDate(actualEnd) : new Date();
   if (!actual) return 0;
   return differenceInCalendarDays(actual, planned);

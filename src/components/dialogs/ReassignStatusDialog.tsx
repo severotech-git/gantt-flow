@@ -36,8 +36,11 @@ export function ReassignStatusDialog({
   async function handleConfirm() {
     if (!targetStatus) return;
     setLoading(true);
-    await onConfirm(targetStatus);
-    setLoading(false);
+    try {
+      await onConfirm(targetStatus);
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (

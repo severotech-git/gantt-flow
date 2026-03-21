@@ -23,6 +23,7 @@ export function StatusConfigSection() {
   const canManage = useCanManage();
 
   const [usageCounts, setUsageCounts] = useState<Record<string, number>>({});
+  const [usageLoaded, setUsageLoaded] = useState(false);
   const [reassignTarget, setReassignTarget] = useState<IStatusConfig | null>(null);
 
   const fetchUsage = useCallback(async () => {
@@ -30,6 +31,7 @@ export function StatusConfigSection() {
       const res = await fetch('/api/settings/status-usage');
       if (res.ok) setUsageCounts(await res.json());
     } catch { /* ignore */ }
+    setUsageLoaded(true);
   }, []);
 
   useEffect(() => {
@@ -61,6 +63,7 @@ export function StatusConfigSection() {
   }
 
   function handleDeleteClick(st: IStatusConfig) {
+    if (!usageLoaded) return;
     const count = usageCounts[st.value] || 0;
     if (count > 0) {
       setReassignTarget(st);
@@ -71,16 +74,19 @@ export function StatusConfigSection() {
 
   async function handleReassignConfirm(toStatus: string) {
     if (!reassignTarget) return;
-    const res = await fetch('/api/settings/status-reassign', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ fromStatus: reassignTarget.value, toStatus }),
-    });
-    if (res.ok) {
+    try {
+      const res = await fetch('/api/settings/status-reassign', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fromStatus: reassignTarget.value, toStatus }),
+      });
+      if (!res.ok) return;
       deleteStatus(reassignTarget.value);
       await persistSettings('statuses');
       setReassignTarget(null);
       fetchUsage();
+    } catch {
+      // Network error — leave dialog open so user can retry
     }
   }
 
@@ -107,6 +113,7 @@ export function StatusConfigSection() {
             total={statuses.length}
             readonly={!canManage}
             usageCount={usageCounts[st.value] || 0}
+            deleteDisabled={!usageLoaded}
             onMoveUp={() => handleMoveUp(idx)}
             onMoveDown={() => handleMoveDown(idx)}
             onDelete={() => handleDeleteClick(st)}
@@ -155,13 +162,14 @@ interface StatusRowProps {
   total: number;
   readonly: boolean;
   usageCount: number;
+  deleteDisabled?: boolean;
   onMoveUp: () => void;
   onMoveDown: () => void;
   onDelete: () => void;
   onUpdate: (patch: Partial<IStatusConfig>) => void;
 }
 
-function StatusRow({ status, idx, total, readonly, usageCount, onMoveUp, onMoveDown, onDelete, onUpdate }: StatusRowProps) {
+function StatusRow({ status, idx, total, readonly, usageCount, deleteDisabled, onMoveUp, onMoveDown, onDelete, onUpdate }: StatusRowProps) {
   const t = useTranslations('settings.statuses');
   const isSystem = !!status.isSystem;
   const isFinalLocked = isSystem || readonly;
@@ -222,7 +230,8 @@ function StatusRow({ status, idx, total, readonly, usageCount, onMoveUp, onMoveD
           {!isSystem && (
             <button
               onClick={onDelete}
-              className="text-muted-foreground/60 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100"
+              disabled={deleteDisabled}
+              className="text-muted-foreground/60 hover:text-red-500 disabled:opacity-20 transition-colors opacity-0 group-hover:opacity-100"
               title={t('deleteTitle')}
             >
               <Trash2 size={14} />
