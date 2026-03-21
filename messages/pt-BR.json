@@ -624,5 +624,46 @@
       "trial": "Teste",
       "incomplete": "Incompleto"
     }
+  },
+  "onboarding": {
+    "welcome": {
+      "title": "Bem-vindo ao GanttFlow!",
+      "subtitle": "Responda algumas perguntas rapidas e criaremos um projeto exemplo para voce comecar."
+    },
+    "industry": {
+      "label": "Qual area melhor descreve voce?",
+      "software": "Desenvolvimento de Software",
+      "marketing": "Marketing",
+      "construction": "Construcao Civil",
+      "education": "Educacao",
+      "events": "Planejamento de Eventos",
+      "product": "Lancamento de Produto",
+      "other": "Outro"
+    },
+    "teamSize": {
+      "label": "Qual o tamanho da sua equipe?",
+      "solo": "So eu",
+      "small": "2–5 pessoas",
+      "medium": "6–15 pessoas",
+      "large": "16+ pessoas"
+    },
+    "useCase": {
+      "label": "Para que voce vai usar o GanttFlow?",
+      "project-tracking": "Gestao de Projetos",
+      "sprint-planning": "Planejamento de Sprints",
+      "roadmap": "Roadmap de Produto",
+      "campaign": "Gestao de Campanhas",
+      "general": "Planejamento Geral"
+    },
+    "actions": {
+      "next": "Proximo",
+      "back": "Voltar",
+      "skip": "Pular por enquanto",
+      "createSample": "Criar Projeto Exemplo"
+    },
+    "generating": {
+      "title": "Configurando seu workspace...",
+      "subtitle": "Estamos criando um projeto exemplo com base nas suas preferencias."
+    }
   }
 }

@@ -33,6 +33,7 @@ export interface IAccountDocument extends Document {
   members: IEmbeddedMember[];
   settings: IEmbeddedSettings;
   stripeCustomerId?: string;
+  onboardingComplete: boolean;
 }
 
 const MemberSchema = new Schema<IEmbeddedMember>(
@@ -83,6 +84,7 @@ const AccountSchema = new Schema<IAccountDocument>(
     slug:        { type: String, required: true, unique: true, lowercase: true, trim: true },
     plan:        { type: String, enum: ['trial', 'monthly-5', 'yearly-5', 'monthly-20', 'yearly-20'], default: 'trial' },
     stripeCustomerId: { type: String, sparse: true, index: true },
+    onboardingComplete: { type: Boolean, default: false },
     trialEndsAt: { type: Date, required: true },
     status:      { type: String, enum: ['active', 'suspended', 'cancelled'], default: 'active' },
     createdBy:   { type: String, required: true, index: true },

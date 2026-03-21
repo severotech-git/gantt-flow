@@ -27,7 +27,22 @@ function toISO(d: Date | null): string | undefined {
   return d ? d.toISOString() : undefined;
 }
 
-/** Recalculate a Feature's aggregate dates and completion from its tasks. */
+/** Derive a parent status from its children's statuses. */
+function deriveStatus(childStatuses: string[]): string {
+  if (childStatuses.length === 0) return 'todo';
+  const FINAL = new Set(['done', 'canceled']);
+  const allFinal = childStatuses.every((s) => FINAL.has(s));
+  if (allFinal) return 'done';
+  const allTodo = childStatuses.every((s) => s === 'todo');
+  if (allTodo) return 'todo';
+  // Any non-todo, non-final status (in-progress, qa, blocked, custom…) means work is active
+  const hasActive = childStatuses.some((s) => s !== 'todo' && !FINAL.has(s));
+  const hasDone = childStatuses.some((s) => FINAL.has(s));
+  if (hasActive || hasDone) return 'in-progress';
+  return 'todo';
+}
+
+/** Recalculate a Feature's aggregate dates, completion, and status from its tasks. */
 export function rollupFeatureDates(feature: IFeature): IFeature {
   if (!feature.tasks || feature.tasks.length === 0) return feature;
 
@@ -41,6 +56,7 @@ export function rollupFeatureDates(feature: IFeature): IFeature {
 
   return {
     ...feature,
+    status: deriveStatus(feature.tasks.map((t) => t.status)),
     plannedStart: plannedStarts.length ? dateMin(plannedStarts).toISOString() : feature.plannedStart,
     plannedEnd: plannedEnds.length ? dateMax(plannedEnds).toISOString() : feature.plannedEnd,
     actualStart: toISO(actualStarts.length ? dateMin(actualStarts) : null),
@@ -49,7 +65,7 @@ export function rollupFeatureDates(feature: IFeature): IFeature {
   };
 }
 
-/** Recalculate an Epic's aggregate dates and completion from its features. */
+/** Recalculate an Epic's aggregate dates, completion, and status from its features. */
 export function rollupEpicDates(epic: IEpic): IEpic {
   if (!epic.features || epic.features.length === 0) return epic;
 
@@ -67,6 +83,7 @@ export function rollupEpicDates(epic: IEpic): IEpic {
   return {
     ...epic,
     features: rolledFeatures,
+    status: deriveStatus(rolledFeatures.map((f) => f.status)),
     plannedStart: plannedStarts.length ? dateMin(plannedStarts).toISOString() : epic.plannedStart,
     plannedEnd: plannedEnds.length ? dateMax(plannedEnds).toISOString() : epic.plannedEnd,
     actualStart: toISO(actualStarts.length ? dateMin(actualStarts) : null),

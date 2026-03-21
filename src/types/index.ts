@@ -24,6 +24,7 @@ export interface IAccount {
   members: IAccountMember[];
   settings: IWorkspaceSettings;
   stripeCustomerId?: string;
+  onboardingComplete?: boolean;
   createdAt: string;
   updatedAt: string;
 }

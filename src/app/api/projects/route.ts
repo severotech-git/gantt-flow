@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { connectDB } from '@/lib/mongodb';
 import { requireAuth } from '@/lib/apiAuth';
 import Project from '@/lib/models/Project';
+import Account from '@/lib/models/Account';
 
 export const runtime = 'nodejs';
 
@@ -43,15 +44,18 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'description must be 5000 characters or fewer' }, { status: 400 });
     }
 
-    const project = await Project.create({
-      name: body.name.trim(),
-      description: body.description ?? '',
-      color: body.color ?? '#6366f1',
-      currentVersion: 'Live',
-      accountId,
-      createdBy: userId,
-      epics: [],
-    });
+    const [project] = await Promise.all([
+      Project.create({
+        name: body.name.trim(),
+        description: body.description ?? '',
+        color: body.color ?? '#6366f1',
+        currentVersion: 'Live',
+        accountId,
+        createdBy: userId,
+        epics: [],
+      }),
+      Account.updateOne({ _id: accountId, onboardingComplete: { $ne: true } }, { $set: { onboardingComplete: true } }),
+    ]);
 
     return NextResponse.json(project.toObject(), { status: 201 });
   } catch (err) {

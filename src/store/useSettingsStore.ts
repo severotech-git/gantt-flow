@@ -21,6 +21,7 @@ interface SettingsState {
   levelNames: { epic: string; feature: string; task: string };
   statuses: IStatusConfig[];
   allowWeekends: boolean;
+  onboardingComplete: boolean;
   isLoading: boolean;
   isSaving: boolean;
 }
@@ -29,6 +30,7 @@ interface SettingsActions {
   fetchSettings: () => Promise<void>;
   /** Persist only the specified keys — avoids sending managed fields when the user lacks permission. */
   persistSettings: (...keys: SettingsKey[]) => Promise<void>;
+  completeOnboarding: () => void;
   setTheme: (t: 'dark' | 'light' | 'system') => void;
   setLocale: (l: AppLocale) => void;
   setGanttScale: (s: TimelineScale) => void;
@@ -54,6 +56,7 @@ export const useSettingsStore = create<SettingsState & SettingsActions>()(
     levelNames: { epic: 'Epic', feature: 'Feature', task: 'Task' },
     statuses: DEFAULT_STATUSES,
     allowWeekends: false,
+    onboardingComplete: true,
     isLoading: false,
     isSaving: false,
 
@@ -72,6 +75,7 @@ export const useSettingsStore = create<SettingsState & SettingsActions>()(
           s.levelNames = data.levelNames ?? { epic: 'Epic', feature: 'Feature', task: 'Task' };
           s.statuses = data.statuses?.length ? data.statuses : DEFAULT_STATUSES;
           s.allowWeekends = data.allowWeekends ?? false;
+          s.onboardingComplete = data.onboardingComplete ?? true;
         });
         // Apply saved scale to project store without re-persisting
         const { useProjectStore } = await import('@/store/useProjectStore');
@@ -144,5 +148,7 @@ export const useSettingsStore = create<SettingsState & SettingsActions>()(
       s.statuses = s.statuses.filter((st) => st.value !== value);
     }),
     reorderStatuses: (newOrder) => set((s) => { s.statuses = newOrder; }),
+
+    completeOnboarding: () => set((s) => { s.onboardingComplete = true; }),
   }))
 );

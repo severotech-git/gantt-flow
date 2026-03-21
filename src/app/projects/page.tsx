@@ -6,6 +6,8 @@ import { Sidebar } from '@/components/layout/Sidebar';
 import { PageNavbar } from '@/components/layout/PageNavbar';
 import { NewProjectDialog } from '@/components/dialogs/NewProjectDialog';
 import { EditProjectDialog } from '@/components/dialogs/EditProjectDialog';
+import { OnboardingDialog } from '@/components/dialogs/OnboardingDialog';
+import { useSettingsStore } from '@/store/useSettingsStore';
 import Link from 'next/link';
 import { FolderKanban, Plus, BarChart3, Archive, ArchiveRestore, ChevronDown, ChevronRight, Trash2, Pencil } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -22,6 +24,9 @@ export default function ProjectsPage() {
   const [editProject, setEditProject] = useState<Omit<IProject, 'epics'> | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [skippedOnboarding, setSkippedOnboarding] = useState(false);
+  const onboardingComplete = useSettingsStore((s) => s.onboardingComplete);
+  const showOnboarding = !onboardingComplete && !skippedOnboarding;
   const t = useTranslations('projects');
   const tCommon = useTranslations('common');
 
@@ -121,6 +126,7 @@ export default function ProjectsPage() {
         project={editProject}
         onClose={() => setEditProject(null)}
       />
+      <OnboardingDialog open={showOnboarding} onSkip={() => setSkippedOnboarding(true)} />
 
       {/* Delete confirmation */}
       {confirmDelete && (

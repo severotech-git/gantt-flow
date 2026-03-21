@@ -14,13 +14,14 @@ export async function GET() {
 
     await connectDB();
     const [account, user] = await Promise.all([
-      Account.findById(accountId, { settings: 1 }).lean(),
+      Account.findById(accountId, { settings: 1, onboardingComplete: 1 }).lean(),
       User.findById(userId, { theme: 1, locale: 1, ganttScale: 1 }).lean(),
     ]);
 
     const u = user as { theme?: string; locale?: string; ganttScale?: string } | null;
     return NextResponse.json({
       ...(account?.settings ?? {}),
+      onboardingComplete: account?.onboardingComplete ?? true,
       theme: u?.theme ?? 'system',
       locale: u?.locale ?? 'en',
       ganttScale: u?.ganttScale ?? 'week',
@@ -94,7 +95,7 @@ export async function PATCH(request: Request) {
 
     // Return merged settings so the frontend state stays consistent
     const [account, user] = await Promise.all([
-      Account.findById(accountId, { settings: 1 }).lean(),
+      Account.findById(accountId, { settings: 1, onboardingComplete: 1 }).lean(),
       User.findById(userId, { theme: 1, locale: 1, ganttScale: 1 }).lean(),
     ]);
 
@@ -102,6 +103,7 @@ export async function PATCH(request: Request) {
     const locale = u2?.locale ?? 'en';
     const res = NextResponse.json({
       ...(account?.settings ?? {}),
+      onboardingComplete: account?.onboardingComplete ?? true,
       theme: u2?.theme ?? 'system',
       locale,
       ganttScale: u2?.ganttScale ?? 'week',
