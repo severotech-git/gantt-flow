@@ -1,4 +1,4 @@
-import { IEpic, IFeature } from '@/types';
+import { IEpic, IFeature, IStatusConfig } from '@/types';
 import {
   startOfWeek,
   startOfMonth,
@@ -27,23 +27,41 @@ function toISO(d: Date | null): string | undefined {
   return d ? d.toISOString() : undefined;
 }
 
-/** Derive a parent status from its children's statuses. */
-function deriveStatus(childStatuses: string[]): string {
+// Default final statuses used when no config is provided (server-side fallback)
+const DEFAULT_FINAL = new Set(['done', 'canceled']);
+
+/** Derive a parent status from its children's statuses.
+ *  When statusConfigs is provided, uses isFinal from settings.
+ *  Otherwise falls back to hardcoded defaults.
+ */
+export function deriveStatus(childStatuses: string[], statusConfigs?: IStatusConfig[]): string {
   if (childStatuses.length === 0) return 'todo';
-  const FINAL = new Set(['done', 'canceled']);
-  const allFinal = childStatuses.every((s) => FINAL.has(s));
-  if (allFinal) return 'done';
-  const allTodo = childStatuses.every((s) => s === 'todo');
-  if (allTodo) return 'todo';
-  // Any non-todo, non-final status (in-progress, qa, blocked, custom…) means work is active
-  const hasActive = childStatuses.some((s) => s !== 'todo' && !FINAL.has(s));
-  const hasDone = childStatuses.some((s) => FINAL.has(s));
-  if (hasActive || hasDone) return 'in-progress';
-  return 'todo';
+
+  const finalValues = statusConfigs
+    ? new Set(statusConfigs.filter((s) => s.isFinal).map((s) => s.value))
+    : DEFAULT_FINAL;
+  const firstStatus = statusConfigs?.[0]?.value ?? 'todo';
+
+  const allFinal = childStatuses.every((s) => finalValues.has(s));
+  if (allFinal) {
+    // Prefer 'done' if present among children, otherwise first child's status
+    const doneValue = childStatuses.find((s) => s === 'done');
+    return doneValue ?? childStatuses[0];
+  }
+
+  const allFirst = childStatuses.every((s) => s === firstStatus);
+  if (allFirst) return firstStatus;
+
+  // Any non-first, non-final status means work is active
+  const hasActive = childStatuses.some((s) => s !== firstStatus && !finalValues.has(s));
+  const hasFinal = childStatuses.some((s) => finalValues.has(s));
+  if (hasActive || hasFinal) return 'in-progress';
+
+  return firstStatus;
 }
 
 /** Recalculate a Feature's aggregate dates, completion, and status from its tasks. */
-export function rollupFeatureDates(feature: IFeature): IFeature {
+export function rollupFeatureDates(feature: IFeature, statusConfigs?: IStatusConfig[]): IFeature {
   if (!feature.tasks || feature.tasks.length === 0) return feature;
 
   const plannedStarts = feature.tasks.map((t) => toDate(t.plannedStart)).filter(Boolean) as Date[];
@@ -56,7 +74,7 @@ export function rollupFeatureDates(feature: IFeature): IFeature {
 
   return {
     ...feature,
-    status: deriveStatus(feature.tasks.map((t) => t.status)),
+    status: deriveStatus(feature.tasks.map((t) => t.status), statusConfigs),
     plannedStart: plannedStarts.length ? dateMin(plannedStarts).toISOString() : feature.plannedStart,
     plannedEnd: plannedEnds.length ? dateMax(plannedEnds).toISOString() : feature.plannedEnd,
     actualStart: toISO(actualStarts.length ? dateMin(actualStarts) : null),
@@ -66,11 +84,11 @@ export function rollupFeatureDates(feature: IFeature): IFeature {
 }
 
 /** Recalculate an Epic's aggregate dates, completion, and status from its features. */
-export function rollupEpicDates(epic: IEpic): IEpic {
+export function rollupEpicDates(epic: IEpic, statusConfigs?: IStatusConfig[]): IEpic {
   if (!epic.features || epic.features.length === 0) return epic;
 
   // First rollup each feature
-  const rolledFeatures = epic.features.map(rollupFeatureDates);
+  const rolledFeatures = epic.features.map((f) => rollupFeatureDates(f, statusConfigs));
 
   const plannedStarts = rolledFeatures.map((f) => toDate(f.plannedStart)).filter(Boolean) as Date[];
   const plannedEnds = rolledFeatures.map((f) => toDate(f.plannedEnd)).filter(Boolean) as Date[];
@@ -83,7 +101,7 @@ export function rollupEpicDates(epic: IEpic): IEpic {
   return {
     ...epic,
     features: rolledFeatures,
-    status: deriveStatus(rolledFeatures.map((f) => f.status)),
+    status: deriveStatus(rolledFeatures.map((f) => f.status), statusConfigs),
     plannedStart: plannedStarts.length ? dateMin(plannedStarts).toISOString() : epic.plannedStart,
     plannedEnd: plannedEnds.length ? dateMax(plannedEnds).toISOString() : epic.plannedEnd,
     actualStart: toISO(actualStarts.length ? dateMin(actualStarts) : null),
@@ -181,11 +199,14 @@ export function getBarStyle(
   return { left, width };
 }
 
-/** Returns the diff in calendar days between planned end and actual end (positive = late). */
-export function getDelayDays(plannedEnd: string, actualEnd?: string): number {
+/** Returns the diff in calendar days between planned end and actual/current date (positive = late). */
+export function getDelayDays(plannedEnd: string, actualEnd?: string, isFinal?: boolean): number {
   const planned = toDate(plannedEnd);
   if (!planned) return 0;
-  const actual = actualEnd ? toDate(actualEnd) : new Date();
+  // Final items without an actualEnd have no measurable delay
+  if (isFinal && !actualEnd) return 0;
+  // Final items compare against actualEnd; in-progress items compare against today
+  const actual = (isFinal && actualEnd) ? toDate(actualEnd) : new Date();
   if (!actual) return 0;
   return differenceInCalendarDays(actual, planned);
 }

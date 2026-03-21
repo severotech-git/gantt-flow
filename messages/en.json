@@ -327,6 +327,13 @@
       "creating": "Creating…",
       "createButton": "Create Project"
     },
+    "reassignStatus": {
+      "title": "Reassign & Delete Status",
+      "description": "\"{label}\" is used by {count, plural, one {# item} other {# items}}. Choose a status to reassign them to before deleting.",
+      "targetLabel": "Reassign to",
+      "reassigning": "Reassigning…",
+      "confirmButton": "Reassign & Delete"
+    },
     "saveVersion": {
       "title": "Save Snapshot",
       "subtitle": "Creates a read-only copy of the current project state. You can restore it later.",
@@ -446,7 +453,10 @@
       "finalBadge": "Final",
       "activeBadge": "Active",
       "deleteTitle": "Delete status",
-      "newStatusLabel": "New Status"
+      "newStatusLabel": "New Status",
+      "usageCount": "{count, plural, one {# item} other {# items}}",
+      "systemStatusTitle": "System status — cannot be deleted",
+      "systemHint": "Statuses marked with a lock are built-in — they can be renamed and recolored, but not removed."
     },
     "levels": {
       "title": "Level Names",

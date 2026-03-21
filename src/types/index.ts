@@ -103,6 +103,7 @@ export interface IStatusConfig {
   label: string;
   color: string;
   isFinal?: boolean;
+  isSystem?: boolean;
 }
 
 export interface IUserConfig {

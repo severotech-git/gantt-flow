@@ -2,14 +2,44 @@ import { create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
 import { IStatusConfig, IUserConfig, AppLocale, TimelineScale } from '@/types';
 
-export const DEFAULT_STATUSES: IStatusConfig[] = [
-  { value: 'todo',        label: 'To Do',       color: '#64748b', isFinal: false },
-  { value: 'in-progress', label: 'In Progress', color: '#7c3aed', isFinal: false },
-  { value: 'qa',          label: 'QA',          color: '#1d4ed8', isFinal: false },
-  { value: 'done',        label: 'Done',        color: '#059669', isFinal: true  },
-  { value: 'canceled',    label: 'Canceled',    color: '#475569', isFinal: true  },
-  { value: 'blocked',     label: 'Blocked',     color: '#c2410c', isFinal: false },
+import { SYSTEM_STATUS_VALUES } from '@/lib/statusConstants';
+export { SYSTEM_STATUS_VALUES };
+
+/** System statuses with their fixed isFinal values. */
+const SYSTEM_STATUSES: IStatusConfig[] = [
+  { value: 'todo',        label: 'To Do',       color: '#64748b', isFinal: false, isSystem: true },
+  { value: 'in-progress', label: 'In Progress', color: '#7c3aed', isFinal: false, isSystem: true },
+  { value: 'done',        label: 'Done',        color: '#059669', isFinal: true,  isSystem: true },
+  { value: 'canceled',    label: 'Canceled',    color: '#475569', isFinal: true,  isSystem: true },
+  { value: 'blocked',     label: 'Blocked',     color: '#c2410c', isFinal: false, isSystem: true },
 ];
+
+export const DEFAULT_STATUSES: IStatusConfig[] = [
+  { value: 'todo',        label: 'To Do',       color: '#64748b', isFinal: false, isSystem: true },
+  { value: 'in-progress', label: 'In Progress', color: '#7c3aed', isFinal: false, isSystem: true },
+  { value: 'qa',          label: 'QA',          color: '#1d4ed8', isFinal: false },
+  { value: 'done',        label: 'Done',        color: '#059669', isFinal: true,  isSystem: true },
+  { value: 'canceled',    label: 'Canceled',    color: '#475569', isFinal: true,  isSystem: true },
+  { value: 'blocked',     label: 'Blocked',     color: '#c2410c', isFinal: false, isSystem: true },
+];
+
+/** Ensure all 5 system statuses exist and have correct flags. */
+function ensureSystemStatuses(statuses: IStatusConfig[]): IStatusConfig[] {
+  const result: IStatusConfig[] = statuses.map((s) => {
+    if (SYSTEM_STATUS_VALUES.has(s.value)) {
+      const sys = SYSTEM_STATUSES.find((ss) => ss.value === s.value)!;
+      return { ...s, isSystem: true, isFinal: sys.isFinal };
+    }
+    return { ...s, isSystem: false };
+  });
+  // Add any missing system statuses
+  for (const sys of SYSTEM_STATUSES) {
+    if (!result.find((s) => s.value === sys.value)) {
+      result.push({ ...sys });
+    }
+  }
+  return result;
+}
 
 type SettingsKey = 'users' | 'theme' | 'locale' | 'levelNames' | 'statuses' | 'allowWeekends' | 'ganttScale';
 
@@ -73,7 +103,7 @@ export const useSettingsStore = create<SettingsState & SettingsActions>()(
           s.locale = data.locale ?? 'en';
           s.ganttScale = savedScale;
           s.levelNames = data.levelNames ?? { epic: 'Epic', feature: 'Feature', task: 'Task' };
-          s.statuses = data.statuses?.length ? data.statuses : DEFAULT_STATUSES;
+          s.statuses = ensureSystemStatuses(data.statuses?.length ? data.statuses : DEFAULT_STATUSES);
           s.allowWeekends = data.allowWeekends ?? false;
           s.onboardingComplete = data.onboardingComplete ?? true;
         });
@@ -142,9 +172,18 @@ export const useSettingsStore = create<SettingsState & SettingsActions>()(
     addStatus: (config) => set((s) => { s.statuses.push(config); }),
     updateStatus: (value, patch) => set((s) => {
       const idx = s.statuses.findIndex((st) => st.value === value);
-      if (idx !== -1) Object.assign(s.statuses[idx], patch);
+      if (idx === -1) return;
+      // System statuses: only allow label and color changes
+      if (SYSTEM_STATUS_VALUES.has(value)) {
+        const { label, color } = patch;
+        if (label !== undefined) s.statuses[idx].label = label;
+        if (color !== undefined) s.statuses[idx].color = color;
+      } else {
+        Object.assign(s.statuses[idx], patch);
+      }
     }),
     deleteStatus: (value) => set((s) => {
+      if (SYSTEM_STATUS_VALUES.has(value)) return;
       s.statuses = s.statuses.filter((st) => st.value !== value);
     }),
     reorderStatuses: (newOrder) => set((s) => { s.statuses = newOrder; }),

@@ -2,12 +2,12 @@ import mongoose, { Schema, Document, Model } from 'mongoose';
 import { IStatusConfig, IUserConfig } from '@/types';
 
 export const DEFAULT_STATUSES: IStatusConfig[] = [
-  { value: 'todo',        label: 'To Do',       color: '#64748b', isFinal: false },
-  { value: 'in-progress', label: 'In Progress', color: '#7c3aed', isFinal: false },
+  { value: 'todo',        label: 'To Do',       color: '#64748b', isFinal: false, isSystem: true },
+  { value: 'in-progress', label: 'In Progress', color: '#7c3aed', isFinal: false, isSystem: true },
   { value: 'qa',          label: 'QA',          color: '#1d4ed8', isFinal: false },
-  { value: 'done',        label: 'Done',        color: '#059669', isFinal: true  },
-  { value: 'canceled',    label: 'Canceled',    color: '#475569', isFinal: true  },
-  { value: 'blocked',     label: 'Blocked',     color: '#c2410c', isFinal: false },
+  { value: 'done',        label: 'Done',        color: '#059669', isFinal: true,  isSystem: true },
+  { value: 'canceled',    label: 'Canceled',    color: '#475569', isFinal: true,  isSystem: true },
+  { value: 'blocked',     label: 'Blocked',     color: '#c2410c', isFinal: false, isSystem: true },
 ];
 
 export interface IEmbeddedMember {
@@ -63,10 +63,11 @@ const UserConfigSchema = new Schema(
 
 const StatusConfigSchema = new Schema(
   {
-    value:   { type: String, required: true },
-    label:   { type: String, required: true },
-    color:   { type: String, required: true },
-    isFinal: { type: Boolean, default: false },
+    value:    { type: String, required: true },
+    label:    { type: String, required: true },
+    color:    { type: String, required: true },
+    isFinal:  { type: Boolean, default: false },
+    isSystem: { type: Boolean, default: false },
   },
   { _id: false, id: false }
 );
