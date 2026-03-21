@@ -102,9 +102,9 @@ export function GanttBar({
     data: { plannedStart, plannedEnd, level, type: 'move' },
   });
 
-  const delayDays = getDelayDays(plannedEnd, actualEnd);
+  const delayDays = getDelayDays(plannedEnd, actualEnd, isFinal);
   const isDelayed = delayDays > 0 && !isFinal;
-  const isEarly = delayDays < 0 && (status === 'done');
+  const isEarly = delayDays < 0 && isFinal;
   const durationDays = differenceInCalendarDays(parseISO(plannedEnd), parseISO(plannedStart)) + 1;
 
   // ── Live Preview Logic ──
@@ -197,7 +197,7 @@ export function GanttBar({
           </span>
         )}
 
-        {actualEnd && actualEnd !== plannedEnd && status === 'done' && (() => {
+        {actualEnd && actualEnd !== plannedEnd && isFinal && (() => {
           const diffDays = differenceInCalendarDays(parseISO(actualEnd), parseISO(plannedStart));
           const tickLeft = Math.min(Math.max((diffDays / durationDays) * 100, 0), 100);
           return <div className="absolute top-0 bottom-0 w-0.5 bg-white/60 z-10 pointer-events-none" style={{ left: `${tickLeft}%` }} />;

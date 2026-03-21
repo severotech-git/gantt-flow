@@ -327,6 +327,13 @@
       "creating": "Criando…",
       "createButton": "Criar Projeto"
     },
+    "reassignStatus": {
+      "title": "Reatribuir e Excluir Status",
+      "description": "\"{label}\" é usado por {count, plural, one {# item} other {# itens}}. Escolha um status para reatribuí-los antes de excluir.",
+      "targetLabel": "Reatribuir para",
+      "reassigning": "Reatribuindo…",
+      "confirmButton": "Reatribuir e Excluir"
+    },
     "saveVersion": {
       "title": "Salvar Snapshot",
       "subtitle": "Cria uma cópia somente leitura do estado atual do projeto. Você pode restaurá-la mais tarde.",
@@ -446,7 +453,10 @@
       "finalBadge": "Final",
       "activeBadge": "Ativo",
       "deleteTitle": "Excluir status",
-      "newStatusLabel": "Novo Status"
+      "newStatusLabel": "Novo Status",
+      "usageCount": "{count, plural, one {# item} other {# itens}}",
+      "systemStatusTitle": "Status do sistema — não pode ser excluído",
+      "systemHint": "Status marcados com cadeado são integrados — podem ser renomeados e recoloridos, mas não removidos."
     },
     "levels": {
       "title": "Nomes de Nível",

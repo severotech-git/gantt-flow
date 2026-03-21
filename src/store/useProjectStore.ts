@@ -475,11 +475,11 @@ export const useProjectStore = create<ProjectStore>()(
         if (!s.activeProject) return;
         const epic = s.activeProject.epics.find((e) => e._id === epicId);
         if (!epic) return;
-        const allowWeekends = useSettingsStore.getState().allowWeekends;
+        const { allowWeekends, statuses } = useSettingsStore.getState();
         const newFeat = { ...feature, _id: tempId() } as IFeature;
         newFeat.dayCount = computeDayCount(newFeat.plannedStart, newFeat.plannedEnd, allowWeekends);
         epic.features.push(newFeat);
-        const rolledEpic = rollupEpicDates(epic as IEpic);
+        const rolledEpic = rollupEpicDates(epic as IEpic, statuses);
         Object.assign(epic, rolledEpic);
         epic.dayCount = computeDayCount(epic.plannedStart, epic.plannedEnd, allowWeekends);
       });
@@ -493,11 +493,11 @@ export const useProjectStore = create<ProjectStore>()(
         if (!epic) return;
         const fIdx = epic.features.findIndex((f) => f._id === featureId);
         if (fIdx === -1) return;
-        const allowWeekends = useSettingsStore.getState().allowWeekends;
+        const { allowWeekends, statuses } = useSettingsStore.getState();
         epic.features[fIdx] = { ...epic.features[fIdx], ...patch } as IFeature;
         const feat = epic.features[fIdx];
         feat.dayCount = computeDayCount(feat.plannedStart, feat.plannedEnd, allowWeekends);
-        const rolledEpic = rollupEpicDates(epic as IEpic);
+        const rolledEpic = rollupEpicDates(epic as IEpic, statuses);
         Object.assign(epic, rolledEpic);
         epic.dayCount = computeDayCount(epic.plannedStart, epic.plannedEnd, allowWeekends);
       });
@@ -510,7 +510,8 @@ export const useProjectStore = create<ProjectStore>()(
         const epic = s.activeProject.epics.find((e) => e._id === epicId);
         if (!epic) return;
         epic.features = epic.features.filter((f) => f._id !== featureId);
-        const rolledEpic = rollupEpicDates(epic as IEpic);
+        const { statuses } = useSettingsStore.getState();
+        const rolledEpic = rollupEpicDates(epic as IEpic, statuses);
         Object.assign(epic, rolledEpic);
       });
       await get().persistProject();
@@ -524,14 +525,14 @@ export const useProjectStore = create<ProjectStore>()(
         if (!epic) return;
         const feature = epic.features.find((f) => f._id === featureId);
         if (!feature) return;
-        const allowWeekends = useSettingsStore.getState().allowWeekends;
+        const { allowWeekends, statuses } = useSettingsStore.getState();
         const newTask = { ...task, _id: tempId() } as ITask;
         newTask.dayCount = computeDayCount(newTask.plannedStart, newTask.plannedEnd, allowWeekends);
         feature.tasks.push(newTask);
-        const rolledFeature = rollupFeatureDates(feature as IFeature);
+        const rolledFeature = rollupFeatureDates(feature as IFeature, statuses);
         Object.assign(feature, rolledFeature);
         feature.dayCount = computeDayCount(feature.plannedStart, feature.plannedEnd, allowWeekends);
-        const rolledEpic = rollupEpicDates(epic as IEpic);
+        const rolledEpic = rollupEpicDates(epic as IEpic, statuses);
         Object.assign(epic, rolledEpic);
         epic.dayCount = computeDayCount(epic.plannedStart, epic.plannedEnd, allowWeekends);
       });
@@ -547,15 +548,28 @@ export const useProjectStore = create<ProjectStore>()(
         if (!feature) return;
         const tIdx = feature.tasks.findIndex((t) => t._id === taskId);
         if (tIdx === -1) return;
-        const allowWeekends = useSettingsStore.getState().allowWeekends;
+        const { allowWeekends, statuses } = useSettingsStore.getState();
         feature.tasks[tIdx] = { ...feature.tasks[tIdx], ...patch } as ITask;
         const taskItem = feature.tasks[tIdx];
+        // Auto-manage actualEnd based on status finality
+        if ('status' in patch) {
+          const isFinal = statuses.find((st) => st.value === taskItem.status)?.isFinal ?? false;
+          if (isFinal) {
+            // Moving to a final status → stamp actualEnd if not already set
+            if (!taskItem.actualEnd) {
+              taskItem.actualEnd = new Date().toISOString();
+            }
+          } else {
+            // Moving away from a final status → clear actualEnd
+            taskItem.actualEnd = undefined;
+          }
+        }
         taskItem.dayCount = computeDayCount(taskItem.plannedStart, taskItem.plannedEnd, allowWeekends);
         // Rollup dates bottom-up
-        const rolledFeature = rollupFeatureDates(feature as IFeature);
+        const rolledFeature = rollupFeatureDates(feature as IFeature, statuses);
         Object.assign(feature, rolledFeature);
         feature.dayCount = computeDayCount(feature.plannedStart, feature.plannedEnd, allowWeekends);
-        const rolledEpic = rollupEpicDates(epic as IEpic);
+        const rolledEpic = rollupEpicDates(epic as IEpic, statuses);
         Object.assign(epic, rolledEpic);
         epic.dayCount = computeDayCount(epic.plannedStart, epic.plannedEnd, allowWeekends);
       });
@@ -570,9 +584,10 @@ export const useProjectStore = create<ProjectStore>()(
         const feature = epic.features.find((f) => f._id === featureId);
         if (!feature) return;
         feature.tasks = feature.tasks.filter((t) => t._id !== taskId);
-        const rolledFeature = rollupFeatureDates(feature as IFeature);
+        const { statuses } = useSettingsStore.getState();
+        const rolledFeature = rollupFeatureDates(feature as IFeature, statuses);
         Object.assign(feature, rolledFeature);
-        const rolledEpic = rollupEpicDates(epic as IEpic);
+        const rolledEpic = rollupEpicDates(epic as IEpic, statuses);
         Object.assign(epic, rolledEpic);
       });
       await get().persistProject();

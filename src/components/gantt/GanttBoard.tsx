@@ -20,6 +20,7 @@ import { AddItemDialog } from '@/components/dialogs/AddItemDialog';
 import { addDays, parseISO, isValid, differenceInCalendarDays } from 'date-fns';
 import { snapToWorkday } from '@/lib/dateUtils';
 import { useSettingsStore } from '@/store/useSettingsStore';
+import type { IStatusConfig } from '@/types';
 import { BarChart3, ZoomIn, ZoomOut } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 
@@ -33,12 +34,10 @@ function stepZoom(current: number, dir: 'in' | 'out'): number {
   return [...ZOOM_STEPS].reverse().find((z) => z < current - 0.01) ?? current;
 }
 
-const today = new Date();
-function taskHasIssue(task: { status: string; plannedEnd: string }): boolean {
-  return (
-    task.status === 'blocked' ||
-    (task.status !== 'done' && task.status !== 'canceled' && parseISO(task.plannedEnd) < today)
-  );
+function taskHasIssue(task: { status: string; plannedEnd: string }, statusConfigs: IStatusConfig[]): boolean {
+  const config = statusConfigs.find((s) => s.value === task.status);
+  const isFinal = config?.isFinal ?? false;
+  return !isFinal && parseISO(task.plannedEnd) < new Date();
 }
 
 function safeParseISO(s: string | undefined): Date | null {
@@ -61,6 +60,7 @@ export function GanttBoard() {
   const pxPerDay = BASE_PX_PER_DAY[timelineScale] * zoomLevel;
 
   const allowWeekends = useSettingsStore((s) => s.allowWeekends);
+  const statuses = useSettingsStore((s) => s.statuses);
 
   // Zoom — keyboard shortcuts (Cmd/Ctrl +/-/0) and Ctrl+wheel
   const boardRef = useRef<HTMLDivElement>(null);
@@ -134,7 +134,7 @@ export function GanttBoard() {
     const ADD_STUB = { name: '', status: 'todo' as const, completionPct: 0, plannedStart: '', plannedEnd: '' };
 
     for (const epic of project.epics) {
-      const epicHasIssue = epic.features.some((f) => f.tasks.some(taskHasIssue));
+      const epicHasIssue = epic.features.some((f) => f.tasks.some((t) => taskHasIssue(t, statuses)));
       rows.push({
         rowKey: `epic-${epic._id}`,
         epicId: epic._id,
@@ -167,7 +167,7 @@ export function GanttBoard() {
       if (!expandedEpicIds.has(epic._id)) continue;
 
       for (const feat of epic.features) {
-        const featHasIssue = feat.tasks.some(taskHasIssue);
+        const featHasIssue = feat.tasks.some((t) => taskHasIssue(t, statuses));
         rows.push({
           rowKey: `feat-${feat._id}`,
           epicId: epic._id,
@@ -422,15 +422,16 @@ export function GanttBoard() {
 
   const epics = project.epics || []; // Ensure epics is an array
   const totalTasks = epics.reduce((s, e) => s + (e.features || []).reduce((ss, f) => ss + (f.tasks || []).length, 0), 0);
+  const finalValues = new Set(statuses.filter(s => s.isFinal).map(s => s.value));
   const overdueCount = epics.reduce(
     (s, e) => s + (e.features || []).reduce(
       (ss, f) => ss + (f.tasks || []).filter(
-        (t) => t.status !== 'done' && t.status !== 'canceled' && parseISO(t.plannedEnd) < new Date()
+        (t) => !finalValues.has(t.status) && parseISO(t.plannedEnd) < new Date()
       ).length, 0
     ), 0
   );
   const doneCount = epics.reduce(
-    (s, e) => s + (e.features || []).reduce((ss, f) => ss + (f.tasks || []).filter((t) => t.status === 'done').length, 0), 0
+    (s, e) => s + (e.features || []).reduce((ss, f) => ss + (f.tasks || []).filter((t) => finalValues.has(t.status)).length, 0), 0
   );
 
   return (

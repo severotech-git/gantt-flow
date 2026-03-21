@@ -327,6 +327,13 @@
       "creating": "Creando…",
       "createButton": "Crear Proyecto"
     },
+    "reassignStatus": {
+      "title": "Reasignar y Eliminar Estado",
+      "description": "\"{label}\" es usado por {count, plural, one {# elemento} other {# elementos}}. Elige un estado para reasignarlos antes de eliminar.",
+      "targetLabel": "Reasignar a",
+      "reassigning": "Reasignando…",
+      "confirmButton": "Reasignar y Eliminar"
+    },
     "saveVersion": {
       "title": "Guardar Snapshot",
       "subtitle": "Crea una copia de solo lectura del estado actual del proyecto. Puedes restaurarla más tarde.",
@@ -446,7 +453,10 @@
       "finalBadge": "Final",
       "activeBadge": "Activo",
       "deleteTitle": "Eliminar estado",
-      "newStatusLabel": "Nuevo Estado"
+      "newStatusLabel": "Nuevo Estado",
+      "usageCount": "{count, plural, one {# elemento} other {# elementos}}",
+      "systemStatusTitle": "Estado del sistema — no se puede eliminar",
+      "systemHint": "Los estados marcados con candado son integrados — se pueden renombrar y recolorear, pero no eliminar."
     },
     "levels": {
       "title": "Nombres de Nivel",

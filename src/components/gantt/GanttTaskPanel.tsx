@@ -408,7 +408,7 @@ function TaskRow({
   const ownerUser = users.find((u) => u.uid === row.ownerId);
   const isFinal = statusConfig?.isFinal ?? false;
 
-  const delayDays = getDelayDays(row.plannedEnd, row.actualEnd);
+  const delayDays = getDelayDays(row.plannedEnd, row.actualEnd, isFinal);
   const isLate = delayDays > 0 && !isFinal;
 
   return (
