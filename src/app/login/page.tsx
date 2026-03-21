@@ -11,6 +11,7 @@ import Image from 'next/image';
 import { useTranslations } from 'next-intl';
 import { LanguageSwitcher } from '@/components/shared/LanguageSwitcher';
 import { ThemeToggle } from '@/components/shared/ThemeToggle';
+import { GoogleSignInButton } from '@/components/shared/GoogleSignInButton';
 
 // Static imports for images to ensure reliable resolution
 import logoIcon from '../../../public/icon.png';
@@ -85,9 +86,6 @@ function LoginPageContent() {
     }
   };
 
-  const handleSocialLogin = (provider: string) => {
-    signIn(provider, { callbackUrl });
-  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background">
@@ -176,16 +174,11 @@ function LoginPageContent() {
           </div>
         </div>
 
-        <div className="space-y-2">
-          <Button
-            variant="outline"
-            className="w-full"
-            onClick={() => handleSocialLogin('google')}
-            disabled={loading}
-          >
-            {t('google')}
-          </Button>
-        </div>
+        <GoogleSignInButton
+          label={t('google')}
+          callbackUrl={callbackUrl}
+          disabled={loading}
+        />
 
         <div className="text-center text-sm">
           <span className="text-muted-foreground">{t('noAccount')} </span>

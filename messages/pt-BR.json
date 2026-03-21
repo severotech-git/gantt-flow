@@ -169,7 +169,7 @@
       "signInButton": "Entrar",
       "signingIn": "Entrando...",
       "orContinueWith": "Ou continue com",
-      "google": "Google",
+      "google": "Entrar com Google",
       "noAccount": "Não tem uma conta?",
       "createOne": "Criar conta",
       "forgotPassword": "Esqueceu a senha?",
@@ -204,6 +204,8 @@
       "creating": "Criando conta...",
       "autoLoginFailed": "Cadastro realizado, mas o login automático falhou. Faça login manualmente.",
       "unexpectedError": "Ocorreu um erro inesperado",
+      "orContinueWith": "Ou continue com",
+      "google": "Cadastrar com Google",
       "alreadyHaveAccount": "Já tem uma conta?",
       "signIn": "Entrar"
     },

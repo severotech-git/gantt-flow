@@ -169,7 +169,7 @@
       "signInButton": "Sign In",
       "signingIn": "Signing in...",
       "orContinueWith": "Or continue with",
-      "google": "Google",
+      "google": "Sign in with Google",
       "noAccount": "Don't have an account?",
       "createOne": "Create one",
       "forgotPassword": "Forgot password?",
@@ -204,6 +204,8 @@
       "creating": "Creating account...",
       "autoLoginFailed": "Registration succeeded, but auto-login failed. Please log in manually.",
       "unexpectedError": "An unexpected error occurred",
+      "orContinueWith": "Or continue with",
+      "google": "Sign up with Google",
       "alreadyHaveAccount": "Already have an account?",
       "signIn": "Sign in"
     },

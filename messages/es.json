@@ -169,7 +169,7 @@
       "signInButton": "Iniciar sesión",
       "signingIn": "Iniciando sesión...",
       "orContinueWith": "O continúa con",
-      "google": "Google",
+      "google": "Iniciar sesión con Google",
       "noAccount": "¿No tienes una cuenta?",
       "createOne": "Crear una",
       "forgotPassword": "¿Olvidaste tu contraseña?",
@@ -204,6 +204,8 @@
       "creating": "Creando cuenta...",
       "autoLoginFailed": "Registro exitoso, pero el inicio de sesión automático falló. Inicia sesión manualmente.",
       "unexpectedError": "Ocurrió un error inesperado",
+      "orContinueWith": "O continúa con",
+      "google": "Registrarse con Google",
       "alreadyHaveAccount": "¿Ya tienes una cuenta?",
       "signIn": "Iniciar sesión"
     },

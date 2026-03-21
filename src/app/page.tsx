@@ -124,29 +124,6 @@ export default function LandingPage() {
   const pricingRef = useRef<HTMLDivElement>(null);
   const featuresContainerRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    const el = pricingRef.current;
-    if (!el) return;
-    const obs = new IntersectionObserver(
-      ([entry]) => { if (entry.isIntersecting) { trackEvent('pricing_section_view'); obs.disconnect(); } },
-      { threshold: 0.3 }
-    );
-    obs.observe(el);
-    return () => obs.disconnect();
-  }, []);
-
-  if (status === 'loading') {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="animate-pulse space-y-4 text-center">
-          <div className="h-12 w-12 bg-primary/20 rounded-full mx-auto" />
-          <p className="text-muted-foreground">Loading...</p>
-        </div>
-      </div>
-    );
-  }
-
-
   const features = [
     {
       icon: <Layers className="w-6 h-6 text-primary" />,
@@ -187,6 +164,17 @@ export default function LandingPage() {
   ];
 
   useEffect(() => {
+    const el = pricingRef.current;
+    if (!el) return;
+    const obs = new IntersectionObserver(
+      ([entry]) => { if (entry.isIntersecting) { trackEvent('pricing_section_view'); obs.disconnect(); } },
+      { threshold: 0.3 }
+    );
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, []);
+
+  useEffect(() => {
     const container = featuresContainerRef.current;
     if (!container) return;
     const obs = new IntersectionObserver(
@@ -205,6 +193,17 @@ export default function LandingPage() {
     return () => obs.disconnect();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  if (status === 'loading') {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="animate-pulse space-y-4 text-center">
+          <div className="h-12 w-12 bg-primary/20 rounded-full mx-auto" />
+          <p className="text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col">

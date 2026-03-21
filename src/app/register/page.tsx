@@ -10,6 +10,7 @@ import Image from 'next/image';
 import { useTranslations } from 'next-intl';
 import { LanguageSwitcher } from '@/components/shared/LanguageSwitcher';
 import { ThemeToggle } from '@/components/shared/ThemeToggle';
+import { GoogleSignInButton } from '@/components/shared/GoogleSignInButton';
 
 // Static imports for images to ensure reliable resolution
 import logoIcon from '../../../public/icon.png';
@@ -226,6 +227,21 @@ function RegisterPageContent() {
             {loading ? t('creating') : inviteToken ? t('createAndAcceptButton') : t('createButton')}
           </Button>
         </form>
+
+        <div className="relative">
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full border-t border-border" />
+          </div>
+          <div className="relative flex justify-center text-sm">
+            <span className="px-2 bg-card text-muted-foreground">{t('orContinueWith')}</span>
+          </div>
+        </div>
+
+        <GoogleSignInButton
+          label={t('google')}
+          callbackUrl={inviteToken ? `/invite/${inviteToken}?auto=1` : '/projects'}
+          disabled={loading}
+        />
 
         <div className="text-center text-sm">
           <span className="text-muted-foreground">{t('alreadyHaveAccount')} </span>
