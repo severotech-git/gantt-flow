@@ -214,7 +214,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         });
 
         try {
-          await sendMFACode(email, code);
+          await sendMFACode(email, code, user.locale);
         } catch (err) {
           console.error('[auth] Failed to send MFA code:', err);
         }

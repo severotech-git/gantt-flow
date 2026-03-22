@@ -106,7 +106,7 @@ export async function POST(request: NextRequest) {
     const baseUrl = process.env.NEXTAUTH_URL ?? 'http://localhost:3000';
     const verifyUrl = `${baseUrl}/api/auth/verify-email?token=${verificationToken}`;
     try {
-      await sendVerificationEmail(email.toLowerCase(), verifyUrl);
+      await sendVerificationEmail(email.toLowerCase(), verifyUrl, resolvedLocale);
     } catch (err) {
       console.error('[register] Failed to send verification email:', err);
     }

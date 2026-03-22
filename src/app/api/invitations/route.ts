@@ -117,7 +117,7 @@ export async function POST(req: NextRequest) {
       expiresAt: inviteExpiresAt(),
     });
 
-    const inviter = await User.findById(userId, { name: 1 }).lean();
+    const inviter = await User.findById(userId, { name: 1, locale: 1 }).lean();
     const inviteUrl = `${process.env.NEXTAUTH_URL ?? 'http://localhost:3000'}/invite/${invitation.token}`;
 
     try {
@@ -125,7 +125,8 @@ export async function POST(req: NextRequest) {
         normalizedEmail,
         inviter?.name ?? 'A teammate',
         accountDoc?.name ?? 'Your team',
-        inviteUrl
+        inviteUrl,
+        inviter?.locale
       );
     } catch (emailErr) {
       console.error('[POST /api/invitations] Email send failed', emailErr);

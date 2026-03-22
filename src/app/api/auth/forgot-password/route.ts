@@ -54,7 +54,7 @@ export async function POST(request: NextRequest) {
     const appUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000';
     const resetUrl = `${appUrl}/reset-password?token=${token}`;
 
-    await sendPasswordResetEmail(email, resetUrl);
+    await sendPasswordResetEmail(email, resetUrl, user.locale);
 
     return NextResponse.json(GENERIC_OK, { status: 200 });
   } catch (err) {

@@ -679,5 +679,56 @@
       "title": "Setting up your workspace...",
       "subtitle": "We're creating a sample project based on your preferences."
     }
+  },
+  "emails": {
+    "layout": {
+      "copyright": "© {year} GanttFlow. All rights reserved.",
+      "tagline": "Built for teams who value clarity and efficiency."
+    },
+    "verification": {
+      "subject": "Verify your GanttFlow email address",
+      "title": "Welcome to GanttFlow!",
+      "greeting": "Hi there,",
+      "body": "We're excited to have you on board! To get started with GanttFlow, please verify your email address by clicking the button below.",
+      "button": "Verify Email Address",
+      "expiry": "This link expires in 24 hours. If you didn't create a GanttFlow account, you can safely ignore this email.",
+      "plainBody": "Please verify your email address by clicking the link below:",
+      "plainExpiry": "This link expires in 24 hours.",
+      "plainIgnore": "If you did not create a GanttFlow account, you can safely ignore this email."
+    },
+    "mfa": {
+      "subject": "Your GanttFlow sign-in code",
+      "title": "Authentication Code",
+      "body": "Your GanttFlow sign-in verification code is below. Please enter this code in the application to complete your sign-in.",
+      "expiry": "This code expires in 10 minutes. If you did not attempt to sign in, please ignore this email.",
+      "plainBody": "Your GanttFlow sign-in code is: {code}",
+      "plainExpiry": "This code expires in 10 minutes.",
+      "plainIgnore": "If you did not attempt to sign in, please ignore this email."
+    },
+    "passwordReset": {
+      "subject": "Reset your GanttFlow password",
+      "title": "Reset Your Password",
+      "greeting": "Hi,",
+      "body": "We received a request to reset the password for your GanttFlow account. Click the button below to choose a new password.",
+      "button": "Reset Password",
+      "expiry": "This link expires in 1 hour. If you did not request a password reset, you can safely ignore this email — your password will not be changed.",
+      "plainBody": "Click the link below to reset your password:",
+      "plainExpiry": "This link expires in 1 hour.",
+      "plainIgnore": "If you did not request a password reset, you can safely ignore this email."
+    },
+    "invitation": {
+      "subject": "{inviterName} invited you to join {accountName}",
+      "subjectPlain": "{inviterName} invited you to {accountName} on GanttFlow",
+      "title": "Join Your Team",
+      "greeting": "Hi,",
+      "body": "<strong>{inviterName}</strong> has invited you to join <strong>{accountName}</strong> on GanttFlow.",
+      "cta": "Ready to start collaborating on your projects? Click the button below to accept your invitation.",
+      "button": "Accept Invitation",
+      "expiry": "This link expires in 30 days. If you did not expect this invitation, you can safely ignore this email.",
+      "plainBody": "{inviterName} has invited you to join \"{accountName}\" on GanttFlow.",
+      "plainCta": "Accept your invitation here:",
+      "plainExpiry": "This link expires in 30 days.",
+      "plainIgnore": "If you did not expect this invitation, you can safely ignore this email."
+    }
   }
 }

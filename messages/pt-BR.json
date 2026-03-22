@@ -679,5 +679,56 @@
       "title": "Configurando seu workspace...",
       "subtitle": "Estamos criando um projeto exemplo com base nas suas preferencias."
     }
+  },
+  "emails": {
+    "layout": {
+      "copyright": "© {year} GanttFlow. Todos os direitos reservados.",
+      "tagline": "Feito para equipes que valorizam clareza e eficiência."
+    },
+    "verification": {
+      "subject": "Verifique seu e-mail no GanttFlow",
+      "title": "Bem-vindo ao GanttFlow!",
+      "greeting": "Olá,",
+      "body": "Estamos felizes em ter você conosco! Para começar a usar o GanttFlow, verifique seu endereço de e-mail clicando no botão abaixo.",
+      "button": "Verificar E-mail",
+      "expiry": "Este link expira em 24 horas. Se você não criou uma conta no GanttFlow, pode ignorar este e-mail com segurança.",
+      "plainBody": "Verifique seu endereço de e-mail clicando no link abaixo:",
+      "plainExpiry": "Este link expira em 24 horas.",
+      "plainIgnore": "Se você não criou uma conta no GanttFlow, pode ignorar este e-mail com segurança."
+    },
+    "mfa": {
+      "subject": "Seu código de acesso ao GanttFlow",
+      "title": "Código de Autenticação",
+      "body": "Seu código de verificação de acesso ao GanttFlow está abaixo. Insira este código no aplicativo para concluir seu login.",
+      "expiry": "Este código expira em 10 minutos. Se você não tentou fazer login, ignore este e-mail.",
+      "plainBody": "Seu código de acesso ao GanttFlow é: {code}",
+      "plainExpiry": "Este código expira em 10 minutos.",
+      "plainIgnore": "Se você não tentou fazer login, ignore este e-mail."
+    },
+    "passwordReset": {
+      "subject": "Redefinir sua senha do GanttFlow",
+      "title": "Redefinir Sua Senha",
+      "greeting": "Olá,",
+      "body": "Recebemos uma solicitação para redefinir a senha da sua conta GanttFlow. Clique no botão abaixo para escolher uma nova senha.",
+      "button": "Redefinir Senha",
+      "expiry": "Este link expira em 1 hora. Se você não solicitou a redefinição de senha, pode ignorar este e-mail com segurança — sua senha não será alterada.",
+      "plainBody": "Clique no link abaixo para redefinir sua senha:",
+      "plainExpiry": "Este link expira em 1 hora.",
+      "plainIgnore": "Se você não solicitou a redefinição de senha, pode ignorar este e-mail com segurança."
+    },
+    "invitation": {
+      "subject": "{inviterName} convidou você para {accountName}",
+      "subjectPlain": "{inviterName} convidou você para {accountName} no GanttFlow",
+      "title": "Junte-se à Sua Equipe",
+      "greeting": "Olá,",
+      "body": "<strong>{inviterName}</strong> convidou você para participar de <strong>{accountName}</strong> no GanttFlow.",
+      "cta": "Pronto para começar a colaborar nos seus projetos? Clique no botão abaixo para aceitar o convite.",
+      "button": "Aceitar Convite",
+      "expiry": "Este link expira em 30 dias. Se você não esperava este convite, pode ignorar este e-mail com segurança.",
+      "plainBody": "{inviterName} convidou você para participar de \"{accountName}\" no GanttFlow.",
+      "plainCta": "Aceite seu convite aqui:",
+      "plainExpiry": "Este link expira em 30 dias.",
+      "plainIgnore": "Se você não esperava este convite, pode ignorar este e-mail com segurança."
+    }
   }
 }

@@ -1,13 +1,13 @@
 'use client';
 
-import { useState, Suspense, useEffect } from 'react';
+import { useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { signIn } from 'next-auth/react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import Image from 'next/image';
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
 import { LanguageSwitcher } from '@/components/shared/LanguageSwitcher';
 import { ThemeToggle } from '@/components/shared/ThemeToggle';
 import { GoogleSignInButton } from '@/components/shared/GoogleSignInButton';
@@ -15,20 +15,7 @@ import { GoogleSignInButton } from '@/components/shared/GoogleSignInButton';
 // Static imports for images to ensure reliable resolution
 import logoIcon from '../../../public/icon.png';
 import { PASSWORD_RULES, validatePassword } from '@/lib/passwordPolicy';
-import { SUPPORTED_LOCALES, type AppLocale } from '@/types';
 import { Check, X } from 'lucide-react';
-
-function detectLocale(): AppLocale {
-  if (typeof navigator === 'undefined') return 'en';
-  const lang = navigator.language || '';
-  const exact = SUPPORTED_LOCALES.find((l) => l === lang);
-  if (exact) return exact;
-  const prefix = lang.split('-')[0].toLowerCase();
-  const byPrefix = SUPPORTED_LOCALES.find(
-    (l) => l.toLowerCase() === prefix || l.toLowerCase().startsWith(prefix + '-')
-  );
-  return byPrefix ?? 'en';
-}
 
 function RegisterPageContent() {
   const t = useTranslations('auth.register');
@@ -36,6 +23,7 @@ function RegisterPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const inviteToken = searchParams.get('inviteToken');
+  const currentLocale = useLocale();
 
   const [formData, setFormData] = useState({
     name: '',
@@ -44,14 +32,9 @@ function RegisterPageContent() {
     confirmPassword: '',
   });
 
-  const [detectedLocale, setDetectedLocale] = useState<AppLocale>('en');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [passwordFocused, setPasswordFocused] = useState(false);
-
-  useEffect(() => {
-    setDetectedLocale(detectLocale());
-  }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -74,7 +57,7 @@ function RegisterPageContent() {
       const response = await fetch('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...formData, locale: detectedLocale }),
+        body: JSON.stringify({ ...formData, locale: currentLocale }),
       });
 
       const data = await response.json();

@@ -1,4 +1,6 @@
 import nodemailer from 'nodemailer';
+import { getEmailText, resolveEmailLocale } from './emailTranslations';
+import type { AppLocale } from '@/i18n/routing';
 
 function escapeHtml(str: string): string {
   return str
@@ -20,16 +22,20 @@ const transporter = nodemailer.createTransport({
 
 const APP_URL = process.env.NEXTAUTH_URL || 'http://localhost:3000';
 const PRIMARY_COLOR = '#1e293b'; // Slate 800
-const TEXT_COLOR = '#334155'; // Slate 700
 const MUTED_COLOR = '#64748b'; // Slate 500
 const BACKGROUND_COLOR = '#f8fafc';
 const CARD_BG = '#ffffff';
 const RADIUS = '10px';
 
-function renderEmailLayout(title: string, contentHtml: string): string {
+function renderEmailLayout(
+  title: string,
+  contentHtml: string,
+  locale: AppLocale,
+  footer: { copyright: string; tagline: string }
+): string {
   return `
     <!DOCTYPE html>
-    <html lang="en">
+    <html lang="${locale}">
     <head>
       <meta charset="UTF-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -40,7 +46,7 @@ function renderEmailLayout(title: string, contentHtml: string): string {
           padding: 0;
           font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
           background-color: ${BACKGROUND_COLOR};
-          color: ${TEXT_COLOR};
+          color: #334155;
           -webkit-font-smoothing: antialiased;
         }
         .container {
@@ -126,8 +132,8 @@ function renderEmailLayout(title: string, contentHtml: string): string {
           ${contentHtml}
         </div>
         <div class="footer">
-          <p>&copy; ${new Date().getFullYear()} GanttFlow. All rights reserved.</p>
-          <p>Built for teams who value clarity and efficiency.</p>
+          <p>${escapeHtml(footer.copyright)}</p>
+          <p>${escapeHtml(footer.tagline)}</p>
         </div>
       </div>
     </body>
@@ -135,112 +141,177 @@ function renderEmailLayout(title: string, contentHtml: string): string {
   `;
 }
 
+async function loadFooter(locale: AppLocale) {
+  const [copyright, tagline] = await Promise.all([
+    getEmailText(locale, 'emails.layout.copyright', {
+      year: new Date().getFullYear(),
+    }),
+    getEmailText(locale, 'emails.layout.tagline'),
+  ]);
+  return { copyright, tagline };
+}
+
 export async function sendVerificationEmail(
   to: string,
-  verifyUrl: string
+  verifyUrl: string,
+  locale?: string | null
 ): Promise<void> {
+  const loc = resolveEmailLocale(locale);
   const from = process.env.SMTP_FROM ?? 'noreply@mygant.app';
-  const subject = 'Verify your GanttFlow email address';
+  const t = (key: string, params?: Record<string, string | number>) =>
+    getEmailText(loc, `emails.verification.${key}`, params);
 
-  const html = renderEmailLayout(subject, `
-    <h1 class="title">Welcome to GanttFlow!</h1>
+  const [subject, title, greeting, body, button, expiry, footer] =
+    await Promise.all([
+      t('subject'),
+      t('title'),
+      t('greeting'),
+      t('body'),
+      t('button'),
+      t('expiry'),
+      loadFooter(loc),
+    ]);
+
+  const html = renderEmailLayout(
+    subject,
+    `
+    <h1 class="title">${escapeHtml(title)}</h1>
     <div class="content">
-      <p>Hi there,</p>
-      <p>We're excited to have you on board! To get started with GanttFlow, please verify your email address by clicking the button below.</p>
+      <p>${escapeHtml(greeting)}</p>
+      <p>${escapeHtml(body)}</p>
     </div>
     <div class="button-container">
-      <a href="${escapeHtml(verifyUrl)}" class="button">Verify Email Address</a>
+      <a href="${escapeHtml(verifyUrl)}" class="button">${escapeHtml(button)}</a>
     </div>
     <div class="content">
-      <p style="font-size: 14px; color: ${MUTED_COLOR};">This link expires in 24 hours. If you didn't create a GanttFlow account, you can safely ignore this email.</p>
+      <p style="font-size: 14px; color: ${MUTED_COLOR};">${escapeHtml(expiry)}</p>
     </div>
-  `);
+  `,
+    loc,
+    footer
+  );
+
+  const [plainBody, plainExpiry, plainIgnore] = await Promise.all([
+    t('plainBody'),
+    t('plainExpiry'),
+    t('plainIgnore'),
+  ]);
 
   await transporter.sendMail({
     from,
     to,
     subject,
-    text: [
-      `Welcome to GanttFlow!`,
-      ``,
-      `Please verify your email address by clicking the link below:`,
-      verifyUrl,
-      ``,
-      `This link expires in 24 hours.`,
-      ``,
-      `If you did not create a GanttFlow account, you can safely ignore this email.`,
-    ].join('\n'),
+    text: [title, '', plainBody, verifyUrl, '', plainExpiry, '', plainIgnore].join(
+      '\n'
+    ),
     html,
   });
 }
 
-export async function sendMFACode(to: string, code: string): Promise<void> {
+export async function sendMFACode(
+  to: string,
+  code: string,
+  locale?: string | null
+): Promise<void> {
+  const loc = resolveEmailLocale(locale);
   const from = process.env.SMTP_FROM ?? 'noreply@mygant.app';
-  const subject = 'Your GanttFlow sign-in code';
+  const t = (key: string, params?: Record<string, string | number>) =>
+    getEmailText(loc, `emails.mfa.${key}`, params);
 
-  const html = renderEmailLayout(subject, `
-    <h1 class="title">Authentication Code</h1>
+  const [subject, title, body, expiry, footer] = await Promise.all([
+    t('subject'),
+    t('title'),
+    t('body'),
+    t('expiry'),
+    loadFooter(loc),
+  ]);
+
+  const html = renderEmailLayout(
+    subject,
+    `
+    <h1 class="title">${escapeHtml(title)}</h1>
     <div class="content">
-      <p>Your GanttFlow sign-in verification code is below. Please enter this code in the application to complete your sign-in.</p>
+      <p>${escapeHtml(body)}</p>
     </div>
     <div class="otp-container">
       <p class="otp-code">${escapeHtml(code)}</p>
     </div>
     <div class="content">
-      <p style="font-size: 14px; color: ${MUTED_COLOR}; text-align: center;">This code expires in 10 minutes. If you did not attempt to sign in, please ignore this email.</p>
+      <p style="font-size: 14px; color: ${MUTED_COLOR}; text-align: center;">${escapeHtml(expiry)}</p>
     </div>
-  `);
+  `,
+    loc,
+    footer
+  );
+
+  const [plainBody, plainExpiry, plainIgnore] = await Promise.all([
+    t('plainBody', { code }),
+    t('plainExpiry'),
+    t('plainIgnore'),
+  ]);
 
   await transporter.sendMail({
     from,
     to,
     subject,
-    text: [
-      `Your GanttFlow sign-in code is: ${code}`,
-      ``,
-      `This code expires in 10 minutes.`,
-      ``,
-      `If you did not attempt to sign in, please ignore this email.`,
-    ].join('\n'),
+    text: [plainBody, '', plainExpiry, '', plainIgnore].join('\n'),
     html,
   });
 }
 
 export async function sendPasswordResetEmail(
   to: string,
-  resetUrl: string
+  resetUrl: string,
+  locale?: string | null
 ): Promise<void> {
+  const loc = resolveEmailLocale(locale);
   const from = process.env.SMTP_FROM ?? 'noreply@mygant.app';
-  const subject = 'Reset your GanttFlow password';
+  const t = (key: string, params?: Record<string, string | number>) =>
+    getEmailText(loc, `emails.passwordReset.${key}`, params);
 
-  const html = renderEmailLayout(subject, `
-    <h1 class="title">Reset Your Password</h1>
+  const [subject, title, greeting, body, button, expiry, footer] =
+    await Promise.all([
+      t('subject'),
+      t('title'),
+      t('greeting'),
+      t('body'),
+      t('button'),
+      t('expiry'),
+      loadFooter(loc),
+    ]);
+
+  const html = renderEmailLayout(
+    subject,
+    `
+    <h1 class="title">${escapeHtml(title)}</h1>
     <div class="content">
-      <p>Hi,</p>
-      <p>We received a request to reset the password for your GanttFlow account. Click the button below to choose a new password.</p>
+      <p>${escapeHtml(greeting)}</p>
+      <p>${escapeHtml(body)}</p>
     </div>
     <div class="button-container">
-      <a href="${escapeHtml(resetUrl)}" class="button">Reset Password</a>
+      <a href="${escapeHtml(resetUrl)}" class="button">${escapeHtml(button)}</a>
     </div>
     <div class="content">
-      <p style="font-size: 14px; color: ${MUTED_COLOR};">This link expires in 1 hour. If you did not request a password reset, you can safely ignore this email — your password will not be changed.</p>
+      <p style="font-size: 14px; color: ${MUTED_COLOR};">${escapeHtml(expiry)}</p>
     </div>
-  `);
+  `,
+    loc,
+    footer
+  );
+
+  const [plainBody, plainExpiry, plainIgnore] = await Promise.all([
+    t('plainBody'),
+    t('plainExpiry'),
+    t('plainIgnore'),
+  ]);
 
   await transporter.sendMail({
     from,
     to,
     subject,
-    text: [
-      `Reset your GanttFlow password`,
-      ``,
-      `Click the link below to reset your password:`,
-      resetUrl,
-      ``,
-      `This link expires in 1 hour.`,
-      ``,
-      `If you did not request a password reset, you can safely ignore this email.`,
-    ].join('\n'),
+    text: [subject, '', plainBody, resetUrl, '', plainExpiry, '', plainIgnore].join(
+      '\n'
+    ),
     html,
   });
 }
@@ -249,41 +320,75 @@ export async function sendInvitationEmail(
   to: string,
   inviterName: string,
   accountName: string,
-  inviteUrl: string
+  inviteUrl: string,
+  locale?: string | null
 ): Promise<void> {
+  const loc = resolveEmailLocale(locale);
   const from = process.env.SMTP_FROM ?? 'noreply@mygant.app';
-  const subject = `${inviterName} invited you to join ${accountName}`;
+  const params = { inviterName, accountName };
+  const t = (key: string, extra?: Record<string, string | number>) =>
+    getEmailText(loc, `emails.invitation.${key}`, { ...params, ...extra });
 
-  const html = renderEmailLayout(subject, `
-    <h1 class="title">Join Your Team</h1>
+  const escapedParams = {
+    inviterName: escapeHtml(inviterName),
+    accountName: escapeHtml(accountName),
+  };
+
+  const [subject, subjectPlain, title, greeting, body, cta, button, expiry, footer] =
+    await Promise.all([
+      t('subject'),
+      t('subjectPlain'),
+      t('title'),
+      t('greeting'),
+      getEmailText(loc, 'emails.invitation.body', escapedParams),
+      t('cta'),
+      t('button'),
+      t('expiry'),
+      loadFooter(loc),
+    ]);
+
+  const html = renderEmailLayout(
+    subject,
+    `
+    <h1 class="title">${escapeHtml(title)}</h1>
     <div class="content">
-      <p>Hi,</p>
-      <p><strong>${escapeHtml(inviterName)}</strong> has invited you to join <strong>${escapeHtml(accountName)}</strong> on GanttFlow.</p>
-      <p>Ready to start collaborating on your projects? Click the button below to accept your invitation.</p>
+      <p>${escapeHtml(greeting)}</p>
+      <p>${body}</p>
+      <p>${escapeHtml(cta)}</p>
     </div>
     <div class="button-container">
-      <a href="${escapeHtml(inviteUrl)}" class="button">Accept Invitation</a>
+      <a href="${escapeHtml(inviteUrl)}" class="button">${escapeHtml(button)}</a>
     </div>
     <div class="content">
-      <p style="font-size: 14px; color: ${MUTED_COLOR};">This link expires in 30 days. If you did not expect this invitation, you can safely ignore this email.</p>
+      <p style="font-size: 14px; color: ${MUTED_COLOR};">${escapeHtml(expiry)}</p>
     </div>
-  `);
+  `,
+    loc,
+    footer
+  );
+
+  const [plainBody, plainCta, plainExpiry, plainIgnore] = await Promise.all([
+    t('plainBody'),
+    t('plainCta'),
+    t('plainExpiry'),
+    t('plainIgnore'),
+  ]);
 
   await transporter.sendMail({
     from,
     to,
-    subject: `${inviterName} invited you to ${accountName} on GanttFlow`,
+    subject: subjectPlain,
     text: [
-      `Hi,`,
-      ``,
-      `${inviterName} has invited you to join "${accountName}" on GanttFlow.`,
-      ``,
-      `Accept your invitation here:`,
+      greeting,
+      '',
+      plainBody,
+      '',
+      plainCta,
       inviteUrl,
-      ``,
-      `This link expires in 30 days.`,
-      ``,
-      `If you did not expect this invitation, you can safely ignore this email.`,
+      '',
+      plainExpiry,
+      '',
+      plainIgnore,
     ].join('\n'),
     html,
   });

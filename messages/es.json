@@ -679,5 +679,56 @@
       "title": "Configurando tu espacio de trabajo...",
       "subtitle": "Estamos creando un proyecto de ejemplo basado en tus preferencias."
     }
+  },
+  "emails": {
+    "layout": {
+      "copyright": "© {year} GanttFlow. Todos los derechos reservados.",
+      "tagline": "Hecho para equipos que valoran la claridad y la eficiencia."
+    },
+    "verification": {
+      "subject": "Verifica tu correo electrónico en GanttFlow",
+      "title": "¡Bienvenido a GanttFlow!",
+      "greeting": "Hola,",
+      "body": "¡Estamos encantados de tenerte con nosotros! Para comenzar a usar GanttFlow, verifica tu dirección de correo electrónico haciendo clic en el botón de abajo.",
+      "button": "Verificar Correo Electrónico",
+      "expiry": "Este enlace expira en 24 horas. Si no creaste una cuenta en GanttFlow, puedes ignorar este correo con seguridad.",
+      "plainBody": "Verifica tu dirección de correo electrónico haciendo clic en el enlace de abajo:",
+      "plainExpiry": "Este enlace expira en 24 horas.",
+      "plainIgnore": "Si no creaste una cuenta en GanttFlow, puedes ignorar este correo con seguridad."
+    },
+    "mfa": {
+      "subject": "Tu código de acceso a GanttFlow",
+      "title": "Código de Autenticación",
+      "body": "Tu código de verificación de acceso a GanttFlow está a continuación. Ingresa este código en la aplicación para completar tu inicio de sesión.",
+      "expiry": "Este código expira en 10 minutos. Si no intentaste iniciar sesión, ignora este correo.",
+      "plainBody": "Tu código de acceso a GanttFlow es: {code}",
+      "plainExpiry": "Este código expira en 10 minutos.",
+      "plainIgnore": "Si no intentaste iniciar sesión, ignora este correo."
+    },
+    "passwordReset": {
+      "subject": "Restablecer tu contraseña de GanttFlow",
+      "title": "Restablecer Tu Contraseña",
+      "greeting": "Hola,",
+      "body": "Recibimos una solicitud para restablecer la contraseña de tu cuenta de GanttFlow. Haz clic en el botón de abajo para elegir una nueva contraseña.",
+      "button": "Restablecer Contraseña",
+      "expiry": "Este enlace expira en 1 hora. Si no solicitaste un restablecimiento de contraseña, puedes ignorar este correo con seguridad — tu contraseña no será modificada.",
+      "plainBody": "Haz clic en el enlace de abajo para restablecer tu contraseña:",
+      "plainExpiry": "Este enlace expira en 1 hora.",
+      "plainIgnore": "Si no solicitaste un restablecimiento de contraseña, puedes ignorar este correo con seguridad."
+    },
+    "invitation": {
+      "subject": "{inviterName} te invitó a unirte a {accountName}",
+      "subjectPlain": "{inviterName} te invitó a {accountName} en GanttFlow",
+      "title": "Únete a Tu Equipo",
+      "greeting": "Hola,",
+      "body": "<strong>{inviterName}</strong> te ha invitado a unirte a <strong>{accountName}</strong> en GanttFlow.",
+      "cta": "¿Listo para comenzar a colaborar en tus proyectos? Haz clic en el botón de abajo para aceptar tu invitación.",
+      "button": "Aceptar Invitación",
+      "expiry": "Este enlace expira en 30 días. Si no esperabas esta invitación, puedes ignorar este correo con seguridad.",
+      "plainBody": "{inviterName} te ha invitado a unirte a \"{accountName}\" en GanttFlow.",
+      "plainCta": "Acepta tu invitación aquí:",
+      "plainExpiry": "Este enlace expira en 30 días.",
+      "plainIgnore": "Si no esperabas esta invitación, puedes ignorar este correo con seguridad."
+    }
   }
 }

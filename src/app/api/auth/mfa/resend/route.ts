@@ -58,7 +58,7 @@ export async function POST(request: NextRequest) {
     });
 
     try {
-      await sendMFACode(email, code);
+      await sendMFACode(email, code, user.locale);
     } catch (err) {
       console.error('[mfa/resend] Failed to send MFA code:', err);
     }
