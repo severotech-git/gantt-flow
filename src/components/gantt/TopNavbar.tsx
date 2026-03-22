@@ -15,6 +15,7 @@ import { Camera, ChevronDown, History, Search, Plus, Crosshair, Loader2, Eye, Ro
 import { cn } from '@/lib/utils';
 import { useState } from 'react';
 import { PageNavbar } from '@/components/layout/PageNavbar';
+import { PresenceAvatars } from './PresenceAvatars';
 import { useTranslations } from 'next-intl';
 
 const SCALE_VALUES: TimelineScale[] = ['week', 'month', 'quarter'];
@@ -100,6 +101,9 @@ export function TopNavbar({ onSaveVersion, onNewProject, onSearch, sidebarOpen, 
   // ── Slot: right side ─────────────────────────────────────────────────────
   const actions = (
     <>
+      {/* Connected users */}
+      <PresenceAvatars />
+
       {/* Saving indicator */}
       {isSaving && (
         <span className="flex items-center gap-1 text-[11px] text-muted-foreground">

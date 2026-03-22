@@ -11,6 +11,7 @@ import { EditProjectDialog } from '@/components/dialogs/EditProjectDialog';
 import { SaveVersionDialog } from '@/components/dialogs/SaveVersionDialog';
 import { SearchDialog } from '@/components/dialogs/SearchDialog';
 import { useRouter } from 'next/navigation';
+import { useSocket } from '@/hooks/useSocket';
 
 interface ProjectPageProps {
   params: Promise<{ id: string }>;
@@ -29,6 +30,9 @@ export default function ProjectPage({ params }: ProjectPageProps) {
   const [saveVersionOpen, setSaveVersionOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(true);
+
+  // Real-time collaboration: connect to Socket.IO when project loads
+  useSocket(id);
 
   useEffect(() => {
     fetchProject(id);

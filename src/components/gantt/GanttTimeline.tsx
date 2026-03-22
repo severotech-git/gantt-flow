@@ -7,6 +7,11 @@ import { GanttBar } from './GanttBar';
 import { differenceInCalendarDays, parseISO, isValid, addDays, startOfWeek } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { useFormatter, type DateTimeFormatOptions } from 'next-intl';
+import { RemoteCursors } from './RemoteCursors';
+import { RemoteDragGhosts } from './RemoteDragGhost';
+import { getSocket } from '@/lib/socket';
+import { usePresenceStore } from '@/store/usePresenceStore';
+import { useThrottledCallback } from '@/hooks/useThrottledCallback';
 
 const PX_PER_DAY: Record<string, number> = {
   week:    28,
@@ -104,6 +109,40 @@ export const GanttTimeline = forwardRef<GanttTimelineHandle, GanttTimelineProps>
     const fmtDate: FmtDate = (date, opts) => fmt.dateTime(date, opts);
 
     const pxPerDay = PX_PER_DAY[timelineScale] * zoomLevel;
+
+    // ── Remote cursor tracking ──────────────────────────────────────────────
+    const currentProjectId = usePresenceStore((s) => s.currentProjectId);
+
+    const sendCursorThrottled = useThrottledCallback(
+      (x: number, y: number, scrollLeft: number, scrollTop: number) => {
+        if (!currentProjectId) return;
+        const socket = getSocket();
+        if (socket.connected) {
+          socket.emit('cursor-move', { projectId: currentProjectId, x, y, pxPerDay, scrollLeft, scrollTop });
+        }
+      },
+      33, // ~30fps
+    );
+
+    const handleMouseMove = useCallback(
+      (e: React.MouseEvent<HTMLDivElement>) => {
+        if (!scrollRef.current) return;
+        const rect = scrollRef.current.getBoundingClientRect();
+        // Position relative to the scrollable content (not viewport)
+        const x = e.clientX - rect.left + scrollRef.current.scrollLeft;
+        const y = e.clientY - rect.top + scrollRef.current.scrollTop;
+        sendCursorThrottled(x, y, scrollRef.current.scrollLeft, scrollRef.current.scrollTop);
+      },
+      [sendCursorThrottled],
+    );
+
+    const handleMouseLeave = useCallback(() => {
+      if (!currentProjectId) return;
+      const socket = getSocket();
+      if (socket.connected) {
+        socket.emit('cursor-hide', { projectId: currentProjectId });
+      }
+    }, [currentProjectId]);
 
     // Local timeline state — independent from store so infinite scroll doesn't
     // clash with the store's "reset on Today/scale" effect.
@@ -224,6 +263,8 @@ export const GanttTimeline = forwardRef<GanttTimelineHandle, GanttTimelineProps>
         ref={scrollRef}
         className="flex-1 overflow-auto relative gantt-scroll"
         onScroll={handleScroll}
+        onMouseMove={handleMouseMove}
+        onMouseLeave={handleMouseLeave}
       >
         <div style={{ width: totalWidth, minWidth: '100%', position: 'relative' }}>
 
@@ -270,7 +311,7 @@ export const GanttTimeline = forwardRef<GanttTimelineHandle, GanttTimelineProps>
           </div>
 
           {/* ── Rows ────────────────────────────────────────── */}
-          <div>
+          <div style={{ position: 'relative' }}>
             {visibleRows.map((row) => {
               const meta = rowGroupMeta.get(row.rowKey);
               const groupColor = EPIC_COLORS[(meta?.colorIdx ?? 0) % EPIC_COLORS.length];
@@ -333,6 +374,13 @@ export const GanttTimeline = forwardRef<GanttTimelineHandle, GanttTimelineProps>
                 No items to display
               </div>
             )}
+
+            {/* Remote drag ghost bars */}
+            <RemoteDragGhosts
+              visibleRows={visibleRows}
+              pxPerDay={pxPerDay}
+              timelineStartDate={localStartDate}
+            />
           </div>
 
           {/* ── Today marker ─────────────────────────────────── */}
@@ -352,6 +400,9 @@ export const GanttTimeline = forwardRef<GanttTimelineHandle, GanttTimelineProps>
               </div>
             </>
           )}
+
+          {/* ── Remote cursors overlay ────────────────────── */}
+          <RemoteCursors localPxPerDay={pxPerDay} />
         </div>
       </div>
     );

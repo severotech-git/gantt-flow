@@ -282,6 +282,10 @@
       "zoomIn": "Aumentar zoom (Ctrl =)",
       "resetZoom": "Resetar zoom (Ctrl 0)"
     },
+    "presence": {
+      "viewing": "{count, plural, one {# usuário visualizando} other {# usuários visualizando}}",
+      "moreUsers": "+{count} mais"
+    },
     "topnav": {
       "scales": {
         "week": "Semana",

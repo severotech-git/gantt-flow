@@ -20,6 +20,9 @@ import { AddItemDialog } from '@/components/dialogs/AddItemDialog';
 import { addDays, parseISO, isValid, differenceInCalendarDays } from 'date-fns';
 import { snapToWorkday } from '@/lib/dateUtils';
 import { useSettingsStore } from '@/store/useSettingsStore';
+import { usePresenceStore } from '@/store/usePresenceStore';
+import { getSocket } from '@/lib/socket';
+import { useThrottledCallback } from '@/hooks/useThrottledCallback';
 import type { IStatusConfig } from '@/types';
 import { BarChart3, ZoomIn, ZoomOut } from 'lucide-react';
 import { useTranslations } from 'next-intl';
@@ -61,6 +64,21 @@ export function GanttBoard() {
 
   const allowWeekends = useSettingsStore((s) => s.allowWeekends);
   const statuses = useSettingsStore((s) => s.statuses);
+
+  // ── Remote drag streaming ──────────────────────────────────────────────────
+  const currentProjectId = usePresenceStore((s) => s.currentProjectId);
+  const activeDragIdRef = useRef<string | null>(null);
+
+  const emitDragMoveThrottled = useThrottledCallback(
+    (dragId: string, deltaX: number) => {
+      if (!currentProjectId) return;
+      const socket = getSocket();
+      if (socket.connected) {
+        socket.emit('drag-move', { projectId: currentProjectId, dragId, deltaX });
+      }
+    },
+    33, // ~30fps
+  );
 
   // Zoom — keyboard shortcuts (Cmd/Ctrl +/-/0) and Ctrl+wheel
   const boardRef = useRef<HTMLDivElement>(null);
@@ -282,31 +300,65 @@ export function GanttBoard() {
   const handleDragStart = useCallback((event: DragStartEvent) => {
     const dragId = event.active.id as string;
     setDragDelta({ id: dragId, x: 0 });
+    activeDragIdRef.current = dragId;
+
+    // Find the bar for this drag (works for both move and resize)
+    let barId = dragId;
+    if (dragId.startsWith('resize-')) barId = dragId.slice(dragId.indexOf(':') + 1);
+    const row = visibleRows.find((r) => r.bar?.id === barId);
+
+    // Emit drag-start to remote users
+    if (row?.bar && currentProjectId) {
+      const socket = getSocket();
+      if (socket.connected) {
+        socket.emit('drag-start', {
+          projectId: currentProjectId,
+          dragId,
+          barData: {
+            plannedStart: row.bar.plannedStart,
+            plannedEnd: row.bar.plannedEnd,
+            level: row.bar.level,
+          },
+          pxPerDay,
+        });
+      }
+    }
 
     if (dragId.startsWith('resize-')) return;
 
-    const row = visibleRows.find((r) => r.bar?.id === dragId);
     if (!row?.bar) return;
     const s = safeParseISO(row.bar.plannedStart);
     const e = safeParseISO(row.bar.plannedEnd);
     const width = s && e ? Math.max((differenceInCalendarDays(e, s) + 1) * pxPerDay, 8) : pxPerDay * 7;
     setActiveDrag({ bar: row.bar, overlayWidth: width });
-  }, [visibleRows, pxPerDay]);
+  }, [visibleRows, pxPerDay, currentProjectId]);
 
   const handleDragMove = useCallback((event: DragMoveEvent) => {
-    setDragDelta({ id: event.active.id as string, x: event.delta.x });
-  }, []);
+    const dragId = event.active.id as string;
+    setDragDelta({ id: dragId, x: event.delta.x });
+    emitDragMoveThrottled(dragId, event.delta.x);
+  }, [emitDragMoveThrottled]);
 
   const handleDragEnd = useCallback((event: DragEndEvent) => {
     setActiveDrag(null);
     setDragDelta(null);
+
     const { active, delta } = event;
+    const dragId = active.id as string;
+    activeDragIdRef.current = null;
+
+    // Always emit drag-end to remote (even if no movement)
+    if (currentProjectId) {
+      const socket = getSocket();
+      if (socket.connected) {
+        socket.emit('drag-end', { projectId: currentProjectId, dragId });
+      }
+    }
+
     if (!delta.x) return;
 
     const deltaDays = Math.round(delta.x / pxPerDay);
     if (deltaDays === 0) return;
-
-    const dragId = active.id as string;
 
     // ── Resize ────────────────────────────────────────────────────────────
     if (dragId.startsWith('resize-')) {
@@ -394,7 +446,7 @@ export function GanttBoard() {
         }
       }
     }
-  }, [visibleRows, pxPerDay, allowWeekends, updateTask, updateFeature, updateEpic, project]);
+  }, [visibleRows, pxPerDay, allowWeekends, updateTask, updateFeature, updateEpic, project, currentProjectId]);
 
   // ── Loading skeleton ────────────────────────────────────────────────────
   if (isLoadingProject) {
@@ -441,7 +493,18 @@ export function GanttBoard() {
       onDragStart={handleDragStart}
       onDragMove={handleDragMove}
       onDragEnd={handleDragEnd}
-      onDragCancel={() => { setActiveDrag(null); setDragDelta(null); }}
+      onDragCancel={() => {
+        setActiveDrag(null);
+        setDragDelta(null);
+        const dragId = activeDragIdRef.current;
+        activeDragIdRef.current = null;
+        if (dragId && currentProjectId) {
+          const socket = getSocket();
+          if (socket.connected) {
+            socket.emit('drag-end', { projectId: currentProjectId, dragId });
+          }
+        }
+      }}
     >
       <div ref={boardRef} className="flex flex-col flex-1 overflow-hidden">
         <div className="flex flex-1 overflow-hidden">

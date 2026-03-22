@@ -3,9 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "tsx server.ts",
     "build": "next build",
-    "start": "next start",
+    "start": "node --import tsx/esm server.ts",
     "lint": "eslint"
   },
   "dependencies": {
@@ -30,8 +30,11 @@
     "radix-ui": "^1.4.3",
     "react": "19.2.3",
     "react-dom": "19.2.3",
+    "socket.io": "^4.8.3",
+    "socket.io-client": "^4.8.3",
     "stripe": "^20.4.0",
     "tailwind-merge": "^3.5.0",
+    "tsx": "^4.21.0",
     "zustand": "^5.0.11"
   },
   "devDependencies": {
