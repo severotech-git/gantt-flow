@@ -61,6 +61,7 @@ jobs:
           platforms: linux/amd64
           build-args: |
             NEXT_PUBLIC_GADS_CONVERSION_ID=${{ secrets.NEXT_PUBLIC_GADS_CONVERSION_ID }}
+            NEXT_PUBLIC_GADS_CONVERSION_LABEL=${{ secrets.NEXT_PUBLIC_GADS_CONVERSION_LABEL }}
 
   # ─────────────────────────────────────────────
   # Job 2: Deploy to remote server via SSH

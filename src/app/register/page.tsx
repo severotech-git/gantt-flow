@@ -16,6 +16,7 @@ import { GoogleSignInButton } from '@/components/shared/GoogleSignInButton';
 import logoIcon from '../../../public/icon.png';
 import { PASSWORD_RULES, validatePassword } from '@/lib/passwordPolicy';
 import { Check, X } from 'lucide-react';
+import { trackConversion } from '@/lib/analytics';
 
 function RegisterPageContent() {
   const t = useTranslations('auth.register');
@@ -78,6 +79,7 @@ function RegisterPageContent() {
         if (inviteToken) {
           router.push(`/invite/${inviteToken}?auto=1`);
         } else {
+          trackConversion();
           router.push('/projects');
         }
       } else {
