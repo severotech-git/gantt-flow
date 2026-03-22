@@ -25,7 +25,9 @@ RUN pnpm build
 # Bundle the custom server (server.ts + local deps) into a single ESM file
 # so we don't need tsx at runtime (avoids ERR_REQUIRE_CYCLE_MODULE on Node 22)
 RUN pnpm exec esbuild server.ts --bundle --platform=node --format=esm \
-    --outfile=server.mjs --packages=external --tsconfig=tsconfig.json
+    --outfile=server.mjs --packages=external --tsconfig=tsconfig.json \
+ && pnpm exec esbuild next.config.ts --bundle --platform=node --format=esm \
+    --outfile=next.config.mjs --packages=external
 
 # Prune dev dependencies for a leaner production image
 RUN pnpm prune --prod
@@ -57,8 +59,8 @@ COPY --from=builder --chown=nextjs:nodejs /app/public        ./public
 COPY --from=builder --chown=nextjs:nodejs /app/package.json  ./package.json
 # Copy pre-bundled server (no tsx needed at runtime)
 COPY --from=builder --chown=nextjs:nodejs /app/server.mjs    ./server.mjs
-# Copy next.config for the Next.js app
-COPY --from=builder --chown=nextjs:nodejs /app/next.config.ts ./next.config.ts
+# Copy pre-compiled next.config (no TypeScript needed at runtime)
+COPY --from=builder --chown=nextjs:nodejs /app/next.config.mjs ./next.config.mjs
 # Copy i18n config (needed by next-intl plugin)
 COPY --from=builder --chown=nextjs:nodejs /app/src/i18n       ./src/i18n
 COPY --from=builder --chown=nextjs:nodejs /app/messages       ./messages
