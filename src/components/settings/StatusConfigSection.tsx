@@ -35,8 +35,17 @@ export function StatusConfigSection() {
   }, []);
 
   useEffect(() => {
-    if (canManage) fetchUsage();
-  }, [canManage, fetchUsage]);
+    if (!canManage) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch('/api/settings/status-usage');
+        if (res.ok && !cancelled) setUsageCounts(await res.json());
+      } catch { /* ignore */ }
+      if (!cancelled) setUsageLoaded(true);
+    })();
+    return () => { cancelled = true; };
+  }, [canManage]);
 
   function handleMoveUp(idx: number) {
     if (idx === 0) return;

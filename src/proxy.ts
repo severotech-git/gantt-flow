@@ -13,16 +13,6 @@ const UNVERIFIED_OK_PATHS = [
   '/api/auth/verify-email',
 ];
 
-// Allowed even when trial is expired or account is suspended
-const PAYWALL_OK_PATHS = [
-  '/settings',
-  '/api/settings',
-  '/api/billing',
-  '/api/accounts',
-  '/api/auth',
-  '/login',
-  '/register',
-];
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;

@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import { cn } from '@/lib/utils';
 
 const COLORS = [
@@ -43,13 +44,16 @@ export function OwnerAvatar({ name, avatar, size = 'sm', color, className }: Own
 
   if (avatar) {
     return (
-      <img
+      <Image
         src={avatar}
         alt={name ?? ''}
         referrerPolicy="no-referrer"
+        width={px}
+        height={px}
         className={cn('rounded-full object-cover shrink-0', dimClass, className)}
         style={isNumeric ? { width: px, height: px } : undefined}
         title={name}
+        unoptimized
       />
     );
   }
