@@ -19,6 +19,7 @@
 
 # production
 /build
+server.mjs
 
 # misc
 .DS_Store
