@@ -11,7 +11,13 @@ function escapeHtml(str: string): string {
     .replace(/'/g, '&#39;');
 }
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+let $resendInstance = null as Resend | null;
+function getResend(): Resend {
+  if (!$resendInstance) {
+    $resendInstance = new Resend(process.env.RESEND_API_KEY);
+  }
+  return $resendInstance;
+}
 
 const APP_URL = process.env.NEXTAUTH_URL || 'http://localhost:3000';
 const PRIMARY_COLOR = '#1e293b'; // Slate 800
@@ -190,7 +196,7 @@ export async function sendVerificationEmail(
     t('plainIgnore'),
   ]);
 
-  await resend.emails.send({
+  await getResend().emails.send({
     from,
     to,
     subject,
@@ -243,7 +249,7 @@ export async function sendMFACode(
     t('plainIgnore'),
   ]);
 
-  await resend.emails.send({
+  await getResend().emails.send({
     from,
     to,
     subject,
@@ -298,7 +304,7 @@ export async function sendPasswordResetEmail(
     t('plainIgnore'),
   ]);
 
-  await resend.emails.send({
+  await getResend().emails.send({
     from,
     to,
     subject,
@@ -367,7 +373,7 @@ export async function sendInvitationEmail(
     t('plainIgnore'),
   ]);
 
-  await resend.emails.send({
+  await getResend().emails.send({
     from,
     to,
     subject: subjectPlain,
