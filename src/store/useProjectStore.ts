@@ -1,4 +1,3 @@
-import { enableMapSet } from 'immer';
 import { create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
 import { IEpic, IFeature, IProject, IProjectSnapshot, ITask, TimelineScale } from '@/types';
@@ -15,9 +14,6 @@ function computeDayCount(s: string, e: string, allowWeekends: boolean): number {
   if (!isValid(start) || !isValid(end)) return 0;
   return countDays(start, end, allowWeekends);
 }
-
-// Required for Immer to draft Map and Set instances
-enableMapSet();
 
 // ─── State shape ─────────────────────────────────────────────────────────────
 
@@ -45,8 +41,6 @@ interface ProjectState {
   zoomLevel: number;
 
   // UI state
-  expandedEpicIds: Set<string>;
-  expandedFeatureIds: Set<string>;
   isSaving: boolean;
   focusedBarId: string | null;
 }
@@ -102,7 +96,7 @@ interface ProjectActions {
 
   // UI toggles
   toggleEpic: (epicId: string) => void;
-  toggleFeature: (featureId: string) => void;
+  toggleFeature: (epicId: string, featureId: string) => void;
   expandAll: () => void;
   collapseAll: () => void;
   setFocusedBarId: (id: string | null) => void;
@@ -157,8 +151,6 @@ export const useProjectStore = create<ProjectStore>()(
     timelineStartDate: getDefaultStartDate('week'),
     timelineScrollTarget: null,
     zoomLevel: 1,
-    expandedEpicIds: new Set<string>(),
-    expandedFeatureIds: new Set<string>(),
     isSaving: false,
     focusedBarId: null,
 
@@ -649,43 +641,63 @@ export const useProjectStore = create<ProjectStore>()(
 
     // ── UI toggles ───────────────────────────────────────────────────────────
     toggleEpic: (epicId) => {
+      let newCollapsed: boolean | undefined;
       set((s) => {
-        if (s.expandedEpicIds.has(epicId)) {
-          s.expandedEpicIds.delete(epicId);
-        } else {
-          s.expandedEpicIds.add(epicId);
-        }
+        if (!s.activeProject) return;
+        const epic = s.activeProject.epics.find((e) => e._id === epicId);
+        if (!epic) return;
+        epic.collapsed = !epic.collapsed;
+        newCollapsed = epic.collapsed;
       });
+      if (newCollapsed !== undefined) {
+        emitAction({ type: 'toggleEpicCollapse', epicId, collapsed: newCollapsed });
+        get().persistProject();
+      }
     },
 
-    toggleFeature: (featureId) => {
+    toggleFeature: (epicId, featureId) => {
+      let newCollapsed: boolean | undefined;
       set((s) => {
-        if (s.expandedFeatureIds.has(featureId)) {
-          s.expandedFeatureIds.delete(featureId);
-        } else {
-          s.expandedFeatureIds.add(featureId);
-        }
+        if (!s.activeProject) return;
+        const epic = s.activeProject.epics.find((e) => e._id === epicId);
+        if (!epic) return;
+        const feat = epic.features.find((f) => f._id === featureId);
+        if (!feat) return;
+        feat.collapsed = !feat.collapsed;
+        newCollapsed = feat.collapsed;
       });
+      if (newCollapsed !== undefined) {
+        emitAction({ type: 'toggleFeatureCollapse', epicId, featureId, collapsed: newCollapsed });
+        get().persistProject();
+      }
     },
 
     expandAll: () => {
       set((s) => {
-        const project = s.activeProject;
-        if (!project) return;
-        for (const epic of project.epics) {
-          s.expandedEpicIds.add(epic._id);
+        if (!s.activeProject) return;
+        for (const epic of s.activeProject.epics) {
+          epic.collapsed = false;
           for (const feat of epic.features) {
-            s.expandedFeatureIds.add(feat._id);
+            feat.collapsed = false;
           }
         }
       });
+      emitAction({ type: 'setAllCollapsed', collapsed: false });
+      get().persistProject();
     },
 
     collapseAll: () => {
       set((s) => {
-        s.expandedEpicIds.clear();
-        s.expandedFeatureIds.clear();
+        if (!s.activeProject) return;
+        for (const epic of s.activeProject.epics) {
+          epic.collapsed = true;
+          for (const feat of epic.features) {
+            feat.collapsed = true;
+          }
+        }
       });
+      emitAction({ type: 'setAllCollapsed', collapsed: true });
+      get().persistProject();
     },
 
     setFocusedBarId: (id) => {
@@ -806,6 +818,27 @@ export const useProjectStore = create<ProjectStore>()(
           case 'updateDayCount': {
             // Handled via updateTask/updateFeature/updateEpic on the originating client,
             // which emits those specific actions instead. No-op here.
+            break;
+          }
+          case 'toggleEpicCollapse': {
+            const epic = s.activeProject.epics.find((e) => e._id === action.epicId);
+            if (epic) epic.collapsed = action.collapsed;
+            break;
+          }
+          case 'toggleFeatureCollapse': {
+            const epic = s.activeProject.epics.find((e) => e._id === action.epicId);
+            if (!epic) break;
+            const feat = epic.features.find((f) => f._id === action.featureId);
+            if (feat) feat.collapsed = action.collapsed;
+            break;
+          }
+          case 'setAllCollapsed': {
+            for (const epic of s.activeProject.epics) {
+              epic.collapsed = action.collapsed;
+              for (const feat of epic.features) {
+                feat.collapsed = action.collapsed;
+              }
+            }
             break;
           }
         }

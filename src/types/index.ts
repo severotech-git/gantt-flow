@@ -148,6 +148,7 @@ export interface IFeature {
   tasks: ITask[];
   color?: string;
   dayCount?: number;
+  collapsed?: boolean;
 }
 
 export interface IEpic {
@@ -163,6 +164,7 @@ export interface IEpic {
   features: IFeature[];
   color?: string;
   dayCount?: number;
+  collapsed?: boolean;
 }
 
 export interface IProject {

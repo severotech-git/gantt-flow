@@ -122,7 +122,6 @@ export const GanttTaskPanel = forwardRef<HTMLDivElement, GanttTaskPanelProps>(
   function GanttTaskPanel({ visibleRows, onScrollY, onAddFeature, onAddTask, onDayCountChange }, ref) {
     const {
       toggleEpic, toggleFeature,
-      expandedEpicIds, expandedFeatureIds,
       removeEpic, removeFeature, removeTask,
       updateTask, updateFeature, updateEpic,
       isVersionReadOnly,
@@ -180,16 +179,12 @@ export const GanttTaskPanel = forwardRef<HTMLDivElement, GanttTaskPanelProps>(
                 parentIsLast={rowMetas[i]?.parentIsLast ?? true}
                 isNotFirstEpic={rowMetas[i]?.isNotFirstEpic ?? false}
                 epicColorIdx={rowMetas[i]?.epicColorIdx ?? 0}
-                isExpanded={
-                  row.level === 'epic'
-                    ? expandedEpicIds.has(row.epicId)
-                    : expandedFeatureIds.has(row.featureId ?? '')
-                }
+                isExpanded={row.isExpanded ?? false}
                 readonly={isVersionReadOnly}
                 onToggle={() =>
                   row.level === 'epic'
                     ? toggleEpic(row.epicId)
-                    : toggleFeature(row.featureId ?? '')
+                    : toggleFeature(row.epicId, row.featureId ?? '')
                 }
                 onDelete={() => {
                   if (row.level === 'epic') removeEpic(row.epicId);
@@ -295,10 +290,10 @@ function ContinuationLine({ active }: { active: boolean }) {
 
 function PanelHeader() {
   const t = useTranslations('gantt.taskPanel');
-  const expandedEpicIds = useProjectStore((s) => s.expandedEpicIds);
+  const activeProject = useProjectStore((s) => s.activeProject);
   const expandAll = useProjectStore((s) => s.expandAll);
   const collapseAll = useProjectStore((s) => s.collapseAll);
-  const hasExpanded = expandedEpicIds.size > 0;
+  const hasExpanded = activeProject?.epics.some((e) => !e.collapsed) ?? false;
 
   return (
     <>

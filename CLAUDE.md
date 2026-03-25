@@ -70,5 +70,6 @@ AUTH_SECRET          # Required by NextAuth
 NEXTAUTH_URL         # e.g. http://localhost:3000
 MONGODB_URI          # MongoDB connection string
 GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET   # OAuth (optional)
-EMAIL_FROM / SMTP_*  # For OTP/verification emails
+EMAIL_FROM           # e.g. "GanttFlow <noreply@severotech.com>"
+RESEND_API_KEY       # Resend API key for sending emails
 ```

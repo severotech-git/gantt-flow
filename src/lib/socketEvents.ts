@@ -42,7 +42,10 @@ export type ProjectAction =
   | { type: 'removeTask'; epicId: string; featureId: string; taskId: string }
   | { type: 'removeFeature'; epicId: string; featureId: string }
   | { type: 'removeEpic'; epicId: string }
-  | { type: 'updateDayCount'; epicId: string; featureId?: string; taskId?: string; dayCount: number };
+  | { type: 'updateDayCount'; epicId: string; featureId?: string; taskId?: string; dayCount: number }
+  | { type: 'toggleEpicCollapse'; epicId: string; collapsed: boolean }
+  | { type: 'toggleFeatureCollapse'; epicId: string; featureId: string; collapsed: boolean }
+  | { type: 'setAllCollapsed'; collapsed: boolean };
 
 // ─── Client → Server events ─────────────────────────────────────────────────
 

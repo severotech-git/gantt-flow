@@ -45,8 +45,6 @@ export function SearchDialog({ open, onClose }: SearchDialogProps) {
 
   const {
     activeProject,
-    expandedEpicIds,
-    expandedFeatureIds,
     toggleEpic,
     toggleFeature,
     setTimelineStartDate,
@@ -135,8 +133,12 @@ export function SearchDialog({ open, onClose }: SearchDialogProps) {
 
   function handleSelect(item: SearchItem) {
     // Expand parents if currently collapsed
-    if (!expandedEpicIds.has(item.epicId)) toggleEpic(item.epicId);
-    if (item.featureId && !expandedFeatureIds.has(item.featureId)) toggleFeature(item.featureId);
+    const epic = activeProject?.epics.find((e) => e._id === item.epicId);
+    if (epic?.collapsed) toggleEpic(item.epicId);
+    if (item.featureId) {
+      const feat = epic?.features.find((f) => f._id === item.featureId);
+      if (feat?.collapsed) toggleFeature(item.epicId, item.featureId);
+    }
 
     // Move the timeline origin to 3 days before the item starts
     const start = parseISO(item.plannedStart);

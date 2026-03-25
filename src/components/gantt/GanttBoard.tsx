@@ -55,7 +55,6 @@ export function GanttBoard() {
   const {
     timelineScale,
     updateTask, updateFeature, updateEpic, updateDayCount,
-    expandedEpicIds, expandedFeatureIds,
     isVersionReadOnly, isLoadingProject,
     zoomLevel, setZoomLevel,
   } = useProjectStore();
@@ -166,7 +165,7 @@ export function GanttBoard() {
         actualStart: epic.actualStart,
         actualEnd: epic.actualEnd,
         dayCount: epic.dayCount,
-        isExpanded: expandedEpicIds.has(epic._id),
+        isExpanded: !epic.collapsed,
         hasWarning: epicHasIssue,
         bar: {
           id: `bar-epic-${epic._id}`,
@@ -182,7 +181,7 @@ export function GanttBoard() {
         },
       });
 
-      if (!expandedEpicIds.has(epic._id)) continue;
+      if (epic.collapsed) continue;
 
       for (const feat of epic.features) {
         const featHasIssue = feat.tasks.some((t) => taskHasIssue(t, statuses));
@@ -200,7 +199,7 @@ export function GanttBoard() {
           actualStart: feat.actualStart,
           actualEnd: feat.actualEnd,
           dayCount: feat.dayCount,
-          isExpanded: expandedFeatureIds.has(feat._id),
+          isExpanded: !feat.collapsed,
           hasWarning: featHasIssue,
           bar: {
             id: `bar-feat-${feat._id}`,
@@ -218,7 +217,7 @@ export function GanttBoard() {
           },
         });
 
-        if (!expandedFeatureIds.has(feat._id)) continue;
+        if (feat.collapsed) continue;
 
         for (const task of feat.tasks) {
           rows.push({
@@ -290,7 +289,7 @@ export function GanttBoard() {
     }
 
     return rows;
-  }, [project, expandedEpicIds, expandedFeatureIds, isVersionReadOnly, statuses]);
+  }, [project, isVersionReadOnly, statuses]);
 
   // ── DnD ────────────────────────────────────────────────────────────────
   const sensors = useSensors(

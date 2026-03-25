@@ -31,6 +31,7 @@ const FeatureSchema = new Schema(
     actualEnd:     { type: Date },
     color:         { type: String },
     dayCount:      { type: Number },
+    collapsed:     { type: Boolean, default: false },
     tasks:         { type: [TaskSchema], default: [] },
   },
   { _id: true }
@@ -48,6 +49,7 @@ const EpicSchema = new Schema(
     actualEnd:     { type: Date },
     color:         { type: String },
     dayCount:      { type: Number },
+    collapsed:     { type: Boolean, default: false },
     features:      { type: [FeatureSchema], default: [] },
   },
   { _id: true }

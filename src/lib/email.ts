@@ -1,4 +1,4 @@
-import nodemailer from 'nodemailer';
+import { Resend } from 'resend';
 import { getEmailText, resolveEmailLocale } from './emailTranslations';
 import type { AppLocale } from '@/i18n/routing';
 
@@ -11,14 +11,7 @@ function escapeHtml(str: string): string {
     .replace(/'/g, '&#39;');
 }
 
-const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST,
-  port: Number(process.env.SMTP_PORT ?? 587),
-  secure: process.env.SMTP_SECURE === 'true',
-  auth: process.env.SMTP_USER
-    ? { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS }
-    : undefined,
-});
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 const APP_URL = process.env.NEXTAUTH_URL || 'http://localhost:3000';
 const PRIMARY_COLOR = '#1e293b'; // Slate 800
@@ -157,7 +150,7 @@ export async function sendVerificationEmail(
   locale?: string | null
 ): Promise<void> {
   const loc = resolveEmailLocale(locale);
-  const from = process.env.SMTP_FROM ?? 'noreply@mygant.app';
+  const from = process.env.EMAIL_FROM ?? 'GanttFlow <noreply@severotech.com>';
   const t = (key: string, params?: Record<string, string | number>) =>
     getEmailText(loc, `emails.verification.${key}`, params);
 
@@ -197,7 +190,7 @@ export async function sendVerificationEmail(
     t('plainIgnore'),
   ]);
 
-  await transporter.sendMail({
+  await resend.emails.send({
     from,
     to,
     subject,
@@ -214,7 +207,7 @@ export async function sendMFACode(
   locale?: string | null
 ): Promise<void> {
   const loc = resolveEmailLocale(locale);
-  const from = process.env.SMTP_FROM ?? 'noreply@mygant.app';
+  const from = process.env.EMAIL_FROM ?? 'GanttFlow <noreply@severotech.com>';
   const t = (key: string, params?: Record<string, string | number>) =>
     getEmailText(loc, `emails.mfa.${key}`, params);
 
@@ -250,7 +243,7 @@ export async function sendMFACode(
     t('plainIgnore'),
   ]);
 
-  await transporter.sendMail({
+  await resend.emails.send({
     from,
     to,
     subject,
@@ -265,7 +258,7 @@ export async function sendPasswordResetEmail(
   locale?: string | null
 ): Promise<void> {
   const loc = resolveEmailLocale(locale);
-  const from = process.env.SMTP_FROM ?? 'noreply@mygant.app';
+  const from = process.env.EMAIL_FROM ?? 'GanttFlow <noreply@severotech.com>';
   const t = (key: string, params?: Record<string, string | number>) =>
     getEmailText(loc, `emails.passwordReset.${key}`, params);
 
@@ -305,7 +298,7 @@ export async function sendPasswordResetEmail(
     t('plainIgnore'),
   ]);
 
-  await transporter.sendMail({
+  await resend.emails.send({
     from,
     to,
     subject,
@@ -324,7 +317,7 @@ export async function sendInvitationEmail(
   locale?: string | null
 ): Promise<void> {
   const loc = resolveEmailLocale(locale);
-  const from = process.env.SMTP_FROM ?? 'noreply@mygant.app';
+  const from = process.env.EMAIL_FROM ?? 'GanttFlow <noreply@severotech.com>';
   const params = { inviterName, accountName };
   const t = (key: string, extra?: Record<string, string | number>) =>
     getEmailText(loc, `emails.invitation.${key}`, { ...params, ...extra });
@@ -374,7 +367,7 @@ export async function sendInvitationEmail(
     t('plainIgnore'),
   ]);
 
-  await transporter.sendMail({
+  await resend.emails.send({
     from,
     to,
     subject: subjectPlain,
