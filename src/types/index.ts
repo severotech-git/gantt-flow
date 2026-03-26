@@ -202,6 +202,19 @@ export interface IProjectSnapshot {
   createdAt: string;
 }
 
+export interface IChangelogEntry {
+  _id: string;
+  projectId: string;
+  epicId: string;
+  featureId?: string;
+  taskId?: string;
+  field: string;
+  oldValue: string | null;
+  newValue: string | null;
+  userId: string;
+  changedAt: string;
+}
+
 export interface GanttItem {
   id: string;
   parentId?: string;

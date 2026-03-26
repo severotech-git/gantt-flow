@@ -151,45 +151,49 @@ export function AddItemDialog({ open, onClose, mode, epicId, featureId }: AddIte
               </div>
             </div>
           )}
-          <div className="grid grid-cols-2 gap-3">
+          {mode !== 'epic' && (
+            <div className="grid grid-cols-2 gap-3">
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs text-muted-foreground">{t('plannedStartLabel')}</label>
+                <Input
+                  type="date"
+                  value={plannedStart}
+                  onChange={(e) => handleStartChange(e.target.value)}
+                  className="focus-visible:ring-blue-500"
+                />
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs text-muted-foreground">{t('plannedEndLabel')}</label>
+                <Input
+                  type="date"
+                  value={plannedEnd}
+                  onChange={(e) => handleEndChange(e.target.value)}
+                  className="focus-visible:ring-blue-500"
+                />
+              </div>
+            </div>
+          )}
+          {mode !== 'epic' && (
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs text-muted-foreground">{t('plannedStartLabel')}</label>
-              <Input
-                type="date"
-                value={plannedStart}
-                onChange={(e) => handleStartChange(e.target.value)}
-                className="focus-visible:ring-blue-500"
-              />
+              <label className="text-xs text-muted-foreground">{t('statusLabel')}</label>
+              <div className="flex flex-wrap gap-1.5">
+                {statuses.map((s) => (
+                  <button
+                    key={s.value}
+                    type="button"
+                    onClick={() => setStatus(s.value)}
+                    className={`px-2 py-0.5 rounded text-[11px] font-medium uppercase tracking-wider border transition-colors ${
+                      status === s.value
+                        ? 'border-blue-400 text-blue-600 dark:text-blue-300 bg-blue-500/10'
+                        : 'border-border text-muted-foreground hover:border-border/80'
+                    }`}
+                  >
+                    {s.label}
+                  </button>
+                ))}
+              </div>
             </div>
-            <div className="flex flex-col gap-1.5">
-              <label className="text-xs text-muted-foreground">{t('plannedEndLabel')}</label>
-              <Input
-                type="date"
-                value={plannedEnd}
-                onChange={(e) => handleEndChange(e.target.value)}
-                className="focus-visible:ring-blue-500"
-              />
-            </div>
-          </div>
-          <div className="flex flex-col gap-1.5">
-            <label className="text-xs text-muted-foreground">{t('statusLabel')}</label>
-            <div className="flex flex-wrap gap-1.5">
-              {statuses.map((s) => (
-                <button
-                  key={s.value}
-                  type="button"
-                  onClick={() => setStatus(s.value)}
-                  className={`px-2 py-0.5 rounded text-[11px] font-medium uppercase tracking-wider border transition-colors ${
-                    status === s.value
-                      ? 'border-blue-400 text-blue-600 dark:text-blue-300 bg-blue-500/10'
-                      : 'border-border text-muted-foreground hover:border-border/80'
-                  }`}
-                >
-                  {s.label}
-                </button>
-              ))}
-            </div>
-          </div>
+          )}
           <div className="flex justify-end gap-2 pt-1">
             <Button type="button" variant="ghost" onClick={onClose} className="text-muted-foreground">
               {tCommon('cancel')}

@@ -335,7 +335,12 @@
       "like": "Me gusta",
       "reply": "Responder",
       "unassigned": "Sin asignar",
-      "noDescription": "Sin descripción aún."
+      "noDescription": "Sin descripción aún.",
+      "detailsTab": "Detalles",
+      "activityTab": "Actividad",
+      "changelogTab": "Cambios",
+      "changelogEmpty": "Sin cambios registrados aún.",
+      "unknownUser": "Desconocido"
     }
   },
   "dialogs": {

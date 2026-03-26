@@ -1,4 +1,4 @@
-import type { ITask, IFeature, IEpic } from '@/types';
+import type { ITask, IFeature, IEpic, IComment } from '@/types';
 
 // ─── Presence ────────────────────────────────────────────────────────────────
 
@@ -45,7 +45,8 @@ export type ProjectAction =
   | { type: 'updateDayCount'; epicId: string; featureId?: string; taskId?: string; dayCount: number }
   | { type: 'toggleEpicCollapse'; epicId: string; collapsed: boolean }
   | { type: 'toggleFeatureCollapse'; epicId: string; featureId: string; collapsed: boolean }
-  | { type: 'setAllCollapsed'; collapsed: boolean };
+  | { type: 'setAllCollapsed'; collapsed: boolean }
+  | { type: 'addComment'; epicId: string; featureId?: string; taskId?: string; comment: IComment };
 
 // ─── Client → Server events ─────────────────────────────────────────────────
 

@@ -1,16 +1,13 @@
 'use client';
 
+import { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useDraggable } from '@dnd-kit/core';
 import { CSS } from '@dnd-kit/utilities';
 import { cn } from '@/lib/utils';
 import { useSettingsStore } from '@/store/useSettingsStore';
 import { getDelayDays, countDays, snapToWorkday } from '@/lib/dateUtils';
 import { differenceInCalendarDays, parseISO, isValid, addDays } from 'date-fns';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
 import { AlertTriangle } from 'lucide-react';
 import { useFormatter, useTranslations } from 'next-intl';
 
@@ -45,7 +42,7 @@ interface GanttBarProps extends GanttBarData {
 
 // Level-specific bar heights (px)
 const BAR_H: Record<GanttBarData['level'], number> = {
-  epic:    26,
+  epic:    10,
   feature: 22,
   task:    18,
 };
@@ -85,6 +82,7 @@ export function GanttBar({
 }: GanttBarProps) {
   const t = useTranslations('gantt.bar');
   const fmt = useFormatter();
+  const [mousePos, setMousePos] = useState<{ x: number; y: number } | null>(null);
   const statuses = useSettingsStore((s) => s.statuses);
   const users = useSettingsStore((s) => s.users);
   const ownerUser = users.find((u) => u.uid === ownerId);
@@ -102,7 +100,7 @@ export function GanttBar({
     isDragging: isMoving
   } = useDraggable({
     id,
-    disabled: readonly || isOverlay,
+    disabled: readonly || isOverlay || level === 'epic',
     data: { plannedStart, plannedEnd, level, type: 'move' },
   });
 
@@ -154,6 +152,10 @@ export function GanttBar({
     }
   }
 
+  const epicClipPath = level === 'epic'
+    ? 'polygon(6px 0%, calc(100% - 6px) 0%, 100% 50%, calc(100% - 6px) 100%, 6px 100%, 0% 50%)'
+    : undefined;
+
   const style: React.CSSProperties = {
     left: `${finalLeft}px`,
     width: `${finalWidth}px`,
@@ -163,6 +165,7 @@ export function GanttBar({
     zIndex: isMoving || isResizing ? 100 : 'auto',
     outline: isResizing ? '2px solid #6366f1' : 'none',
     boxShadow: isResizing ? '0 0 15px rgba(99, 102, 241, 0.5)' : undefined,
+    clipPath: epicClipPath,
   };
 
   const resolvedColor = isDelayed ? '#ef4444' : barColorHex;
@@ -170,6 +173,8 @@ export function GanttBar({
   const barEl = (
     <div
       style={{ ...style, backgroundColor: resolvedColor }}
+      onMouseMove={(e) => setMousePos({ x: e.clientX, y: e.clientY })}
+      onMouseLeave={() => setMousePos(null)}
       className={cn(
         'absolute rounded flex items-center select-none group transition-shadow',
         isMoving && !isOverlay && 'opacity-50',
@@ -188,7 +193,7 @@ export function GanttBar({
         }}
         className={cn(
           "absolute inset-0 flex items-center overflow-hidden rounded",
-          !isOverlay && !readonly && 'cursor-grab active:cursor-grabbing',
+          !isOverlay && !readonly && level !== 'epic' && 'cursor-grab active:cursor-grabbing',
         )}
       >
         {pct > 0 && (
@@ -198,7 +203,7 @@ export function GanttBar({
           />
         )}
 
-        {finalWidth > 44 && (
+        {finalWidth > 44 && level !== 'epic' && (
           <span className="relative px-2 text-[10px] font-semibold text-white/90 truncate leading-none pointer-events-none whitespace-nowrap flex items-center gap-1">
             {hasWarning && !isOverlay && <AlertTriangle size={10} className="shrink-0 text-amber-400" />}
             {isDelayed && <span className="opacity-90">⚠</span>}
@@ -231,7 +236,7 @@ export function GanttBar({
         </div>
       )}
 
-      {!isOverlay && !readonly && (
+      {!isOverlay && !readonly && level !== 'epic' && (
         <>
           <ResizeHandle barId={id} side="left" />
           <ResizeHandle barId={id} side="right" />
@@ -248,45 +253,56 @@ export function GanttBar({
     ? t('early', { days: Math.abs(delayDays) })
     : t('onSchedule');
 
+  const showInfoTooltip = mousePos && !showTooltip;
+
   return (
-    <Tooltip>
-      <TooltipTrigger asChild>{barEl}</TooltipTrigger>
-      <TooltipContent
-        side="top"
-        className="bg-popover border-border text-popover-foreground text-xs p-3 max-w-[220px] space-y-1.5"
-      >
-        <p className="font-semibold text-foreground">{label}</p>
-        {ownerUser && <p className="text-muted-foreground text-[11px]">{t('owner')}: {ownerUser.name}</p>}
-        <div className="border-t border-border pt-1.5 grid grid-cols-2 gap-x-4 gap-y-1 text-[11px]">
-          <span className="text-muted-foreground">{t('plannedStart')}</span>
-          <span>{fmtDate(plannedStart)}</span>
-          <span className="text-muted-foreground">{t('plannedEnd')}</span>
-          <span>{fmtDate(plannedEnd)}</span>
-          {actualStart && (
-            <>
-              <span className="text-muted-foreground">{t('actualStart')}</span>
-              <span>{fmtDate(actualStart)}</span>
-            </>
-          )}
-          {actualEnd && (
-            <>
-              <span className="text-muted-foreground">{t('actualEnd')}</span>
-              <span>{fmtDate(actualEnd)}</span>
-            </>
-          )}
-          <span className="text-muted-foreground">{t('duration')}</span>
-          <span>{durationDays}d</span>
-          <span className="text-muted-foreground">{t('progress')}</span>
-          <span>{pct}%</span>
-        </div>
-        <p className={cn(
-          'text-[11px] font-medium pt-0.5',
-          isDelayed ? 'text-red-400' : isEarly ? 'text-emerald-400' : 'text-muted-foreground'
-        )}>
-          {diffLabel}
-        </p>
-      </TooltipContent>
-    </Tooltip>
+    <>
+      {barEl}
+      {showInfoTooltip && typeof document !== 'undefined' && createPortal(
+        <div
+          style={{
+            position: 'fixed',
+            left: mousePos.x + 14,
+            top: mousePos.y - 80,
+            zIndex: 9999,
+            pointerEvents: 'none',
+          }}
+          className="bg-popover border border-border text-popover-foreground text-xs p-3 max-w-[220px] space-y-1.5 rounded shadow-lg"
+        >
+          <p className="font-semibold text-foreground">{label}</p>
+          {ownerUser && <p className="text-muted-foreground text-[11px]">{t('owner')}: {ownerUser.name}</p>}
+          <div className="border-t border-border pt-1.5 grid grid-cols-2 gap-x-4 gap-y-1 text-[11px]">
+            <span className="text-muted-foreground">{t('plannedStart')}</span>
+            <span>{fmtDate(plannedStart)}</span>
+            <span className="text-muted-foreground">{t('plannedEnd')}</span>
+            <span>{fmtDate(plannedEnd)}</span>
+            {actualStart && (
+              <>
+                <span className="text-muted-foreground">{t('actualStart')}</span>
+                <span>{fmtDate(actualStart)}</span>
+              </>
+            )}
+            {actualEnd && (
+              <>
+                <span className="text-muted-foreground">{t('actualEnd')}</span>
+                <span>{fmtDate(actualEnd)}</span>
+              </>
+            )}
+            <span className="text-muted-foreground">{t('duration')}</span>
+            <span>{durationDays}d</span>
+            <span className="text-muted-foreground">{t('progress')}</span>
+            <span>{pct}%</span>
+          </div>
+          <p className={cn(
+            'text-[11px] font-medium pt-0.5',
+            isDelayed ? 'text-red-400' : isEarly ? 'text-emerald-400' : 'text-muted-foreground'
+          )}>
+            {diffLabel}
+          </p>
+        </div>,
+        document.body
+      )}
+    </>
   );
 }
 

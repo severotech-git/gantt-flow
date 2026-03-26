@@ -126,10 +126,49 @@ export const GanttTaskPanel = forwardRef<HTMLDivElement, GanttTaskPanelProps>(
       updateTask, updateFeature, updateEpic,
       isVersionReadOnly,
       openItem,
+      activeProject,
     } = useProjectStore();
 
     const [panelWidth, setPanelWidth] = useState(PANEL_DEFAULT);
     const [isResizing, setIsResizing] = useState(false);
+
+    const logItemChange = useCallback((
+      row: VisibleRow,
+      field: string,
+      oldValue: string | number | undefined,
+      newValue: string | number | undefined,
+    ) => {
+      if (!activeProject) return;
+      const oldStr = oldValue != null ? String(oldValue) : '';
+      const newStr = newValue != null ? String(newValue) : '';
+      if (oldStr === newStr) return;
+      fetch(`/api/projects/${activeProject._id}/changelog`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          epicId: row.epicId, featureId: row.featureId, taskId: row.taskId,
+          field, oldValue: oldStr || null, newValue: newStr || null,
+        }),
+      }).catch(() => {});
+    }, [activeProject]);
+
+    const logParentRollup = useCallback((
+      epicId: string,
+      featureId: string | undefined,
+      field: string,
+      oldValue: string | number | undefined,
+      newValue: string | number | undefined,
+    ) => {
+      if (!activeProject) return;
+      const oldStr = oldValue != null ? String(oldValue) : undefined;
+      const newStr = newValue != null ? String(newValue) : undefined;
+      if (!oldStr || !newStr || oldStr === newStr) return;
+      fetch(`/api/projects/${activeProject._id}/changelog`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ epicId, featureId, field, oldValue: oldStr, newValue: newStr }),
+      }).catch(() => {});
+    }, [activeProject]);
 
     const rowMetas = useMemo(() => computeRowMetas(visibleRows), [visibleRows]);
 
@@ -198,29 +237,84 @@ export const GanttTaskPanel = forwardRef<HTMLDivElement, GanttTaskPanelProps>(
                   else if (row.level === 'feature' && row.featureId) onAddTask(row.epicId, row.featureId);
                 }}
                 onStatusChange={(status) => {
+                  const epicBefore = activeProject?.epics.find((e) => e._id === row.epicId);
+                  const featBefore = row.featureId ? epicBefore?.features.find((f) => f._id === row.featureId) : undefined;
                   if (row.level === 'epic') updateEpic(row.epicId, { status });
                   else if (row.level === 'feature' && row.featureId) updateFeature(row.epicId, row.featureId, { status });
                   else if (row.level === 'task' && row.featureId && row.taskId)
                     updateTask(row.epicId, row.featureId, row.taskId, { status });
+                  logItemChange(row, 'status', row.status, status);
+                  if (row.level !== 'epic') {
+                    const epicAfter = useProjectStore.getState().activeProject?.epics.find((e) => e._id === row.epicId);
+                    const featAfter = row.featureId ? epicAfter?.features.find((f) => f._id === row.featureId) : undefined;
+                    if (row.level === 'task' && row.featureId && featBefore && featAfter) {
+                      logParentRollup(row.epicId, row.featureId, 'status', featBefore.status, featAfter.status);
+                      logParentRollup(row.epicId, row.featureId, 'completionPct', featBefore.completionPct, featAfter.completionPct);
+                    }
+                    if (epicBefore && epicAfter) {
+                      logParentRollup(row.epicId, undefined, 'status', epicBefore.status, epicAfter.status);
+                      logParentRollup(row.epicId, undefined, 'completionPct', epicBefore.completionPct, epicAfter.completionPct);
+                    }
+                  }
                 }}
                 onOwnerChange={(ownerId) => {
                   if (row.level === 'epic') updateEpic(row.epicId, { ownerId });
                   else if (row.level === 'feature' && row.featureId) updateFeature(row.epicId, row.featureId, { ownerId });
                   else if (row.level === 'task' && row.featureId && row.taskId)
                     updateTask(row.epicId, row.featureId, row.taskId, { ownerId });
+                  logItemChange(row, 'ownerId', row.ownerId, ownerId);
                 }}
                 onPctChange={(pct) => {
+                  const epicBefore = activeProject?.epics.find((e) => e._id === row.epicId);
+                  const featBefore = row.featureId ? epicBefore?.features.find((f) => f._id === row.featureId) : undefined;
                   if (row.level === 'task' && row.featureId && row.taskId)
                     updateTask(row.epicId, row.featureId, row.taskId, { completionPct: pct });
                   else if (row.level === 'feature' && row.featureId)
                     updateFeature(row.epicId, row.featureId, { completionPct: pct });
+                  logItemChange(row, 'completionPct', row.completionPct, pct);
+                  if (row.level !== 'epic') {
+                    const epicAfter = useProjectStore.getState().activeProject?.epics.find((e) => e._id === row.epicId);
+                    const featAfter = row.featureId ? epicAfter?.features.find((f) => f._id === row.featureId) : undefined;
+                    if (row.level === 'task' && row.featureId && featBefore && featAfter) {
+                      logParentRollup(row.epicId, row.featureId, 'completionPct', featBefore.completionPct, featAfter.completionPct);
+                    }
+                    if (epicBefore && epicAfter) {
+                      logParentRollup(row.epicId, undefined, 'completionPct', epicBefore.completionPct, epicAfter.completionPct);
+                    }
+                  }
                 }}
-                onDayCountChange={(n) => onDayCountChange(row.epicId, row.featureId, row.taskId, n)}
+                onDayCountChange={(n) => {
+                  const epicBefore = activeProject?.epics.find((e) => e._id === row.epicId);
+                  const featBefore = row.featureId ? epicBefore?.features.find((f) => f._id === row.featureId) : undefined;
+                  const oldPlannedEnd = row.plannedEnd;
+                  onDayCountChange(row.epicId, row.featureId, row.taskId, n);
+                  const epicAfter = useProjectStore.getState().activeProject?.epics.find((e) => e._id === row.epicId);
+                  const featAfter = row.featureId ? epicAfter?.features.find((f) => f._id === row.featureId) : undefined;
+                  if (row.taskId && row.featureId) {
+                    const taskAfter = featAfter?.tasks.find((t) => t._id === row.taskId);
+                    logItemChange(row, 'plannedEnd', oldPlannedEnd, taskAfter?.plannedEnd);
+                  } else if (row.featureId) {
+                    logItemChange(row, 'plannedEnd', oldPlannedEnd, featAfter?.plannedEnd);
+                  }
+                  if (row.level !== 'epic') {
+                    if (row.level === 'task' && row.featureId && featBefore && featAfter) {
+                      for (const f of ['plannedStart', 'plannedEnd'] as const) {
+                        logParentRollup(row.epicId, row.featureId, f, featBefore[f], featAfter[f]);
+                      }
+                    }
+                    if (epicBefore && epicAfter) {
+                      for (const f of ['plannedStart', 'plannedEnd'] as const) {
+                        logParentRollup(row.epicId, undefined, f, epicBefore[f], epicAfter[f]);
+                      }
+                    }
+                  }
+                }}
                 onNameChange={(name) => {
                   if (row.level === 'epic') updateEpic(row.epicId, { name });
                   else if (row.level === 'feature' && row.featureId) updateFeature(row.epicId, row.featureId, { name });
                   else if (row.level === 'task' && row.featureId && row.taskId)
                     updateTask(row.epicId, row.featureId, row.taskId, { name });
+                  logItemChange(row, 'name', row.name, name);
                 }}
                 onOpenDetail={() => openItem({
                   epicId: row.epicId,
@@ -535,7 +629,7 @@ function TaskRow({
 
       {/* Status (click to edit) */}
       <div className="w-[88px] flex items-center justify-center shrink-0">
-        {readonly ? (
+        {readonly || row.level === 'epic' ? (
           <StatusBadge status={row.status} />
         ) : (
           <DropdownMenu>
@@ -570,7 +664,7 @@ function TaskRow({
 
       {/* Days (click to edit) */}
       <div className="w-12 flex items-center justify-center shrink-0">
-        {!readonly ? (
+        {!readonly && row.level !== 'epic' ? (
           <DayEditor value={row.dayCount} onChange={onDayCountChange} />
         ) : (
           <span className="text-[11px] text-muted-foreground tabular-nums">

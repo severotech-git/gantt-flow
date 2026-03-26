@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState, useRef, useEffect, useCallback } from 'react';
+import { useMemo, useState, useRef, useEffect } from 'react';
 import { useTranslations, useFormatter } from 'next-intl';
 import { useProjectStore } from '@/store/useProjectStore';
 import { useSettingsStore } from '@/store/useSettingsStore';
@@ -9,7 +9,6 @@ import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
 import {
   Sheet,
   SheetContent,
-  SheetHeader,
   SheetTitle,
   SheetClose,
 } from '@/components/ui/sheet';
@@ -21,8 +20,10 @@ import { StatusBadge } from '@/components/shared/StatusBadge';
 import { cn } from '@/lib/utils';
 import { IEpic, IFeature, ITask } from '@/types';
 import { SendIcon } from 'lucide-react';
-import { format, parseISO } from 'date-fns';
+import { parseISO } from 'date-fns';
 import { snapToWorkday } from '@/lib/dateUtils';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { DrawerChangelog } from '@/components/gantt/DrawerChangelog';
 
 type ItemLevel = 'epic' | 'feature' | 'task';
 interface ItemRef {
@@ -35,7 +36,6 @@ interface ItemRef {
 
 export function ItemDetailDrawer() {
   const t = useTranslations('gantt.drawer');
-  const format = useFormatter();
   const { data: session } = useSession();
 
   const {
@@ -50,7 +50,6 @@ export function ItemDetailDrawer() {
 
   const users = useSettingsStore((s) => s.users);
   const statuses = useSettingsStore((s) => s.statuses);
-  const levelNames = useSettingsStore((s) => s.levelNames);
 
   // Get current user's uid by matching session user name with workspace users
   const currentUserUid = useMemo(() => {
@@ -114,175 +113,365 @@ export function ItemDetailDrawer() {
     return `${prefix}-${index}`;
   }, [item, activeProject]);
 
+  const [changelogRefreshKey, setChangelogRefreshKey] = useState(0);
+
+  // Local drafts — updated on every keystroke, committed to store only on blur
+  const [nameDraft, setNameDraft] = useState(item?.data.name ?? '');
+  const [startDraft, setStartDraft] = useState(item?.data.plannedStart?.split('T')[0] ?? '');
+  const [endDraft, setEndDraft] = useState(item?.data.plannedEnd?.split('T')[0] ?? '');
+  const [pctDraft, setPctDraft] = useState(String(item?.data.completionPct ?? 0));
+
+  // Reset drafts synchronously during render when a different item is opened
+  // (React re-renders immediately when setState is called during render)
+  const [prevItemKey, setPrevItemKey] = useState('');
+  const currentItemKey = `${item?.epicId ?? ''}-${item?.featureId ?? ''}-${item?.taskId ?? ''}`;
+  if (currentItemKey !== prevItemKey) {
+    setPrevItemKey(currentItemKey);
+    setNameDraft(item?.data.name ?? '');
+    setStartDraft(item?.data.plannedStart?.split('T')[0] ?? '');
+    setEndDraft(item?.data.plannedEnd?.split('T')[0] ?? '');
+    setPctDraft(String(item?.data.completionPct ?? 0));
+  }
+
+  const TRACKED_FIELDS = ['status', 'ownerId', 'completionPct', 'plannedStart', 'plannedEnd', 'actualStart', 'actualEnd', 'description'];
+
+  const writeChangelog = (field: string, oldValue: unknown, newValue: unknown) => {
+    if (!item || !activeProject) return;
+    const oldStr = oldValue != null ? String(oldValue) : '';
+    const newStr = newValue != null ? String(newValue) : '';
+    if (oldStr === newStr) return;
+
+    fetch(`/api/projects/${activeProject._id}/changelog`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        epicId: item.epicId,
+        featureId: item.featureId,
+        taskId: item.taskId,
+        field,
+        oldValue: oldStr || null,
+        newValue: newStr || null,
+      }),
+    })
+      .then(() => setChangelogRefreshKey((k) => k + 1))
+      .catch(() => {});
+  };
+
   const patchItem = (patch: Partial<IEpic & IFeature & ITask>) => {
-    if (!item) return;
+    if (!item || !activeProject) return;
+    // Track changes for tracked fields (excluding name — handled on blur)
+    for (const field of TRACKED_FIELDS) {
+      if (field in patch) {
+        const oldValue = (item.data as unknown as Record<string, unknown>)[field];
+        const newValue = (patch as unknown as Record<string, unknown>)[field];
+        writeChangelog(field, oldValue, newValue);
+      }
+    }
+
+    // Snapshot parent dates before update for rollup changelog
+    const epicBefore = activeProject.epics.find((e) => e._id === item.epicId);
+    const featBefore = item.featureId
+      ? epicBefore?.features.find((f) => f._id === item.featureId)
+      : undefined;
+
     if (item.level === 'epic') updateEpic(item.epicId, patch);
     else if (item.level === 'feature') updateFeature(item.epicId, item.featureId!, patch);
     else updateTask(item.epicId, item.featureId!, item.taskId!, patch);
+
+    // Record rollup changelogs for parent items (set() is synchronous, state is already updated)
+    if (item.level !== 'epic') {
+      const epicAfter = useProjectStore.getState().activeProject?.epics.find((e) => e._id === item.epicId);
+      const featAfter = item.featureId
+        ? epicAfter?.features.find((f) => f._id === item.featureId)
+        : undefined;
+
+      const postRollup = (featureId: string | undefined, field: string, oldVal: string | number | undefined, newVal: string | number | undefined) => {
+        const oldStr = oldVal != null ? String(oldVal) : undefined;
+        const newStr = newVal != null ? String(newVal) : undefined;
+        if (!oldStr || !newStr || oldStr === newStr) return;
+        fetch(`/api/projects/${activeProject._id}/changelog`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ epicId: item.epicId, featureId, field, oldValue: oldStr, newValue: newStr }),
+        })
+          .then(() => setChangelogRefreshKey((k) => k + 1))
+          .catch(() => {});
+      };
+
+      if (item.level === 'task' && item.featureId && featBefore && featAfter) {
+        for (const f of ['plannedStart', 'plannedEnd'] as const) {
+          postRollup(item.featureId, f, featBefore[f], featAfter[f]);
+        }
+        postRollup(item.featureId, 'completionPct', featBefore.completionPct, featAfter.completionPct);
+      }
+      if (epicBefore && epicAfter) {
+        for (const f of ['plannedStart', 'plannedEnd'] as const) {
+          postRollup(undefined, f, epicBefore[f], epicAfter[f]);
+        }
+        postRollup(undefined, 'completionPct', epicBefore.completionPct, epicAfter.completionPct);
+      }
+    }
   };
 
   return (
     <Sheet open={!!openItemRef} onOpenChange={(open) => { if (!open) closeItem(); }}>
-      <SheetContent showCloseButton={true} className="overflow-hidden flex flex-col gap-0 p-0">
+      <SheetContent showCloseButton={false} className="overflow-hidden flex flex-col gap-0 p-0">
         <VisuallyHidden asChild>
           <SheetTitle>{item?.data.name} Details</SheetTitle>
         </VisuallyHidden>
         {item && (
-          <>
-            {/* Header */}
-            <div className="border-b px-6 py-4 flex items-start justify-between gap-4">
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-2">
-                  <StatusBadge status={item.data.status} className="text-[9px]" />
-                  <span className="text-xs font-mono text-muted-foreground">{itemLabel}</span>
-                </div>
-                <input
-                  type="text"
-                  value={item.data.name}
-                  onChange={(e) => patchItem({ name: e.target.value })}
-                  className="w-full text-lg font-semibold bg-transparent border-0 focus:outline-none p-0 focus:ring-0"
-                />
-              </div>
-              <SheetClose className="opacity-70 hover:opacity-100" />
-            </div>
-
-            {/* Metadata Grid */}
-            <div className="border-b px-6 py-4 space-y-4">
-              {/* Assignee Button Grid */}
-              {users.length > 0 && (
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-                    {t('assignee')}
-                  </label>
-                  <div className="flex flex-wrap gap-1.5">
-                    <button
-                      type="button"
-                      onClick={() => patchItem({ ownerId: undefined })}
-                      className={cn(
-                        'flex items-center gap-1.5 px-2 py-1 rounded border text-[12px] transition-colors',
-                        !item.data.ownerId
-                          ? 'border-blue-400 text-blue-600 dark:text-blue-300 bg-blue-500/10'
-                          : 'border-border text-muted-foreground hover:border-border/80'
-                      )}
-                    >
-                      {t('unassigned')}
-                    </button>
-                    {users.map((u) => (
-                      <button
-                        key={u.uid}
-                        type="button"
-                        onClick={() => patchItem({ ownerId: u.uid })}
-                        className={cn(
-                          'flex items-center gap-1.5 px-2 py-1 rounded border text-[12px] transition-colors',
-                          item.data.ownerId === u.uid
-                            ? 'border-blue-400 text-blue-600 dark:text-blue-300 bg-blue-500/10'
-                            : 'border-border text-muted-foreground hover:border-border/80'
-                        )}
-                      >
-                        <OwnerAvatar name={u.name} color={u.color} size={16} />
-                        {u.name}
-                      </button>
-                    ))}
+          <Tabs defaultValue="details" className="flex-1 min-h-0 flex flex-col overflow-hidden">
+            {/* Fixed header: name + close + tabs */}
+            <div className="flex-shrink-0 border-b">
+              {/* Title row */}
+              <div className="px-5 pt-5 pb-3 flex items-start gap-3">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-1.5">
+                    <StatusBadge status={item.data.status} className="text-[9px]" />
+                    <span className="text-xs font-mono text-muted-foreground">{itemLabel}</span>
                   </div>
-                </div>
-              )}
-
-              {/* Dates */}
-              <div className="grid grid-cols-2 gap-3">
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-                    {t('startDate')}
-                  </label>
-                  <Input
-                    type="date"
-                    value={item.data.plannedStart.split('T')[0]}
-                    onChange={(e) => {
-                      const allowWeekends = useSettingsStore.getState().allowWeekends;
-                      if (!allowWeekends && e.target.value) {
-                        const snapped = snapToWorkday(parseISO(e.target.value), 'forward');
-                        patchItem({ plannedStart: snapped.toISOString() });
-                      } else {
-                        patchItem({ plannedStart: new Date(e.target.value).toISOString() });
+                  <input
+                    type="text"
+                    value={nameDraft}
+                    onChange={(e) => setNameDraft(e.target.value)}
+                    onBlur={() => {
+                      const next = nameDraft.trim();
+                      if (!next) { setNameDraft(item.data.name); return; }
+                      if (next !== item.data.name) {
+                        writeChangelog('name', item.data.name, next);
+                        patchItem({ name: next });
                       }
                     }}
+                    className="w-full text-lg font-semibold bg-transparent border-0 focus:outline-none p-0 focus:ring-0 leading-snug"
                   />
                 </div>
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-                    {t('dueDate')}
-                  </label>
-                  <Input
-                    type="date"
-                    value={item.data.plannedEnd.split('T')[0]}
-                    onChange={(e) => {
-                      const allowWeekends = useSettingsStore.getState().allowWeekends;
-                      if (!allowWeekends && e.target.value) {
-                        const snapped = snapToWorkday(parseISO(e.target.value), 'backward');
-                        patchItem({ plannedEnd: snapped.toISOString() });
-                      } else {
-                        patchItem({ plannedEnd: new Date(e.target.value).toISOString() });
-                      }
-                    }}
-                  />
-                </div>
+                <SheetClose className="flex-shrink-0 mt-0.5 rounded-md opacity-60 hover:opacity-100 hover:bg-muted p-1.5 transition-all" />
               </div>
 
-              {/* Status & Progress */}
-              <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-                  {t('status')}
-                </label>
-                <div className="flex flex-wrap gap-1.5">
-                  {statuses.map((s) => (
-                    <button
-                      key={s.value}
-                      type="button"
-                      onClick={() => patchItem({ status: s.value })}
-                      className={cn(
-                        'px-2.5 py-1 rounded text-[11px] font-medium uppercase tracking-wider text-white transition-all',
-                        item.data.status === s.value
-                          ? 'ring-2 ring-offset-1 ring-offset-background'
-                          : 'opacity-70 hover:opacity-100'
-                      )}
-                      style={{ backgroundColor: s.color }}
-                    >
-                      {s.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Progress */}
-              <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-                  {t('progress')}
-                </label>
-                <div className="flex items-center gap-2">
-                  <Input
-                    type="number"
-                    min="0"
-                    max="100"
-                    value={item.data.completionPct}
-                    onChange={(e) => patchItem({ completionPct: parseInt(e.target.value, 10) || 0 })}
-                    className="w-16 [&::-webkit-outer-spin-button]:hidden [&::-webkit-inner-spin-button]:hidden"
-                  />
-                  <span className="text-xs text-muted-foreground">%</span>
-                </div>
-              </div>
+              {/* Tab bar */}
+              <TabsList className="w-full rounded-none border-0 bg-transparent h-auto px-5 pb-0 gap-0 justify-start">
+                {([
+                  ['details', t('detailsTab')],
+                  ['activity', t('activityTab')],
+                  ['changelog', t('changelogTab')],
+                ] as [string, string][]).map(([value, label]) => (
+                  <TabsTrigger
+                    key={value}
+                    value={value}
+                    className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none bg-transparent text-muted-foreground data-[state=active]:text-foreground px-4 py-2.5 text-sm font-medium"
+                  >
+                    {label}
+                  </TabsTrigger>
+                ))}
+              </TabsList>
             </div>
 
-            {/* Description */}
-            <DrawerDescription item={item} patchItem={patchItem} />
+            {/* Details tab */}
+            <TabsContent value="details" className="flex-1 min-h-0 mt-0">
+              <ScrollArea className="h-full">
+                <div className="px-5 py-5 space-y-6">
+                  {/* Assignee */}
+                  {users.length > 0 && (
+                    <div className="space-y-2">
+                      <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                        {t('assignee')}
+                      </label>
+                      <div className="flex flex-wrap gap-1.5">
+                        <button
+                          type="button"
+                          onClick={() => patchItem({ ownerId: undefined })}
+                          className={cn(
+                            'flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border text-xs transition-colors',
+                            !item.data.ownerId
+                              ? 'border-primary/50 text-primary bg-primary/8'
+                              : 'border-border text-muted-foreground hover:border-muted-foreground/50 hover:text-foreground'
+                          )}
+                        >
+                          {t('unassigned')}
+                        </button>
+                        {users.map((u) => (
+                          <button
+                            key={u.uid}
+                            type="button"
+                            onClick={() => patchItem({ ownerId: u.uid })}
+                            className={cn(
+                              'flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border text-xs transition-colors',
+                              item.data.ownerId === u.uid
+                                ? 'border-primary/50 text-primary bg-primary/8'
+                                : 'border-border text-muted-foreground hover:border-muted-foreground/50 hover:text-foreground'
+                            )}
+                          >
+                            <OwnerAvatar name={u.name} color={u.color} size={16} />
+                            {u.name}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
 
-            {/* Activity Feed */}
-            <DrawerActivity
-              item={item}
-              users={users}
-              onComment={(text) => {
-                addComment(item.epicId, item.featureId, item.taskId, text, currentUserUid);
-              }}
-            />
-          </>
+                  {/* Dates */}
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-2">
+                      <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                        {t('startDate')}
+                      </label>
+                      {item.level === 'epic' ? (
+                        <p className="text-sm text-foreground py-1.5">
+                          {new Date(item.data.plannedStart).toLocaleDateString()}
+                        </p>
+                      ) : (
+                        <Input
+                          type="date"
+                          value={startDraft}
+                          onChange={(e) => setStartDraft(e.target.value)}
+                          onBlur={() => {
+                            if (!startDraft) { setStartDraft(item.data.plannedStart.split('T')[0]); return; }
+                            const allowWeekends = useSettingsStore.getState().allowWeekends;
+                            const newISO = allowWeekends
+                              ? new Date(startDraft).toISOString()
+                              : snapToWorkday(parseISO(startDraft), 'forward').toISOString();
+                            if (newISO !== item.data.plannedStart) patchItem({ plannedStart: newISO });
+                          }}
+                        />
+                      )}
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                        {t('dueDate')}
+                      </label>
+                      {item.level === 'epic' ? (
+                        <p className="text-sm text-foreground py-1.5">
+                          {new Date(item.data.plannedEnd).toLocaleDateString()}
+                        </p>
+                      ) : (
+                        <Input
+                          type="date"
+                          value={endDraft}
+                          onChange={(e) => setEndDraft(e.target.value)}
+                          onBlur={() => {
+                            if (!endDraft) { setEndDraft(item.data.plannedEnd.split('T')[0]); return; }
+                            const allowWeekends = useSettingsStore.getState().allowWeekends;
+                            const newISO = allowWeekends
+                              ? new Date(endDraft).toISOString()
+                              : snapToWorkday(parseISO(endDraft), 'backward').toISOString();
+                            if (newISO !== item.data.plannedEnd) patchItem({ plannedEnd: newISO });
+                          }}
+                        />
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Status */}
+                  <div className="space-y-2">
+                    <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                      {t('status')}
+                    </label>
+                    {item.level === 'epic' ? (
+                      (() => {
+                        const s = statuses.find((s) => s.value === item.data.status);
+                        return s ? (
+                          <span
+                            className="inline-block px-3 py-1.5 rounded-lg text-[11px] font-semibold uppercase tracking-wider text-white"
+                            style={{ backgroundColor: s.color }}
+                          >
+                            {s.label}
+                          </span>
+                        ) : null;
+                      })()
+                    ) : (
+                      <div className="flex flex-wrap gap-1.5">
+                        {statuses.map((s) => (
+                          <button
+                            key={s.value}
+                            type="button"
+                            onClick={() => patchItem({ status: s.value })}
+                            className={cn(
+                              'px-3 py-1.5 rounded-lg text-[11px] font-semibold uppercase tracking-wider text-white transition-all',
+                              item.data.status === s.value
+                                ? 'ring-2 ring-offset-2 ring-offset-background shadow-md'
+                                : 'opacity-60 hover:opacity-90'
+                            )}
+                            style={{ backgroundColor: s.color }}
+                          >
+                            {s.label}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Progress */}
+                  <div className="space-y-2">
+                    <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                      {t('progress')}
+                    </label>
+                    {item.level === 'epic' ? (
+                      <div className="flex items-center gap-3">
+                        <span className="text-sm font-medium text-foreground">{item.data.completionPct}%</span>
+                        <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
+                          <div
+                            className="h-full bg-primary rounded-full"
+                            style={{ width: `${Math.min(100, Math.max(0, item.data.completionPct))}%` }}
+                          />
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-3">
+                        <Input
+                          type="number"
+                          min="0"
+                          max="100"
+                          value={pctDraft}
+                          onChange={(e) => setPctDraft(e.target.value)}
+                          onBlur={() => {
+                            const n = Math.min(100, Math.max(0, parseInt(pctDraft, 10) || 0));
+                            setPctDraft(String(n));
+                            if (n !== item.data.completionPct) patchItem({ completionPct: n });
+                          }}
+                          className="w-20 [&::-webkit-outer-spin-button]:hidden [&::-webkit-inner-spin-button]:hidden"
+                        />
+                        <span className="text-sm text-muted-foreground">%</span>
+                        <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
+                          <div
+                            className="h-full bg-primary rounded-full transition-all"
+                            style={{ width: `${Math.min(100, Math.max(0, parseInt(pctDraft, 10) || 0))}%` }}
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Description */}
+                  <DrawerDescription item={item} patchItem={patchItem} />
+                </div>
+              </ScrollArea>
+            </TabsContent>
+
+            {/* Activity tab */}
+            <TabsContent value="activity" className="flex-1 min-h-0 flex flex-col overflow-hidden mt-0">
+              <DrawerActivity
+                item={item}
+                users={users}
+                onComment={(text) => {
+                  addComment(item.epicId, item.featureId, item.taskId, text, currentUserUid);
+                }}
+              />
+            </TabsContent>
+
+            {/* Changelog tab */}
+            <TabsContent value="changelog" className="flex-1 min-h-0 flex flex-col overflow-hidden mt-0">
+              <DrawerChangelog
+                projectId={activeProject!._id}
+                epicId={item.epicId}
+                featureId={item.featureId}
+                taskId={item.taskId}
+                users={users}
+                refreshKey={changelogRefreshKey}
+                emptyLabel={t('changelogEmpty')}
+                unknownLabel={t('unknownUser')}
+              />
+            </TabsContent>
+          </Tabs>
         )}
       </SheetContent>
     </Sheet>
@@ -312,11 +501,11 @@ function DrawerDescription({
   };
 
   return (
-    <div className="border-b px-6 py-4">
-      <div className="flex items-center justify-between mb-2">
-        <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+    <div className="space-y-2">
+      <div className="flex items-center justify-between">
+        <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
           {t('description')}
-        </h3>
+        </label>
         {!editing && (
           <button
             onClick={() => setEditing(true)}
@@ -329,18 +518,17 @@ function DrawerDescription({
       {editing ? (
         <div className="space-y-2">
           <textarea
+            autoFocus
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
             placeholder="Enter description..."
-            className="w-full text-sm bg-transparent border rounded px-2 py-2 focus:outline-none focus:ring-1 focus:ring-primary resize-none h-32"
+            rows={6}
+            className="w-full text-sm bg-muted/40 border rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/50 resize-none leading-relaxed transition-all"
           />
           <div className="flex justify-end gap-2">
             <button
-              onClick={() => {
-                setEditing(false);
-                setDraft(item.data.description || '');
-              }}
-              className="text-xs text-muted-foreground hover:text-foreground"
+              onClick={() => { setEditing(false); setDraft(item.data.description || ''); }}
+              className="text-xs text-muted-foreground hover:text-foreground px-3 py-1.5"
             >
               Cancel
             </button>
@@ -350,9 +538,9 @@ function DrawerDescription({
           </div>
         </div>
       ) : draft ? (
-        <p className="text-sm whitespace-pre-wrap text-foreground">{draft}</p>
+        <p className="text-sm whitespace-pre-wrap text-foreground leading-relaxed">{draft}</p>
       ) : (
-        <p className="text-sm text-muted-foreground">{t('noDescription')}</p>
+        <p className="text-sm text-muted-foreground italic">{t('noDescription')}</p>
       )}
     </div>
   );
@@ -374,6 +562,7 @@ function DrawerActivity({
 
   const comments = item.data.comments || [];
   const userMap = Object.fromEntries(users.map((u) => [u.uid, u]));
+  const userByName = Object.fromEntries(users.map((u) => [u.name, u]));
 
   const handleSubmit = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
@@ -387,41 +576,32 @@ function DrawerActivity({
   };
 
   return (
-    <div className="flex-1 flex flex-col overflow-hidden border-t">
-      <div className="flex-shrink-0 px-6 py-4 border-b">
-        <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-          {t('activityFeed')}
-        </h3>
-      </div>
-      <ScrollArea className="flex-1">
-        <div className="px-6 py-4 space-y-4">
+    <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
+      <ScrollArea className="flex-1 min-h-0">
+        <div className="px-5 py-5 space-y-5">
           {comments.length === 0 ? (
-            <p className="text-xs text-muted-foreground text-center py-8">
-              No comments yet. Start a discussion!
-            </p>
+            <div className="flex flex-col items-center gap-2 py-10 text-muted-foreground">
+              <svg className="w-8 h-8 opacity-30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+              </svg>
+              <p className="text-sm">No comments yet</p>
+            </div>
           ) : (
-            comments.map((comment) => {
-              const author = userMap[comment.authorId];
+            [...comments].reverse().map((comment) => {
+              const author = userMap[comment.authorId] || userByName[comment.authorId];
+              const authorName = author?.name || t('unknownUser');
               const relativeTime = format.relativeTime(new Date(comment.createdAt), new Date());
               return (
-                <div key={comment._id} className="flex gap-3">
-                  <OwnerAvatar
-                    name={author?.name || 'Unknown'}
-                    color={author?.color}
-                    size="sm"
-                  />
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-baseline gap-2">
-                      <span className="text-sm font-semibold">
-                        {author?.name || 'Unknown'}
-                      </span>
-                      <span className="text-xs text-muted-foreground">
-                        {relativeTime}
-                      </span>
+                <div key={comment._id} className="flex gap-3 items-start">
+                  <div className="flex-shrink-0 mt-0.5">
+                    <OwnerAvatar name={authorName} color={author?.color} size="sm" />
+                  </div>
+                  <div className="flex-1 min-w-0 bg-muted/50 rounded-2xl px-4 py-3">
+                    <div className="flex items-center gap-2 mb-1.5">
+                      <span className="text-sm font-semibold leading-none">{authorName}</span>
+                      <span className="text-xs text-muted-foreground leading-none">{relativeTime}</span>
                     </div>
-                    <p className="text-sm mt-1 text-foreground whitespace-pre-wrap">
-                      {comment.text}
-                    </p>
+                    <p className="text-sm text-foreground whitespace-pre-wrap leading-relaxed">{comment.text}</p>
                   </div>
                 </div>
               );
@@ -431,29 +611,34 @@ function DrawerActivity({
       </ScrollArea>
 
       {/* Comment input */}
-      <div className="flex-shrink-0 border-t px-6 py-4 space-y-2">
-        <textarea
-          ref={textareaRef}
-          value={commentDraft}
-          onChange={(e) => setCommentDraft(e.target.value)}
-          onKeyDown={handleSubmit}
-          placeholder={t('addComment')}
-          className="w-full text-sm bg-transparent border rounded px-2 py-2 focus:outline-none focus:ring-1 focus:ring-primary resize-none h-16"
-        />
-        <div className="flex items-center justify-between text-xs text-muted-foreground">
-          <span>{t('cmdEnterToSend')}</span>
-          <Button
-            size="sm"
-            variant="ghost"
-            onClick={() => {
-              if (commentDraft.trim()) {
-                onComment(commentDraft);
-                setCommentDraft('');
-              }
-            }}
-          >
-            <SendIcon className="w-4 h-4" />
-          </Button>
+      <div className="flex-shrink-0 border-t px-5 py-4">
+        <div className="rounded-2xl border bg-muted/30 focus-within:bg-background focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary/50 transition-all">
+          <textarea
+            ref={textareaRef}
+            value={commentDraft}
+            onChange={(e) => setCommentDraft(e.target.value)}
+            onKeyDown={handleSubmit}
+            placeholder={t('addComment')}
+            rows={3}
+            className="w-full text-sm bg-transparent px-4 pt-3 pb-1 focus:outline-none resize-none leading-relaxed"
+          />
+          <div className="flex items-center justify-between px-4 pb-3 pt-1">
+            <span className="text-xs text-muted-foreground">{t('cmdEnterToSend')}</span>
+            <Button
+              size="sm"
+              disabled={!commentDraft.trim()}
+              onClick={() => {
+                if (commentDraft.trim()) {
+                  onComment(commentDraft);
+                  setCommentDraft('');
+                }
+              }}
+              className="h-7 px-3 gap-1.5"
+            >
+              <SendIcon className="w-3.5 h-3.5" />
+              {t('send')}
+            </Button>
+          </div>
         </div>
       </div>
     </div>

@@ -335,7 +335,12 @@
       "like": "Curtir",
       "reply": "Responder",
       "unassigned": "Não atribuído",
-      "noDescription": "Nenhuma descrição ainda."
+      "noDescription": "Nenhuma descrição ainda.",
+      "detailsTab": "Detalhes",
+      "activityTab": "Atividade",
+      "changelogTab": "Alterações",
+      "changelogEmpty": "Nenhuma alteração registrada ainda.",
+      "unknownUser": "Desconhecido"
     }
   },
   "dialogs": {

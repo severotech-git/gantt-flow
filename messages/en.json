@@ -335,7 +335,12 @@
       "like": "Like",
       "reply": "Reply",
       "unassigned": "Unassigned",
-      "noDescription": "No description yet."
+      "noDescription": "No description yet.",
+      "detailsTab": "Details",
+      "activityTab": "Activity",
+      "changelogTab": "Changelog",
+      "changelogEmpty": "No changes recorded yet.",
+      "unknownUser": "Unknown"
     }
   },
   "dialogs": {

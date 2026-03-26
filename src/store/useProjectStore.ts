@@ -850,6 +850,24 @@ export const useProjectStore = create<ProjectStore>()(
             }
             break;
           }
+          case 'addComment': {
+            const epic = s.activeProject.epics.find((e) => e._id === action.epicId);
+            if (!epic) break;
+            let target: { comments?: typeof action.comment[] } | undefined;
+            if (!action.featureId) {
+              target = epic;
+            } else {
+              const feature = epic.features.find((f) => f._id === action.featureId);
+              if (!feature) break;
+              target = action.taskId
+                ? feature.tasks.find((t) => t._id === action.taskId)
+                : feature;
+            }
+            if (!target) break;
+            if (!target.comments) target.comments = [];
+            target.comments.push(action.comment);
+            break;
+          }
         }
       });
     },
@@ -893,6 +911,7 @@ export const useProjectStore = create<ProjectStore>()(
         if (!target.comments) target.comments = [];
         target.comments.push(comment);
       });
+      emitAction({ type: 'addComment', epicId, featureId, taskId, comment });
       await get().persistProject();
     },
 

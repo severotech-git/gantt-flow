@@ -44,6 +44,43 @@ function taskHasIssue(task: { status: string; plannedEnd: string }, statusConfig
   return !isFinal && parseISO(task.plannedEnd) < new Date();
 }
 
+function postItemChangelog(
+  projectId: string,
+  epicId: string,
+  featureId: string | undefined,
+  taskId: string | undefined,
+  field: string,
+  oldValue: string | number | undefined,
+  newValue: string | number | undefined,
+) {
+  const oldStr = oldValue != null ? String(oldValue) : undefined;
+  const newStr = newValue != null ? String(newValue) : undefined;
+  if (!oldStr || !newStr || oldStr === newStr) return;
+  fetch(`/api/projects/${projectId}/changelog`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ epicId, featureId, taskId, field, oldValue: oldStr, newValue: newStr }),
+  }).catch(() => {});
+}
+
+function postRollupChangelog(
+  projectId: string,
+  epicId: string,
+  featureId: string | undefined,
+  field: string,
+  oldValue: string | number | undefined,
+  newValue: string | number | undefined,
+) {
+  const oldStr = oldValue != null ? String(oldValue) : undefined;
+  const newStr = newValue != null ? String(newValue) : undefined;
+  if (!oldStr || !newStr || oldStr === newStr) return;
+  fetch(`/api/projects/${projectId}/changelog`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ epicId, featureId, field, oldValue: oldStr, newValue: newStr }),
+  }).catch(() => {});
+}
+
 function safeParseISO(s: string | undefined): Date | null {
   if (!s) return null;
   const d = parseISO(s);
@@ -376,28 +413,51 @@ export function GanttBoard() {
       const oldEnd   = safeParseISO(row.bar.plannedEnd);
       if (!oldStart || !oldEnd) return;
 
+      const epicBefore = project?.epics.find((e) => e._id === row.epicId);
+      const featBefore = row.featureId ? epicBefore?.features.find((f) => f._id === row.featureId) : undefined;
+
       if (isRight) {
         const raw = addDays(oldEnd, deltaDays);
         const newEnd = allowWeekends ? raw : snapToWorkday(raw, 'backward');
         if (newEnd.getTime() <= oldStart.getTime()) return;
-        const patch = { plannedEnd: newEnd.toISOString() };
-        if (row.level === 'task' && row.featureId && row.taskId)
-          updateTask(row.epicId, row.featureId, row.taskId, patch);
-        else if (row.level === 'feature' && row.featureId)
-          updateFeature(row.epicId, row.featureId, patch);
-        else if (row.level === 'epic')
-          updateEpic(row.epicId, patch);
+        const newEndISO = newEnd.toISOString();
+        if (row.level === 'task' && row.featureId && row.taskId) {
+          updateTask(row.epicId, row.featureId, row.taskId, { plannedEnd: newEndISO });
+          if (currentProjectId) postItemChangelog(currentProjectId, row.epicId, row.featureId, row.taskId, 'plannedEnd', row.bar.plannedEnd, newEndISO);
+        } else if (row.level === 'feature' && row.featureId) {
+          updateFeature(row.epicId, row.featureId, { plannedEnd: newEndISO });
+          if (currentProjectId) postItemChangelog(currentProjectId, row.epicId, row.featureId, undefined, 'plannedEnd', row.bar.plannedEnd, newEndISO);
+        }
       } else {
         const raw = addDays(oldStart, deltaDays);
         const newStart = allowWeekends ? raw : snapToWorkday(raw, 'forward');
         if (newStart.getTime() >= oldEnd.getTime()) return;
-        const patch = { plannedStart: newStart.toISOString() };
-        if (row.level === 'task' && row.featureId && row.taskId)
-          updateTask(row.epicId, row.featureId, row.taskId, patch);
-        else if (row.level === 'feature' && row.featureId)
-          updateFeature(row.epicId, row.featureId, patch);
-        else if (row.level === 'epic')
-          updateEpic(row.epicId, patch);
+        const newStartISO = newStart.toISOString();
+        if (row.level === 'task' && row.featureId && row.taskId) {
+          updateTask(row.epicId, row.featureId, row.taskId, { plannedStart: newStartISO });
+          if (currentProjectId) postItemChangelog(currentProjectId, row.epicId, row.featureId, row.taskId, 'plannedStart', row.bar.plannedStart, newStartISO);
+        } else if (row.level === 'feature' && row.featureId) {
+          updateFeature(row.epicId, row.featureId, { plannedStart: newStartISO });
+          if (currentProjectId) postItemChangelog(currentProjectId, row.epicId, row.featureId, undefined, 'plannedStart', row.bar.plannedStart, newStartISO);
+        }
+      }
+
+      if (currentProjectId && row.level !== 'epic') {
+        const epicAfter = useProjectStore.getState().activeProject?.epics.find((e) => e._id === row.epicId);
+        const featAfter = row.featureId ? epicAfter?.features.find((f) => f._id === row.featureId) : undefined;
+        if (row.level === 'task' && row.featureId) {
+          for (const f of ['plannedStart', 'plannedEnd'] as const) {
+            postRollupChangelog(currentProjectId, row.epicId, row.featureId, f, featBefore?.[f], featAfter?.[f]);
+            postRollupChangelog(currentProjectId, row.epicId, undefined, f, epicBefore?.[f], epicAfter?.[f]);
+          }
+          postRollupChangelog(currentProjectId, row.epicId, row.featureId, 'completionPct', featBefore?.completionPct, featAfter?.completionPct);
+          postRollupChangelog(currentProjectId, row.epicId, undefined, 'completionPct', epicBefore?.completionPct, epicAfter?.completionPct);
+        } else if (row.level === 'feature') {
+          for (const f of ['plannedStart', 'plannedEnd'] as const) {
+            postRollupChangelog(currentProjectId, row.epicId, undefined, f, epicBefore?.[f], epicAfter?.[f]);
+          }
+          postRollupChangelog(currentProjectId, row.epicId, undefined, 'completionPct', epicBefore?.completionPct, epicAfter?.completionPct);
+        }
       }
       return;
     }
@@ -418,36 +478,52 @@ export function GanttBoard() {
     const newEnd   = snap(addDays(oldEnd,   deltaDays), 'backward').toISOString();
 
     if (row.level === 'task' && row.featureId && row.taskId) {
+      const epicBefore = project?.epics.find((e) => e._id === row.epicId);
+      const featBefore = epicBefore?.features.find((f) => f._id === row.featureId);
       updateTask(row.epicId, row.featureId, row.taskId, { plannedStart: newStart, plannedEnd: newEnd });
+      if (currentProjectId) {
+        postItemChangelog(currentProjectId, row.epicId, row.featureId, row.taskId, 'plannedStart', row.bar.plannedStart, newStart);
+        postItemChangelog(currentProjectId, row.epicId, row.featureId, row.taskId, 'plannedEnd', row.bar.plannedEnd, newEnd);
+      }
+      if (row.featureId && currentProjectId) {
+        const epicAfter = useProjectStore.getState().activeProject?.epics.find((e) => e._id === row.epicId);
+        const featAfter = epicAfter?.features.find((f) => f._id === row.featureId);
+        for (const f of ['plannedStart', 'plannedEnd'] as const) {
+          postRollupChangelog(currentProjectId, row.epicId, row.featureId, f, featBefore?.[f], featAfter?.[f]);
+          postRollupChangelog(currentProjectId, row.epicId, undefined, f, epicBefore?.[f], epicAfter?.[f]);
+        }
+        postRollupChangelog(currentProjectId, row.epicId, row.featureId, 'completionPct', featBefore?.completionPct, featAfter?.completionPct);
+        postRollupChangelog(currentProjectId, row.epicId, undefined, 'completionPct', epicBefore?.completionPct, epicAfter?.completionPct);
+      }
     } else if (row.level === 'feature' && row.featureId) {
-      const epicData = project?.epics.find((e) => e._id === row.epicId);
-      const featData = epicData?.features.find((f) => f._id === row.featureId);
+      const epicBefore = project?.epics.find((e) => e._id === row.epicId);
+      const featData = epicBefore?.features.find((f) => f._id === row.featureId);
       if (featData) {
         for (const task of featData.tasks) {
           const ts = safeParseISO(task.plannedStart);
           const te = safeParseISO(task.plannedEnd);
           if (ts && te) {
-            updateTask(row.epicId, row.featureId!, task._id, {
-              plannedStart: snap(addDays(ts, deltaDays), 'forward').toISOString(),
-              plannedEnd:   snap(addDays(te, deltaDays), 'backward').toISOString(),
-            });
-          }
-        }
-      }
-    } else if (row.level === 'epic') {
-      const epicData = project?.epics.find((e) => e._id === row.epicId);
-      if (epicData) {
-        for (const feat of epicData.features) {
-          for (const task of feat.tasks) {
-            const ts = safeParseISO(task.plannedStart);
-            const te = safeParseISO(task.plannedEnd);
-            if (ts && te) {
-              updateTask(row.epicId, feat._id, task._id, {
-                plannedStart: snap(addDays(ts, deltaDays), 'forward').toISOString(),
-                plannedEnd:   snap(addDays(te, deltaDays), 'backward').toISOString(),
-              });
+            const taskNewStart = snap(addDays(ts, deltaDays), 'forward').toISOString();
+            const taskNewEnd   = snap(addDays(te, deltaDays), 'backward').toISOString();
+            updateTask(row.epicId, row.featureId!, task._id, { plannedStart: taskNewStart, plannedEnd: taskNewEnd });
+            if (currentProjectId) {
+              postItemChangelog(currentProjectId, row.epicId, row.featureId!, task._id, 'plannedStart', task.plannedStart, taskNewStart);
+              postItemChangelog(currentProjectId, row.epicId, row.featureId!, task._id, 'plannedEnd', task.plannedEnd, taskNewEnd);
             }
           }
+        }
+        if (currentProjectId) {
+          const epicAfter = useProjectStore.getState().activeProject?.epics.find((e) => e._id === row.epicId);
+          const featAfter = epicAfter?.features.find((f) => f._id === row.featureId);
+          // Feature's own dates (updated via rollup)
+          for (const f of ['plannedStart', 'plannedEnd'] as const) {
+            postItemChangelog(currentProjectId, row.epicId, row.featureId, undefined, f, featData[f], featAfter?.[f]);
+          }
+          // Epic rollup
+          for (const f of ['plannedStart', 'plannedEnd'] as const) {
+            postRollupChangelog(currentProjectId, row.epicId, undefined, f, epicBefore?.[f], epicAfter?.[f]);
+          }
+          postRollupChangelog(currentProjectId, row.epicId, undefined, 'completionPct', epicBefore?.completionPct, epicAfter?.completionPct);
         }
       }
     }
