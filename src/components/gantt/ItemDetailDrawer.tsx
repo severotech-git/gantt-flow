@@ -5,7 +5,6 @@ import { useTranslations, useFormatter } from 'next-intl';
 import { useProjectStore } from '@/store/useProjectStore';
 import { useSettingsStore } from '@/store/useSettingsStore';
 import { useSession } from 'next-auth/react';
-import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
 import {
   Sheet,
   SheetContent,
@@ -216,9 +215,7 @@ export function ItemDetailDrawer() {
   return (
     <Sheet open={!!openItemRef} onOpenChange={(open) => { if (!open) closeItem(); }}>
       <SheetContent showCloseButton={false} className="overflow-hidden flex flex-col gap-0 p-0">
-        <VisuallyHidden asChild>
-          <SheetTitle>{item?.data.name} Details</SheetTitle>
-        </VisuallyHidden>
+        <SheetTitle className="sr-only">{item?.data.name} Details</SheetTitle>
         {item && (
           <Tabs defaultValue="details" className="flex-1 min-h-0 flex flex-col overflow-hidden">
             {/* Fixed header: name + close + tabs */}
