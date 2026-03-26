@@ -156,7 +156,7 @@ export async function sendVerificationEmail(
   locale?: string | null
 ): Promise<void> {
   const loc = resolveEmailLocale(locale);
-  const from = process.env.EMAIL_FROM ?? 'GanttFlow <noreply@severotech.com>';
+  const from = process.env.EMAIL_FROM ?? 'GanttFlow <ganttflow@severotech.com>';
   const t = (key: string, params?: Record<string, string | number>) =>
     getEmailText(loc, `emails.verification.${key}`, params);
 
@@ -213,7 +213,7 @@ export async function sendMFACode(
   locale?: string | null
 ): Promise<void> {
   const loc = resolveEmailLocale(locale);
-  const from = process.env.EMAIL_FROM ?? 'GanttFlow <noreply@severotech.com>';
+  const from = process.env.EMAIL_FROM ?? 'GanttFlow <ganttflow@severotech.com>';
   const t = (key: string, params?: Record<string, string | number>) =>
     getEmailText(loc, `emails.mfa.${key}`, params);
 
@@ -264,7 +264,7 @@ export async function sendPasswordResetEmail(
   locale?: string | null
 ): Promise<void> {
   const loc = resolveEmailLocale(locale);
-  const from = process.env.EMAIL_FROM ?? 'GanttFlow <noreply@severotech.com>';
+  const from = process.env.EMAIL_FROM ?? 'GanttFlow <ganttflow@severotech.com>';
   const t = (key: string, params?: Record<string, string | number>) =>
     getEmailText(loc, `emails.passwordReset.${key}`, params);
 
@@ -323,7 +323,7 @@ export async function sendInvitationEmail(
   locale?: string | null
 ): Promise<void> {
   const loc = resolveEmailLocale(locale);
-  const from = process.env.EMAIL_FROM ?? 'GanttFlow <noreply@severotech.com>';
+  const from = process.env.EMAIL_FROM ?? 'GanttFlow <ganttflow@severotech.com>';
   const params = { inviterName, accountName };
   const t = (key: string, extra?: Record<string, string | number>) =>
     getEmailText(loc, `emails.invitation.${key}`, { ...params, ...extra });
