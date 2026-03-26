@@ -422,10 +422,6 @@ function DrawerActivity({
                     <p className="text-sm mt-1 text-foreground whitespace-pre-wrap">
                       {comment.text}
                     </p>
-                    <div className="flex gap-4 mt-2 text-xs text-muted-foreground">
-                      <button className="hover:text-foreground">{t('like')}</button>
-                      <button className="hover:text-foreground">{t('reply')}</button>
-                    </div>
                   </div>
                 </div>
               );
