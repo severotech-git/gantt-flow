@@ -264,7 +264,7 @@ export function ItemDetailDrawer() {
                     max="100"
                     value={item.data.completionPct}
                     onChange={(e) => patchItem({ completionPct: parseInt(e.target.value, 10) || 0 })}
-                    className="w-16"
+                    className="w-16 [&::-webkit-outer-spin-button]:hidden [&::-webkit-inner-spin-button]:hidden"
                   />
                   <span className="text-xs text-muted-foreground">%</span>
                 </div>
