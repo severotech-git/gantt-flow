@@ -718,7 +718,7 @@ function DayEditor({ value, onChange }: { value: number | undefined; onChange: (
       onChange={(e) => setDraft(e.target.value)}
       onBlur={commit}
       onKeyDown={(e) => { if (e.key === 'Enter') commit(); if (e.key === 'Escape') setEditing(false); }}
-      className="w-12 text-[11px] text-foreground bg-muted border border-blue-500/50 rounded px-1 py-0.5 text-center outline-none tabular-nums"
+      className="w-12 text-[11px] text-foreground bg-muted border border-blue-500/50 rounded px-1 py-0.5 text-center outline-none tabular-nums [&::-webkit-outer-spin-button]:hidden [&::-webkit-inner-spin-button]:hidden"
       autoFocus
     />
   );
@@ -759,7 +759,7 @@ function PctEditor({ value, onChange }: { value: number; onChange: (n: number) =
       onChange={(e) => setDraft(e.target.value)}
       onBlur={commit}
       onKeyDown={(e) => { if (e.key === 'Enter') commit(); if (e.key === 'Escape') setEditing(false); }}
-      className="w-12 text-[11px] text-foreground bg-muted border border-blue-500/50 rounded px-1 py-0.5 text-center outline-none tabular-nums"
+      className="w-12 text-[11px] text-foreground bg-muted border border-blue-500/50 rounded px-1 py-0.5 text-center outline-none tabular-nums [&::-webkit-outer-spin-button]:hidden [&::-webkit-inner-spin-button]:hidden"
       autoFocus
     />
   );
