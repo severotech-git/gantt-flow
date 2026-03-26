@@ -125,6 +125,7 @@ export const GanttTaskPanel = forwardRef<HTMLDivElement, GanttTaskPanelProps>(
       removeEpic, removeFeature, removeTask,
       updateTask, updateFeature, updateEpic,
       isVersionReadOnly,
+      openItem,
     } = useProjectStore();
 
     const [panelWidth, setPanelWidth] = useState(PANEL_DEFAULT);
@@ -221,6 +222,11 @@ export const GanttTaskPanel = forwardRef<HTMLDivElement, GanttTaskPanelProps>(
                   else if (row.level === 'task' && row.featureId && row.taskId)
                     updateTask(row.epicId, row.featureId, row.taskId, { name });
                 }}
+                onOpenDetail={() => openItem({
+                  epicId: row.epicId,
+                  featureId: row.featureId,
+                  taskId: row.taskId,
+                })}
               />
             )
           )}
@@ -378,6 +384,7 @@ interface TaskRowProps {
   onPctChange: (n: number) => void;
   onDayCountChange: (n: number) => void;
   onNameChange: (s: string) => void;
+  onOpenDetail: () => void;
 }
 
 function TaskRow({
@@ -396,6 +403,7 @@ function TaskRow({
   onPctChange,
   onDayCountChange,
   onNameChange,
+  onOpenDetail,
 }: TaskRowProps) {
   const { statuses, users } = useSettingsStore();
   const t = useTranslations('gantt.taskPanel');
@@ -463,6 +471,7 @@ function TaskRow({
           value={row.name}
           onChange={onNameChange}
           readonly={readonly}
+          onOpenDetail={onOpenDetail}
           className={cn(
             'truncate ml-0.5',
             isLate ? 'text-red-500 dark:text-red-400' : 'text-foreground',
@@ -620,7 +629,19 @@ function TaskRow({
 
 // ─── Inline Name editor ──────────────────────────────────────────────────────
 
-function NameEditor({ value, onChange, readonly, className }: { value: string; onChange: (s: string) => void; readonly: boolean; className?: string }) {
+function NameEditor({
+  value,
+  onChange,
+  readonly,
+  className,
+  onOpenDetail,
+}: {
+  value: string;
+  onChange: (s: string) => void;
+  readonly: boolean;
+  className?: string;
+  onOpenDetail?: () => void;
+}) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(value);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -635,9 +656,14 @@ function NameEditor({ value, onChange, readonly, className }: { value: string; o
   if (readonly || !editing) {
     return (
       <button
-        onClick={() => { if (!readonly) { setDraft(value); setEditing(true); setTimeout(() => inputRef.current?.select(), 0); } }}
+        onDoubleClick={() => { if (!readonly) { setDraft(value); setEditing(true); setTimeout(() => inputRef.current?.select(), 0); } }}
+        onClick={(e) => {
+          if (readonly) return;
+          e.stopPropagation();
+          onOpenDetail?.();
+        }}
         className={cn("text-left overflow-hidden min-w-0 flex-1", !readonly && "hover:bg-muted rounded px-1 -ml-1 transition-colors")}
-        title={readonly ? undefined : "Click to edit name"}
+        title={readonly ? undefined : "Click to view, double-click to edit name"}
       >
         <span className={className}>{value}</span>
       </button>

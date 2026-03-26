@@ -16,6 +16,7 @@ import { useProjectStore, selectDisplayProject } from '@/store/useProjectStore';
 import { GanttTaskPanel, VisibleRow } from './GanttTaskPanel';
 import { GanttTimeline, GanttTimelineHandle } from './GanttTimeline';
 import { GanttBar, GanttBarData } from './GanttBar';
+import { ItemDetailDrawer } from './ItemDetailDrawer';
 import { AddItemDialog } from '@/components/dialogs/AddItemDialog';
 import { addDays, parseISO, isValid, differenceInCalendarDays } from 'date-fns';
 import { snapToWorkday } from '@/lib/dateUtils';
@@ -142,6 +143,9 @@ export function GanttBoard() {
     id: string;
     x: number;
   } | null>(null);
+
+  // Drag-safe click guard
+  const [justDragged, setJustDragged] = useState(false);
 
   // ── Build flat visible rows (data rows + inline add-rows) ───────────────
   const visibleRows = useMemo(() => {
@@ -341,6 +345,8 @@ export function GanttBoard() {
   const handleDragEnd = useCallback((event: DragEndEvent) => {
     setActiveDrag(null);
     setDragDelta(null);
+    setJustDragged(true);
+    setTimeout(() => setJustDragged(false), 200);
 
     const { active, delta } = event;
     const dragId = active.id as string;
@@ -521,6 +527,7 @@ export function GanttBoard() {
             visibleRows={visibleRows}
             onScrollY={onTimelineScroll}
             dragDelta={dragDelta}
+            justDragged={justDragged}
           />
         </div>
 
@@ -591,6 +598,8 @@ export function GanttBoard() {
           featureId={addDialog.featureId}
         />
       )}
+
+      <ItemDetailDrawer />
     </DndContext>
   );
 }

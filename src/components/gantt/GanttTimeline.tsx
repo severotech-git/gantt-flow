@@ -42,6 +42,7 @@ interface GanttTimelineProps {
   visibleRows: VisibleRow[];
   onScrollY: (scrollTop: number) => void;
   dragDelta: { id: string; x: number } | null;
+  justDragged?: boolean;
 }
 
 export interface GanttTimelineHandle {
@@ -101,8 +102,8 @@ function buildHeader(scale: string, timelineStart: Date, totalDays: number, fmtD
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export const GanttTimeline = forwardRef<GanttTimelineHandle, GanttTimelineProps>(
-  function GanttTimeline({ visibleRows, onScrollY, dragDelta }, ref) {
-    const { timelineScale, timelineStartDate: storeStartDate, isVersionReadOnly, focusedBarId, setFocusedBarId, zoomLevel, timelineScrollTarget, clearTimelineScrollTarget } = useProjectStore();
+  function GanttTimeline({ visibleRows, onScrollY, dragDelta, justDragged }, ref) {
+    const { timelineScale, timelineStartDate: storeStartDate, isVersionReadOnly, focusedBarId, setFocusedBarId, zoomLevel, timelineScrollTarget, clearTimelineScrollTarget, openItem } = useProjectStore();
     const allowWeekends = useSettingsStore((s) => s.allowWeekends);
     const scrollRef = useRef<HTMLDivElement>(null);
     const fmt = useFormatter();
@@ -362,6 +363,12 @@ export const GanttTimeline = forwardRef<GanttTimelineHandle, GanttTimelineProps>
                     dragDelta={(dragDelta?.id === row.bar.id || dragDelta?.id.endsWith(`:${row.bar.id}`)) ? dragDelta : null}
                     pxPerDay={pxPerDay}
                     allowWeekends={allowWeekends}
+                    justDragged={justDragged}
+                    onOpenDetail={() => openItem({
+                      epicId: row.bar?.epicId || '',
+                      featureId: row.bar?.featureId,
+                      taskId: row.bar?.taskId,
+                    })}
                   />
                 )}
               </div>

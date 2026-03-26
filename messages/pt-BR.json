@@ -318,6 +318,24 @@
         "features": "Funcionalidades",
         "tasks": "Tarefas"
       }
+    },
+    "drawer": {
+      "assignee": "Responsável",
+      "dueDate": "Data de Vencimento",
+      "startDate": "Data de Início",
+      "status": "Status",
+      "progress": "Progresso",
+      "description": "Descrição da Tarefa",
+      "editDescription": "Editar",
+      "doneEditing": "Pronto",
+      "activityFeed": "Feed de Atividades",
+      "addComment": "Adicionar um comentário...",
+      "send": "Enviar",
+      "cmdEnterToSend": "Pressione Cmd+Enter para enviar",
+      "like": "Curtir",
+      "reply": "Responder",
+      "unassigned": "Não atribuído",
+      "noDescription": "Nenhuma descrição ainda."
     }
   },
   "dialogs": {

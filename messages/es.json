@@ -318,6 +318,24 @@
         "features": "Funcionalidades",
         "tasks": "Tareas"
       }
+    },
+    "drawer": {
+      "assignee": "Asignado a",
+      "dueDate": "Fecha de Vencimiento",
+      "startDate": "Fecha de Inicio",
+      "status": "Estado",
+      "progress": "Progreso",
+      "description": "Descripción de la Tarea",
+      "editDescription": "Editar",
+      "doneEditing": "Hecho",
+      "activityFeed": "Feed de Actividad",
+      "addComment": "Agregar un comentario...",
+      "send": "Enviar",
+      "cmdEnterToSend": "Presione Cmd+Enter para enviar",
+      "like": "Me gusta",
+      "reply": "Responder",
+      "unassigned": "Sin asignar",
+      "noDescription": "Sin descripción aún."
     }
   },
   "dialogs": {

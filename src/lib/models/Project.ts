@@ -2,6 +2,15 @@ import mongoose, { Schema, Document, Model } from 'mongoose';
 
 // ─── Sub-document schemas ────────────────────────────────────────────────────
 
+const CommentSchema = new Schema(
+  {
+    authorId:  { type: String, required: true },
+    text:      { type: String, required: true },
+    createdAt: { type: Date, default: Date.now },
+  },
+  { _id: true }
+);
+
 const TaskSchema = new Schema(
   {
     name:          { type: String, required: true, trim: true },
@@ -13,8 +22,10 @@ const TaskSchema = new Schema(
     actualStart:   { type: Date },
     actualEnd:     { type: Date },
     notes:         { type: String },
+    description:   { type: String },
     color:         { type: String },
     dayCount:      { type: Number },
+    comments:      { type: [CommentSchema], default: [] },
   },
   { _id: true }
 );
@@ -29,10 +40,12 @@ const FeatureSchema = new Schema(
     plannedEnd:    { type: Date, required: true },
     actualStart:   { type: Date },
     actualEnd:     { type: Date },
+    description:   { type: String },
     color:         { type: String },
     dayCount:      { type: Number },
     collapsed:     { type: Boolean, default: false },
     tasks:         { type: [TaskSchema], default: [] },
+    comments:      { type: [CommentSchema], default: [] },
   },
   { _id: true }
 );
@@ -47,10 +60,12 @@ const EpicSchema = new Schema(
     plannedEnd:    { type: Date, required: true },
     actualStart:   { type: Date },
     actualEnd:     { type: Date },
+    description:   { type: String },
     color:         { type: String },
     dayCount:      { type: Number },
     collapsed:     { type: Boolean, default: false },
     features:      { type: [FeatureSchema], default: [] },
+    comments:      { type: [CommentSchema], default: [] },
   },
   { _id: true }
 );

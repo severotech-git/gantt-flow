@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
-import { IEpic, IFeature, IProject, IProjectSnapshot, ITask, TimelineScale } from '@/types';
+import { IEpic, IFeature, IProject, IProjectSnapshot, ITask, TimelineScale, IComment } from '@/types';
 import { rollupEpicDates, rollupFeatureDates, getDefaultStartDate, getProjectTimelineStart, countDays, addWorkdays } from '@/lib/dateUtils';
 import { parseISO, isValid } from 'date-fns';
 import { useSettingsStore } from '@/store/useSettingsStore';
@@ -43,6 +43,9 @@ interface ProjectState {
   // UI state
   isSaving: boolean;
   focusedBarId: string | null;
+
+  // Item detail drawer
+  openItemRef: { epicId: string; featureId?: string; taskId?: string } | null;
 }
 
 // ─── Actions ──────────────────────────────────────────────────────────────────
@@ -101,6 +104,11 @@ interface ProjectActions {
   collapseAll: () => void;
   setFocusedBarId: (id: string | null) => void;
 
+  // Item detail drawer
+  openItem: (ref: { epicId: string; featureId?: string; taskId?: string }) => void;
+  closeItem: () => void;
+  addComment: (epicId: string, featureId: string | undefined, taskId: string | undefined, text: string, authorId: string) => Promise<void>;
+
   // Persist to server
   persistProject: () => Promise<void>;
 
@@ -153,6 +161,7 @@ export const useProjectStore = create<ProjectStore>()(
     zoomLevel: 1,
     isSaving: false,
     focusedBarId: null,
+    openItemRef: null,
 
     // ── Project list ────────────────────────────────────────────────────────
     fetchProjects: async () => {
@@ -843,6 +852,48 @@ export const useProjectStore = create<ProjectStore>()(
           }
         }
       });
+    },
+
+    // ── Item detail drawer ──────────────────────────────────────────────────────
+    openItem: (ref) => {
+      set((s) => { s.openItemRef = ref; });
+    },
+
+    closeItem: () => {
+      set((s) => { s.openItemRef = null; });
+    },
+
+    addComment: async (epicId, featureId, taskId, text, authorId) => {
+      const { activeProject } = get();
+      if (!activeProject) return;
+      const comment: IComment = {
+        _id: tempId(),
+        authorId,
+        text,
+        createdAt: new Date().toISOString(),
+      };
+      set((s) => {
+        if (!s.activeProject) return;
+        const epic = s.activeProject.epics.find((e) => e._id === epicId);
+        if (!epic) return;
+        let target;
+        if (!featureId) {
+          target = epic;
+        } else {
+          const feature = epic.features.find((f) => f._id === featureId);
+          if (!feature) return;
+          if (!taskId) {
+            target = feature;
+          } else {
+            const task = feature.tasks.find((t) => t._id === taskId);
+            if (!task) return;
+            target = task;
+          }
+        }
+        if (!target.comments) target.comments = [];
+        target.comments.push(comment);
+      });
+      await get().persistProject();
     },
 
     // ── Persist ──────────────────────────────────────────────────────────────

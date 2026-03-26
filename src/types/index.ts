@@ -120,6 +120,13 @@ export interface IWorkspaceSettings {
   allowWeekends: boolean;
 }
 
+export interface IComment {
+  _id: string;
+  authorId: string;
+  text: string;
+  createdAt: string;
+}
+
 export interface ITask {
   _id: string;
   name: string;
@@ -131,8 +138,10 @@ export interface ITask {
   actualStart?: string;
   actualEnd?: string;
   notes?: string;
+  description?: string;
   color?: string;
   dayCount?: number;
+  comments?: IComment[];
 }
 
 export interface IFeature {
@@ -146,9 +155,11 @@ export interface IFeature {
   actualStart?: string;
   actualEnd?: string;
   tasks: ITask[];
+  description?: string;
   color?: string;
   dayCount?: number;
   collapsed?: boolean;
+  comments?: IComment[];
 }
 
 export interface IEpic {
@@ -162,9 +173,11 @@ export interface IEpic {
   actualStart?: string;
   actualEnd?: string;
   features: IFeature[];
+  description?: string;
   color?: string;
   dayCount?: number;
   collapsed?: boolean;
+  comments?: IComment[];
 }
 
 export interface IProject {

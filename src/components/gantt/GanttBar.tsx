@@ -39,6 +39,8 @@ interface GanttBarProps extends GanttBarData {
   dragDelta?: { id: string; x: number } | null;
   pxPerDay?: number;
   allowWeekends?: boolean;
+  justDragged?: boolean;
+  onOpenDetail?: () => void;
 }
 
 // Level-specific bar heights (px)
@@ -78,6 +80,8 @@ export function GanttBar({
   hasWarning,
   pxPerDay = 28,
   allowWeekends = true,
+  justDragged = false,
+  onOpenDetail,
 }: GanttBarProps) {
   const t = useTranslations('gantt.bar');
   const fmt = useFormatter();
@@ -177,6 +181,11 @@ export function GanttBar({
       <div
         ref={isOverlay ? undefined : setMoveRef}
         {...(isOverlay ? {} : { ...moveAttrs, ...moveListeners })}
+        onClick={(e) => {
+          if (justDragged) return;
+          e.stopPropagation();
+          onOpenDetail?.();
+        }}
         className={cn(
           "absolute inset-0 flex items-center overflow-hidden rounded",
           !isOverlay && !readonly && 'cursor-grab active:cursor-grabbing',

@@ -318,6 +318,24 @@
         "features": "Features",
         "tasks": "Tasks"
       }
+    },
+    "drawer": {
+      "assignee": "Assignee",
+      "dueDate": "Due Date",
+      "startDate": "Start Date",
+      "status": "Status",
+      "progress": "Progress",
+      "description": "Task Description",
+      "editDescription": "Edit",
+      "doneEditing": "Done",
+      "activityFeed": "Activity Feed",
+      "addComment": "Add a comment...",
+      "send": "Send",
+      "cmdEnterToSend": "Press Cmd+Enter to send",
+      "like": "Like",
+      "reply": "Reply",
+      "unassigned": "Unassigned",
+      "noDescription": "No description yet."
     }
   },
   "dialogs": {
