@@ -52,13 +52,13 @@ export function ItemDetailDrawer() {
   const statuses = useSettingsStore((s) => s.statuses);
   const levelNames = useSettingsStore((s) => s.levelNames);
 
-  // Get current user's uid from email
+  // Get current user's uid by matching session user name with workspace users
   const currentUserUid = useMemo(() => {
-    if (!session?.user?.email) return '';
-    // Try to find user by email, fallback to email as uid
-    const user = users.find((u) => u.uid.includes(session.user.email!.split('@')[0]));
-    return user?.uid || session.user.email;
-  }, [session?.user?.email, users]);
+    if (!session?.user?.name) return '';
+    // Find user by exact name match in workspace
+    const user = users.find((u) => u.name === session.user.name);
+    return user?.uid || session.user.name;
+  }, [session?.user?.name, users]);
 
   // Derive the item from openItemRef
   const item = useMemo(() => {
