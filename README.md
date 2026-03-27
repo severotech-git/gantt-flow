@@ -15,7 +15,7 @@
 </p>
 
 <p align="center">
-  A full-featured Gantt chart project management web application with hierarchical task planning, live drag-and-drop scheduling, version snapshots, and fully customizable workspace settings.
+  A full-featured, multi-tenant Gantt chart project management app with hierarchical task planning, live drag-and-drop scheduling, real-time collaboration, version snapshots, and fully customizable workspace settings.
 </p>
 
 ---
@@ -32,7 +32,6 @@
 - [Available Scripts](#available-scripts)
 - [API Reference](#api-reference)
 - [Architecture Overview](#architecture-overview)
-- [Screenshots](#screenshots)
 - [Contributing](#contributing)
 - [License](#license)
 
@@ -42,48 +41,71 @@
 
 ### Gantt Chart
 
-- Hierarchical three-level task tree: **Epic > Feature > Task**
+- Hierarchical three-level task tree: **Epic → Feature → Task**
 - Live drag-and-drop bar repositioning constrained to the horizontal axis
-- Live bar resizing with automatic date recalculation
 - Timeline scale toggles: **Day, Week, Month, Quarter**
-- Today marker with pulse animation
+- Today marker with pulse animation and jump-to-today button
 - Weekend column shading for at-a-glance week orientation
-- Overdue bar glow effect when a task is past its planned end date
-- DragOverlay floating preview rendered during active drag operations
-- Jump-to-today button for instant timeline navigation
-- Scroll synchronization between the task panel and the timeline viewport
+- Overdue bar highlight when a task is past its planned end date and not in a final status
+- Scroll synchronization between the task panel and timeline viewport
+- Expand and collapse Epic and Feature rows to control chart density
 
 ### Task and Item Management
 
 - Inline item name editing directly on the Gantt row
 - Inline status dropdown per row, driven by workspace-configured statuses
 - Inline percentage completion editor with click-to-edit behavior
-- Delay badge displaying the number of days a task is behind schedule
-- Left-edge progress accent bar and bottom mini progress bar per row
+- Delay badge showing the number of days a task is behind schedule
 - Add Epic, Feature, and Task items via a guided dialog
-- Expand and collapse Epic and Feature rows to control chart density
+- Date rollup: task dates automatically propagate up to Features and Epics
 
 ### Project Management
 
-- Project grid view listing all workspace projects
-- Create new projects with a name, color, and description
-- Global search across all projects in the workspace
-- Project archiving to remove completed work from the active view
-- Collapsible sidebar with a favorites section and workspace navigation
+- Project grid view listing all workspace projects with search
+- Create, archive, and delete projects
+- Collapsible sidebar with favorites section and workspace navigation
 
 ### Version Control
 
 - Save named project snapshots at any point in time
 - Browse and restore any previously saved version through the version picker
-- Snapshot data stored independently so the live project is never overwritten
+- Snapshot data stored independently — the live project is never overwritten
+
+### Authentication & Security
+
+- **NextAuth v5** with credentials and Google OAuth providers
+- Email verification required before accessing the app
+- **MFA via email OTP** enforced after credentials login
+- Trusted device tokens — skip MFA for 30 days on recognized devices
+- Rate limiting on auth endpoints (in-memory sliding window)
+- Password hashing with bcrypt (12 rounds)
+
+### Multi-Tenancy & Team Management
+
+- **Account-scoped workspaces** — every project and setting is isolated per account
+- Member roles: `owner`, `admin`, `member`
+- Email-based team invitations with 30-day expiry tokens
+- Plan-based member limits (enforced via Stripe billing)
 
 ### Workspace Settings
 
-- Custom status configurations with user-defined hex colors and labels
-- Mark statuses as "final" to prevent delayed-bar highlighting on completed work
-- Configurable level names (rename Epic, Feature, Task to match your workflow)
-- Default owner assignment applied to newly created items
-- Dark and light theme toggle applied globally across the application
+- Custom status configurations with hex colors and labels
+- Mark statuses as "final" to prevent delayed-bar highlighting on completed items
+- Configurable level names (rename Epic / Feature / Task to match your workflow)
+- Default owner assignment for newly created items
+- Dark and light theme toggle applied globally
+
+### Internationalization
+
+- **Three locales**: English (`en`), Brazilian Portuguese (`pt-BR`), Spanish (`es`)
+- Cookie-based locale preference (no URL prefix)
+- Locale stored on the user profile and carried in the JWT
+
+### Billing
+
+- Stripe subscription management
+- Plan-based member limits (Starter: 5, Pro: 20)
+- Trial period with auto-cancel
 
 ---
 
@@ -95,8 +117,12 @@
 | Language | TypeScript 5 |
 | Styling | Tailwind CSS, shadcn/ui |
 | State Management | Zustand with immer middleware |
-| Drag and Drop | @dnd-kit/core, @dnd-kit/sortable |
+| Drag and Drop | @dnd-kit/core |
 | Database | MongoDB via Mongoose |
+| Auth | NextAuth v5 (JWT strategy) |
+| Email | Resend + Nodemailer |
+| Payments | Stripe |
+| i18n | next-intl v4 |
 | Date Utilities | date-fns |
 | Runtime | Node.js 18+ |
 
@@ -109,55 +135,49 @@
 ├── src/
 │   ├── app/
 │   │   ├── api/
-│   │   │   ├── projects/
-│   │   │   │   ├── route.ts                  # GET /api/projects, POST /api/projects
-│   │   │   │   └── [id]/
-│   │   │   │       ├── route.ts              # GET, PATCH, DELETE /api/projects/[id]
-│   │   │   │       └── versions/
-│   │   │   │           ├── route.ts          # GET, POST /api/projects/[id]/versions
-│   │   │   │           └── [versionId]/
-│   │   │   │               └── route.ts      # GET /api/projects/[id]/versions/[versionId]
-│   │   │   └── settings/
-│   │   │       └── route.ts                  # GET, PATCH /api/settings
+│   │   │   ├── auth/               # NextAuth handlers
+│   │   │   ├── projects/           # CRUD + versions + changelog
+│   │   │   ├── account/            # Account, members, invitations
+│   │   │   ├── settings/           # Workspace + user settings
+│   │   │   └── billing/            # Stripe subscription
+│   │   ├── (auth)/                 # login, register, verify-email, mfa pages
 │   │   ├── projects/
-│   │   │   ├── page.tsx                      # Project grid view
-│   │   │   └── [id]/
-│   │   │       └── page.tsx                  # Individual Gantt chart view
-│   │   ├── settings/
-│   │   │   └── page.tsx                      # Workspace settings view
-│   │   └── layout.tsx                        # Root layout with ThemeProvider
+│   │   │   ├── page.tsx            # Project grid view
+│   │   │   └── [id]/page.tsx       # Gantt chart view
+│   │   ├── settings/page.tsx       # Workspace settings
+│   │   └── layout.tsx              # Root layout with providers
 │   ├── components/
-│   │   ├── dialogs/
-│   │   │   ├── AddItemDialog.tsx             # Add epic/feature/task dialog
-│   │   │   ├── NewProjectDialog.tsx          # Create project dialog
-│   │   │   └── SaveVersionDialog.tsx         # Save snapshot dialog
-│   │   ├── gantt/
-│   │   │   ├── GanttBoard.tsx               # DndContext, scroll sync, drag orchestration
-│   │   │   ├── GanttBar.tsx                 # Individual draggable bar component
-│   │   │   ├── GanttTimeline.tsx            # Date header, grid lines, today marker
-│   │   │   └── GanttTaskPanel.tsx           # Left panel with row labels and controls
-│   │   ├── layout/
-│   │   │   ├── Sidebar.tsx                  # Collapsible sidebar navigation
-│   │   │   └── TopNav.tsx                   # Scale toggles, version picker, controls
-│   │   ├── providers/
-│   │   │   └── ThemeProvider.tsx            # Applies dark/light class to html element
-│   │   ├── settings/                        # Settings UI components (status, theme, etc.)
-│   │   └── shared/
-│   │       ├── OwnerAvatar.tsx              # Initials avatar with deterministic color
-│   │       └── StatusBadge.tsx             # Color-coded status chip
+│   │   ├── dialogs/                # NewProject, AddItem, SaveVersion, etc.
+│   │   ├── gantt/                  # GanttBoard, GanttBar, GanttTimeline, GanttTaskPanel
+│   │   ├── layout/                 # Sidebar, TopNav
+│   │   ├── providers/              # AuthProvider, ThemeProvider
+│   │   ├── settings/               # Settings section components
+│   │   ├── shared/                 # StatusBadge, OwnerAvatar, ItemDetailDrawer
+│   │   └── ui/                     # shadcn/ui primitives
+│   ├── hooks/                      # useAccountRole, etc.
+│   ├── i18n/
+│   │   └── request.ts              # Locale resolution (cookie → header → default)
 │   ├── lib/
-│   │   ├── mongodb.ts                       # Singleton Mongoose connection with global cache
-│   │   ├── dateUtils.ts                     # Date math helpers (rollup, bar style, columns)
-│   │   └── models/
-│   │       ├── Project.ts                   # Mongoose schema: embedded Epic > Feature > Task
-│   │       ├── ProjectSnapshot.ts           # Snapshot model with Mixed snapshotData field
-│   │       └── WorkspaceSettings.ts         # Singleton settings model with default statuses
+│   │   ├── mongodb.ts              # Singleton Mongoose connection
+│   │   ├── dateUtils.ts            # Rollup, bar style, column helpers
+│   │   ├── apiAuth.ts              # requireAuth(), requireManage()
+│   │   ├── email.ts                # Resend + Nodemailer transports
+│   │   ├── rateLimit.ts            # In-memory sliding window
+│   │   ├── seedWorkspace.ts        # Account + settings seeding on first login
+│   │   ├── utils.ts                # cn() helper
+│   │   └── models/                 # Mongoose models (User, Account, Project, …)
 │   ├── store/
-│   │   ├── useProjectStore.ts               # Zustand store: CRUD, drag, version, persist
-│   │   └── useSettingsStore.ts              # Zustand store: fetch and persist settings
+│   │   ├── useProjectStore.ts      # Gantt CRUD, drag, versions, persist
+│   │   ├── useSettingsStore.ts     # Workspace settings
+│   │   ├── useAccountStore.ts      # Account, members, invitations
+│   │   └── usePresenceStore.ts     # Real-time cursors and connected users
 │   └── types/
-│       └── index.ts                         # All TypeScript interfaces and type aliases
-└── public/                                  # Static assets
+│       └── index.ts                # All TypeScript interfaces and type aliases
+├── messages/
+│   ├── en.json
+│   ├── pt-BR.json
+│   └── es.json
+└── public/                         # Static assets
 ```
 
 ---
@@ -167,8 +187,11 @@
 ### Prerequisites
 
 - **Node.js** 18 or higher
-- **npm** 9 or higher (or yarn / pnpm)
+- **pnpm** 9 or higher
 - A running **MongoDB** instance (local or hosted, e.g., MongoDB Atlas)
+- A **Resend** account for transactional email
+- (Optional) **Google OAuth** credentials for social login
+- (Optional) **Stripe** account for billing
 
 ### Installation
 
@@ -182,7 +205,7 @@
 2. Install dependencies.
 
    ```bash
-   npm install
+   pnpm install
    ```
 
 3. Create a local environment file by copying the example.
@@ -191,41 +214,46 @@
    cp .env.example .env.local
    ```
 
-4. Populate the required environment variables in `.env.local`. See the [Environment Variables](#environment-variables) section below.
+4. Populate the required environment variables in `.env.local`. See [Environment Variables](#environment-variables) below.
 
 5. Start the development server.
 
    ```bash
-   npm run dev
+   pnpm run dev
    ```
 
 6. Open [http://localhost:3000](http://localhost:3000) in your browser.
-
-> **Note:** If you encounter a missing Next.js binary after cloning on some systems, run:
-> ```bash
-> rm node_modules/.bin/next && ln -s ../next/dist/bin/next node_modules/.bin/next
-> ```
 
 ---
 
 ## Environment Variables
 
-Create a `.env.local` file in the project root. The following variables are required:
+Create a `.env.local` file in the project root.
 
-| Variable | Required | Description | Example |
-|---|---|---|---|
-| `MONGODB_URI` | Yes | Full MongoDB connection string | `mongodb://localhost:27017/ganttflow` |
-| `NEXTAUTH_SECRET` | No | Secret used for session signing (if auth is added) | `supersecretvalue` |
-| `NEXT_PUBLIC_APP_URL` | No | Public base URL of the application | `http://localhost:3000` |
+| Variable | Required | Description |
+|---|---|---|
+| `AUTH_SECRET` | Yes | Secret for NextAuth session signing |
+| `NEXTAUTH_URL` | Yes | Public base URL, e.g. `http://localhost:3000` |
+| `MONGODB_URI` | Yes | MongoDB connection string |
+| `RESEND_API_KEY` | Yes | Resend API key for transactional email |
+| `EMAIL_FROM` | Yes | Sender address, e.g. `GanttFlow <noreply@example.com>` |
+| `GOOGLE_CLIENT_ID` | No | Google OAuth client ID |
+| `GOOGLE_CLIENT_SECRET` | No | Google OAuth client secret |
+| `STRIPE_SECRET_KEY` | No | Stripe secret key for billing |
+| `STRIPE_WEBHOOK_SECRET` | No | Stripe webhook signing secret |
+| `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | No | Stripe publishable key (client-side) |
 
-**Example `.env.local`:**
+**Minimal `.env.local` for local development:**
 
 ```env
+AUTH_SECRET=change-me-to-a-random-string
+NEXTAUTH_URL=http://localhost:3000
 MONGODB_URI=mongodb://localhost:27017/ganttflow
-NEXT_PUBLIC_APP_URL=http://localhost:3000
+RESEND_API_KEY=re_xxxxxxxxxxxx
+EMAIL_FROM=GanttFlow <noreply@localhost>
 ```
 
-> **Security:** Never commit `.env.local` or any file containing secrets to version control. The `.gitignore` generated by `create-next-app` already excludes `.env*.local` files.
+> **Security:** Never commit `.env.local` or any file containing secrets to version control.
 
 ---
 
@@ -233,101 +261,93 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000
 
 | Script | Command | Description |
 |---|---|---|
-| Development | `npm run dev` | Starts the Next.js development server with hot reload at port 3000 |
-| Build | `npm run build` | Compiles and optimizes the application for production |
-| Start | `npm run start` | Runs the production build (requires `npm run build` first) |
-| Lint | `npm run lint` | Runs ESLint across all source files |
-| Type Check | `npx tsc --noEmit` | Runs the TypeScript compiler without emitting files |
+| Development | `pnpm run dev` | Start the Next.js development server at port 3000 |
+| Build | `pnpm run build` | Type-check and compile for production |
+| Start | `pnpm run start` | Run the production build |
+| Lint | `pnpm run lint` | Run ESLint across all source files |
+| Type Check | `pnpm exec tsc --noEmit` | Check types without emitting files |
 
 ---
 
 ## API Reference
 
-All routes are Next.js App Router API routes located under `src/app/api/`.
+All routes are Next.js App Router API routes under `src/app/api/`. Every route requires a valid session (via `requireAuth()`). Admin-only routes additionally require `owner` or `admin` role (via `requireManage()`).
 
 ### Projects
 
 | Method | Path | Description |
 |---|---|---|
-| `GET` | `/api/projects` | Return a list of all projects in the workspace |
-| `POST` | `/api/projects` | Create a new project with name, color, and description |
-| `GET` | `/api/projects/[id]` | Return a single project by ID including its full Epic > Feature > Task tree |
-| `PATCH` | `/api/projects/[id]` | Update project fields or the task tree (used for all item mutations and drag events) |
-| `DELETE` | `/api/projects/[id]` | Permanently delete a project and all its associated versions |
+| `GET` | `/api/projects` | List all projects in the account |
+| `POST` | `/api/projects` | Create a new project |
+| `GET` | `/api/projects/[id]` | Get a project with its full Epic → Feature → Task tree |
+| `PATCH` | `/api/projects/[id]` | Update project fields or the task tree |
+| `DELETE` | `/api/projects/[id]` | Delete a project and all its snapshots |
 
 ### Versions
 
 | Method | Path | Description |
 |---|---|---|
-| `GET` | `/api/projects/[id]/versions` | Return all saved snapshots for a project |
-| `POST` | `/api/projects/[id]/versions` | Save a new named snapshot of the current project state |
-| `GET` | `/api/projects/[id]/versions/[versionId]` | Return a single snapshot by ID for version restore |
+| `GET` | `/api/projects/[id]/versions` | List all saved snapshots |
+| `POST` | `/api/projects/[id]/versions` | Save a new named snapshot |
+| `GET` | `/api/projects/[id]/versions/[versionId]` | Get a snapshot for restore |
 
 ### Settings
 
 | Method | Path | Description |
 |---|---|---|
-| `GET` | `/api/settings` | Return the singleton workspace settings document |
-| `PATCH` | `/api/settings` | Update workspace settings (statuses, level names, theme, default owner) |
+| `GET` | `/api/settings` | Get workspace + user settings |
+| `PATCH` | `/api/settings` | Update settings (managed fields require admin) |
 
-### Request and Response Format
+### Account & Members
 
-All endpoints accept and return `application/json`. Successful responses use HTTP 200 or 201. Errors return a JSON object with a `message` field and an appropriate HTTP status code (400, 404, 500).
+| Method | Path | Description |
+|---|---|---|
+| `GET` | `/api/account` | Get current account info |
+| `GET` | `/api/account/members` | List all members |
+| `PATCH` | `/api/account/members/[userId]` | Update a member's role |
+| `DELETE` | `/api/account/members/[userId]` | Remove a member |
+| `POST` | `/api/account/invitations` | Invite a new member by email |
+| `DELETE` | `/api/account/invitations/[id]` | Cancel a pending invitation |
 
-**Example: Create a project**
+### Response Format
 
-```
-POST /api/projects
-Content-Type: application/json
-
-{
-  "name": "Q3 Roadmap",
-  "color": "#6366f1",
-  "description": "Product roadmap for Q3 2026"
-}
-```
-
-**Example: Save a version snapshot**
-
-```
-POST /api/projects/abc123/versions
-Content-Type: application/json
-
-{
-  "name": "Before sprint planning"
-}
-```
+All endpoints return `application/json`. Errors return `{ error: string, code?: string }` with the appropriate HTTP status code. The `code` field maps to an i18n key in the `apiErrors` namespace.
 
 ---
 
 ## Architecture Overview
 
+### Multi-Tenancy
+
+Every object (project, settings, member) is scoped to an `accountId`. On first login, `seedAccountForNewUser()` creates a default `Account` and `WorkspaceSettings`. Users belong to exactly one account and carry their `accountId` in the JWT.
+
 ### State Management
 
-GanttFlow uses two independent Zustand stores, both enhanced with the immer middleware for immutable state updates.
+GanttFlow uses Zustand stores with immer middleware:
 
-- **`useProjectStore`** manages the active project, the full Epic > Feature > Task tree, drag state, and version history. Every mutation (add, update, delete, drag end) automatically triggers date rollup (tasks roll up to Features, Features roll up to Epics) and then persists the updated project to the database via `PATCH /api/projects/[id]`.
-
-- **`useSettingsStore`** manages workspace-level configuration: custom status definitions, level names, default owner, and the active theme. Settings are fetched once on mount via `ThemeProvider` and persisted on every change via `PATCH /api/settings`.
+- **`useProjectStore`** — active project, full Epic → Feature → Task tree, drag state, versions. Every mutation triggers date rollup and debounced `PATCH /api/projects/[id]`.
+- **`useSettingsStore`** — workspace statuses, level names, theme, locale.
+- **`useAccountStore`** — account info, members, invitations, billing.
+- **`usePresenceStore`** — real-time cursor positions and connected users.
 
 ### Data Flow
 
 ```
 User interaction (drag, edit, status change)
-        |
-        v
-Zustand store action (useProjectStore)
-        |
-        v
+        │
+        ▼
+Zustand store action
+        │
+        ▼
 immer draft mutation + date rollup (dateUtils.ts)
-        |
-        v
-PATCH /api/projects/[id]  --->  MongoDB (Mongoose)
+        │
+        ▼
+PATCH /api/projects/[id]  ──►  MongoDB (Mongoose)
 ```
 
-### Timeline Rendering and Drag Math
+### Timeline Rendering
 
-The Gantt timeline converts dates to pixel positions using a `pxPerDay` constant that varies by scale:
+Dates are converted to pixel positions using `pxPerDay`, which varies by scale:
 
 | Scale | pxPerDay |
 |---|---|
@@ -336,73 +356,42 @@ The Gantt timeline converts dates to pixel positions using a `pxPerDay` constant
 | Month | 10 |
 | Quarter | 4 |
 
-When a drag ends, the horizontal pixel delta from `@dnd-kit` is divided by `pxPerDay` to produce `deltaDays`. That integer is added to the item's `plannedStart` and `plannedEnd` dates using `date-fns/addDays`. Dragging an Epic shifts all descendant Features and Tasks by the same delta. Dragging a Feature shifts all its Tasks.
-
-### Database Schema
-
-MongoDB stores projects as a single document containing the full embedded tree. Snapshots are stored as separate documents in a `projectsnapshots` collection, with `snapshotData` typed as Mongoose `Mixed` to allow arbitrary project state capture. Workspace settings are stored as a singleton document in a `workspacesettings` collection.
-
----
-
-## Screenshots
-
-> Screenshots will be added here once the application is deployed. Replace the placeholders below with actual image paths or URLs.
-
-**Project Grid View**
-
-![Project grid showing all workspace projects](docs/screenshots/project-grid.png)
-
-**Gantt Chart View**
-
-![Gantt chart with Epic, Feature, and Task rows and draggable bars](docs/screenshots/gantt-chart.png)
-
-**Workspace Settings**
-
-![Settings page showing custom status configuration and theme toggle](docs/screenshots/settings.png)
+On drag end, `delta.x / pxPerDay` → `deltaDays` → `addDays(plannedStart/End)`. Dragging an Epic shifts all descendant Features and Tasks.
 
 ---
 
 ## Contributing
 
-Contributions are welcome. Please follow these steps to submit a change.
-
 1. Fork the repository and create a branch from `main`.
 
    ```bash
-   git checkout -b feature/your-feature-name
+   git checkout -b feat/your-feature-name
    ```
 
-2. Make your changes. Follow the existing code style (TypeScript strict mode, Tailwind utility classes, shadcn/ui components where applicable).
+2. Make your changes following the patterns in `CLAUDE.md`.
 
-3. Run the build and linter to verify your changes do not break existing functionality.
+3. Verify the build and types pass.
 
    ```bash
-   npm run build
-   npm run lint
-   npx tsc --noEmit
+   pnpm run build && pnpm run lint
    ```
 
-4. Write or update tests if applicable.
-
-5. Commit your changes with a clear, descriptive message following the [Conventional Commits](https://www.conventionalcommits.org/) format.
+4. Commit with a [Conventional Commits](https://www.conventionalcommits.org/) message.
 
    ```bash
-   git commit -m "feat: add resource allocation view to Gantt chart"
+   git commit -m "feat: add resource allocation view"
    ```
 
-6. Push your branch and open a pull request against `main`. Include a description of what changed and why.
+5. Push and open a pull request against `main`.
 
 ### Code Style Guidelines
 
-- All new components must be written in TypeScript with explicit prop types.
-- Avoid inline styles. Use Tailwind utility classes or the `cn()` helper from shadcn/ui.
-- State mutations must go through the Zustand store — do not mutate component state as a workaround.
-- All new API routes must handle errors gracefully and return consistent JSON error objects.
-- Date arithmetic must use `date-fns` functions from `src/lib/dateUtils.ts`, not native Date manipulation.
-
-### Reporting Issues
-
-Open an issue on GitHub with a clear title, a description of the problem, steps to reproduce, and the expected versus actual behavior. Include your Node.js version and operating system.
+- All components must be written in TypeScript with explicit prop types.
+- Use `cn()` from `src/lib/utils.ts` for conditional class names; no inline styles except dynamic colors.
+- All state mutations go through the Zustand store.
+- New API routes must follow the auth guard + try/catch pattern in `CLAUDE.md`.
+- Every user-facing string must have an entry in all three `messages/*.json` files.
+- Use `pnpm` — never `npm` or `yarn`.
 
 ---
 
