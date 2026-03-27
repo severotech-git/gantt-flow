@@ -790,6 +790,7 @@
       "30d": "30 dias"
     },
     "createButton": "Criar e Enviar",
+    "createButtonNoEmail": "Criar Link",
     "creating": "Criando...",
     "copyLink": "Copiar Link",
     "linkCopied": "Link copiado para a área de transferência!",
@@ -801,6 +802,7 @@
     "revokeConfirm": "Remover este link compartilhado?",
     "revokingLabel": "Revogando...",
     "shareSuccess": "Link criado e e-mails enviados!",
+    "shareSuccessNoEmail": "Link criado!",
     "shareError": "Falha ao criar link de compartilhamento",
     "invalidEmail": "Formato de e-mail inválido"
   },

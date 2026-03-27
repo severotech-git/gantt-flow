@@ -46,6 +46,8 @@ export function ShareDialog({ open, onClose, projectId }: ShareDialogProps) {
   const [activeShares, setActiveShares] = useState<ISharedLink[]>([]);
   const [loadingShares, setLoadingShares] = useState(false);
   const [revokingId, setRevokingId] = useState<string | null>(null);
+  const [copyingId, setCopyingId] = useState<string | null>(null);
+  const [copiedShareId, setCopiedShareId] = useState<string | null>(null);
 
   // Load active shares when dialog opens
   useEffect(() => {
@@ -97,7 +99,7 @@ export function ShareDialog({ open, onClose, projectId }: ShareDialogProps) {
     setEmails((prev) => prev.filter((e) => e !== email));
   }
 
-  const canCreate = emails.length > 0 && (mode === 'live' || (mode === 'snapshot' && !!snapshotId));
+  const canCreate = mode === 'live' || (mode === 'snapshot' && !!snapshotId);
 
   async function handleCreate() {
     if (!canCreate) return;
@@ -125,6 +127,20 @@ export function ShareDialog({ open, onClose, projectId }: ShareDialogProps) {
         .catch(() => {});
     } catch {
       setStatus('error');
+    }
+  }
+
+  async function handleCopyShare(shareId: string) {
+    setCopyingId(shareId);
+    try {
+      const res = await fetch(`/api/projects/${projectId}/shares/${shareId}`);
+      if (!res.ok) return;
+      const data = await res.json();
+      await navigator.clipboard.writeText(data.url);
+      setCopiedShareId(shareId);
+      setTimeout(() => setCopiedShareId(null), 2000);
+    } finally {
+      setCopyingId(null);
     }
   }
 
@@ -267,7 +283,7 @@ export function ShareDialog({ open, onClose, projectId }: ShareDialogProps) {
             <div className="rounded-lg border border-border bg-muted/40 p-3 space-y-2">
               <div className="flex items-center gap-2">
                 <Check className="h-4 w-4 text-green-500 shrink-0" />
-                <p className="text-sm font-medium">{t('shareSuccess')}</p>
+                <p className="text-sm font-medium">{emails.length > 0 ? t('shareSuccess') : t('shareSuccessNoEmail')}</p>
               </div>
               <div className="flex gap-2">
                 <Input value={createdUrl} readOnly className="text-xs font-mono bg-background" />
@@ -290,7 +306,11 @@ export function ShareDialog({ open, onClose, projectId }: ShareDialogProps) {
               onClick={handleCreate}
               disabled={!canCreate || status === 'creating'}
             >
-              {status === 'creating' ? t('creating') : t('createButton')}
+              {status === 'creating'
+                ? t('creating')
+                : emails.length > 0
+                  ? t('createButton')
+                  : t('createButtonNoEmail')}
             </Button>
           )}
         </div>
@@ -327,15 +347,29 @@ export function ShareDialog({ open, onClose, projectId }: ShareDialogProps) {
                       {t('expiresIn')} {formatDistanceToNow(new Date(share.expiresAt))}
                     </p>
                   </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleRevoke(share._id)}
-                    disabled={revokingId === share._id}
-                    className="shrink-0 text-muted-foreground hover:text-destructive"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
+                  <div className="flex items-center gap-1 shrink-0">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleCopyShare(share._id)}
+                      disabled={copyingId === share._id}
+                      className="text-muted-foreground hover:text-foreground"
+                      title={t('copyLink')}
+                    >
+                      {copiedShareId === share._id
+                        ? <Check className="h-4 w-4 text-green-500" />
+                        : <Copy className="h-4 w-4" />}
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleRevoke(share._id)}
+                      disabled={revokingId === share._id}
+                      className="text-muted-foreground hover:text-destructive"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </div>
               ))}
             </div>

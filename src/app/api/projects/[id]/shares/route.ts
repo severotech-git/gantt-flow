@@ -47,8 +47,8 @@ export async function POST(
     if (!body.mode || !['snapshot', 'live'].includes(body.mode)) {
       return NextResponse.json({ error: 'mode must be "snapshot" or "live"' }, { status: 400 });
     }
-    if (!Array.isArray(body.emails) || body.emails.length === 0) {
-      return NextResponse.json({ error: 'emails must be a non-empty array' }, { status: 400 });
+    if (!Array.isArray(body.emails)) {
+      return NextResponse.json({ error: 'emails must be an array' }, { status: 400 });
     }
     if (!body.expiresIn || !Object.keys(EXPIRATION_PRESETS).includes(body.expiresIn)) {
       return NextResponse.json(
@@ -67,7 +67,7 @@ export async function POST(
 
     // Validate email format (basic)
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    for (const email of body.emails) {
+    for (const email of body.emails as unknown[]) {
       if (typeof email !== 'string' || !emailRegex.test(email)) {
         return NextResponse.json({ error: `Invalid email: ${email}` }, { status: 400 });
       }
@@ -112,18 +112,20 @@ export async function POST(
     const APP_URL = process.env.NEXTAUTH_URL || 'http://localhost:3000';
     const shareUrl = `${APP_URL}/shared/${token}`;
 
-    // Send emails in batch
-    try {
-      await sendShareLinkEmails(
-        body.emails,
-        project.name,
-        userId,
-        shareUrl,
-        expiresAt,
-        locale
-      );
-    } catch (emailErr) {
-      console.error('[POST /api/projects/[id]/shares] Email send failed:', emailErr);
+    // Send emails in batch (only if recipients were provided)
+    if (body.emails.length > 0) {
+      try {
+        await sendShareLinkEmails(
+          body.emails,
+          project.name,
+          userId,
+          shareUrl,
+          expiresAt,
+          locale
+        );
+      } catch (emailErr) {
+        console.error('[POST /api/projects/[id]/shares] Email send failed:', emailErr);
+      }
     }
 
     return NextResponse.json(
