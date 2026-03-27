@@ -302,7 +302,8 @@
       "restoreAsLive": "Restore as live",
       "deleteSnapshot": "Delete snapshot",
       "saveSnapshot": "Save Snapshot",
-      "newProject": "New Project"
+      "newProject": "New Project",
+      "share": "Share"
     },
     "search": {
       "title": "Search",
@@ -595,6 +596,7 @@
     "PRICE_ID_REQUIRED": "No plan selected.",
     "PLAN_NOT_FOUND": "Selected plan not found.",
     "NO_STRIPE_CUSTOMER": "No billing account found. Please subscribe first.",
+    "TOO_MANY_SHARES": "Too many share requests. Please try again later.",
     "GENERIC": "Something went wrong. Please try again."
   },
   "billing": {
@@ -752,6 +754,65 @@
       "plainCta": "Accept your invitation here:",
       "plainExpiry": "This link expires in 30 days.",
       "plainIgnore": "If you did not expect this invitation, you can safely ignore this email."
+    },
+    "share": {
+      "subject": "{sharerName} shared the project \"{projectName}\" with you",
+      "subjectPlain": "{sharerName} shared \"{projectName}\" on GanttFlow",
+      "title": "Project Shared",
+      "greeting": "Hi,",
+      "body": "<strong>{sharerName}</strong> has shared the project <strong>{projectName}</strong> with you on GanttFlow.",
+      "button": "View Project",
+      "expiry": "This link expires on {expiryDate}. If you did not expect this share, you can safely ignore this email.",
+      "plainBody": "{sharerName} has shared the project \"{projectName}\" with you.",
+      "plainExpiry": "This link expires on {expiryDate}.",
+      "plainIgnore": "If you did not expect this shared link, you can safely ignore this email."
     }
+  },
+  "shareDialog": {
+    "title": "Share Project",
+    "description": "Allow others to view this project without needing an account.",
+    "modeLabel": "Share Mode",
+    "modeSnapshot": "Snapshot (Saved Version)",
+    "modeSnapshotDesc": "Share one of your saved snapshots. Recipients always see that exact version.",
+    "snapshotLabel": "Select Snapshot",
+    "snapshotPlaceholder": "Choose a saved version...",
+    "noSnapshots": "No saved snapshots yet. Use Save Snapshot to create one.",
+    "modeLive": "Live (Current)",
+    "modeLiveDesc": "Shares the live project. Recipients always see the latest changes.",
+    "emailsLabel": "Recipient Emails",
+    "emailPlaceholder": "email@example.com",
+    "addEmail": "Add Email",
+    "expirationLabel": "Link Expiration",
+    "expirations": {
+      "1h": "1 hour",
+      "24h": "24 hours",
+      "7d": "7 days",
+      "30d": "30 days"
+    },
+    "createButton": "Create & Send",
+    "createButtonNoEmail": "Create Link",
+    "creating": "Creating...",
+    "copyLink": "Copy Link",
+    "linkCopied": "Link copied to clipboard!",
+    "activeShares": "Active Shares",
+    "noActiveShares": "No active shares yet.",
+    "expiresIn": "Expires in",
+    "expiredLabel": "Expired",
+    "revokeButton": "Revoke",
+    "revokeConfirm": "Remove this share link?",
+    "revokingLabel": "Revoking...",
+    "shareSuccess": "Link created and emails sent!",
+    "shareSuccessNoEmail": "Link created!",
+    "shareError": "Failed to create share link",
+    "invalidEmail": "Invalid email format"
+  },
+  "sharedView": {
+    "loading": "Loading shared project...",
+    "expired": "This shared link has expired",
+    "notFound": "Shared project not found",
+    "revoked": "This shared link has been revoked",
+    "expiresAt": "This link expires {date}",
+    "readonlyBanner": "Viewing in read-only mode",
+    "poweredBy": "Powered by GanttFlow"
   }
 }

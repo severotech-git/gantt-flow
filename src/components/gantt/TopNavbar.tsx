@@ -11,25 +11,24 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Camera, ChevronDown, History, Search, Plus, Crosshair, Loader2, Eye, RotateCcw, Trash2 } from 'lucide-react';
+import { Camera, ChevronDown, History, Search, Plus, Crosshair, Loader2, Eye, RotateCcw, Trash2, Share2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useState } from 'react';
 import { PageNavbar } from '@/components/layout/PageNavbar';
 import { PresenceAvatars } from './PresenceAvatars';
 import { useTranslations } from 'next-intl';
+import { ShareDialog } from '@/components/dialogs/ShareDialog';
 
 const SCALE_VALUES: TimelineScale[] = ['week', 'month', 'quarter'];
 
 interface TopNavbarProps {
-  onEditProject: () => void;
   onSaveVersion: () => void;
-  onNewProject: () => void;
   onSearch: () => void;
   sidebarOpen: boolean;
   onToggleSidebar: () => void;
 }
 
-export function TopNavbar({ onSaveVersion, onNewProject, onSearch, sidebarOpen, onToggleSidebar }: TopNavbarProps) {
+export function TopNavbar({ onSaveVersion, onSearch, sidebarOpen, onToggleSidebar }: TopNavbarProps) {
   const t = useTranslations('gantt.topnav');
   const {
     timelineScale,
@@ -46,6 +45,7 @@ export function TopNavbar({ onSaveVersion, onNewProject, onSearch, sidebarOpen, 
   } = useProjectStore();
 
   const [versionMenuOpen, setVersionMenuOpen] = useState(false);
+  const [shareOpen, setShareOpen] = useState(false);
   const project = useProjectStore(selectDisplayProject);
 
   // ── Slot: next to title ──────────────────────────────────────────────────
@@ -112,15 +112,25 @@ export function TopNavbar({ onSaveVersion, onNewProject, onSearch, sidebarOpen, 
         </span>
       )}
 
-      {/* Search */}
-      <button
-        onClick={onSearch}
-        className="flex items-center gap-2 px-3 py-1.5 text-xs text-muted-foreground bg-accent/40 border border-border rounded-md hover:bg-accent transition-colors min-w-[160px]"
-      >
-        <Search size={12} />
-        <span className="flex-1 text-left">{t('searchPlaceholder')}</span>
-        <kbd className="text-[10px] text-muted-foreground/60 font-sans">⌘K</kbd>
-      </button>
+      {/* Search + Share */}
+      <div className="flex items-center gap-2">
+        <button
+          onClick={onSearch}
+          className="flex items-center gap-2 px-3 py-1.5 text-xs text-muted-foreground bg-accent/40 border border-border rounded-md hover:bg-accent transition-colors min-w-[160px]"
+        >
+          <Search size={12} />
+          <span className="flex-1 text-left">{t('searchPlaceholder')}</span>
+          <kbd className="text-[10px] text-muted-foreground/60 font-sans">⌘K</kbd>
+        </button>
+
+        {/* Share */}
+        {!isVersionReadOnly && project && (
+          <Button size="sm" variant="outline" onClick={() => setShareOpen(true)} className="h-7 px-3 text-xs gap-1">
+            <Share2 size={12} />
+            {t('share')}
+          </Button>
+        )}
+      </div>
 
       {/* Version picker */}
       {project && (
@@ -189,22 +199,25 @@ export function TopNavbar({ onSaveVersion, onNewProject, onSearch, sidebarOpen, 
           {t('saveSnapshot')}
         </Button>
       )}
-
-      {/* New Project */}
-      <Button size="sm" variant="outline" onClick={onNewProject} className="h-7 px-3 text-xs gap-1">
-        <Plus size={12} />
-        {t('newProject')}
-      </Button>
     </>
   );
 
   return (
-    <PageNavbar
-      title={project?.name ?? 'Searching...'}
-      sidebarOpen={sidebarOpen}
-      onToggleSidebar={onToggleSidebar}
-      titleActions={titleActions}
-      actions={actions}
-    />
+    <>
+      <PageNavbar
+        title={project?.name ?? 'Searching...'}
+        sidebarOpen={sidebarOpen}
+        onToggleSidebar={onToggleSidebar}
+        titleActions={titleActions}
+        actions={actions}
+      />
+      {project && (
+        <ShareDialog
+          open={shareOpen}
+          onClose={() => setShareOpen(false)}
+          projectId={project._id}
+        />
+      )}
+    </>
   );
 }

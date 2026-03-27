@@ -302,6 +302,7 @@
       "restoreAsLive": "Restaurar como ativo",
       "deleteSnapshot": "Excluir snapshot",
       "saveSnapshot": "Salvar Snapshot",
+      "share": "Compartilhar",
       "newProject": "Novo Projeto"
     },
     "search": {
@@ -595,6 +596,7 @@
     "PRICE_ID_REQUIRED": "Nenhum plano selecionado.",
     "PLAN_NOT_FOUND": "Plano selecionado não encontrado.",
     "NO_STRIPE_CUSTOMER": "Nenhuma conta de cobrança encontrada. Por favor, assine primeiro.",
+    "TOO_MANY_SHARES": "Muitos pedidos de compartilhamento. Por favor, tente novamente mais tarde.",
     "GENERIC": "Algo deu errado. Por favor, tente novamente."
   },
   "billing": {
@@ -752,6 +754,65 @@
       "plainCta": "Aceite seu convite aqui:",
       "plainExpiry": "Este link expira em 30 dias.",
       "plainIgnore": "Se você não esperava este convite, pode ignorar este e-mail com segurança."
+    },
+    "share": {
+      "subject": "{sharerName} compartilhou o projeto \"{projectName}\" com você",
+      "subjectPlain": "{sharerName} compartilhou \"{projectName}\" no GanttFlow",
+      "title": "Projeto Compartilhado",
+      "greeting": "Olá,",
+      "body": "<strong>{sharerName}</strong> compartilhou o projeto <strong>{projectName}</strong> com você no GanttFlow.",
+      "button": "Ver Projeto",
+      "expiry": "Este link expira em {expiryDate}. Se você não esperava este compartilhamento, pode ignorar este e-mail com segurança.",
+      "plainBody": "{sharerName} compartilhou o projeto \"{projectName}\" com você.",
+      "plainExpiry": "Este link expira em {expiryDate}.",
+      "plainIgnore": "Se você não esperava este link compartilhado, pode ignorar este e-mail com segurança."
     }
+  },
+  "shareDialog": {
+    "title": "Compartilhar Projeto",
+    "description": "Permita que outros visualizem este projeto sem precisar de uma conta.",
+    "modeLabel": "Modo de Compartilhamento",
+    "modeSnapshot": "Snapshot (Versão Salva)",
+    "modeSnapshotDesc": "Compartilhe um dos seus snapshots salvos. Os destinatários sempre veem aquela versão exata.",
+    "snapshotLabel": "Selecionar Snapshot",
+    "snapshotPlaceholder": "Escolha uma versão salva...",
+    "noSnapshots": "Nenhum snapshot salvo ainda. Use Salvar Snapshot para criar um.",
+    "modeLive": "Ao Vivo (Atual)",
+    "modeLiveDesc": "Compartilha o projeto ao vivo. Os destinatários sempre veem as alterações mais recentes.",
+    "emailsLabel": "E-mails dos Destinatários",
+    "emailPlaceholder": "email@exemplo.com",
+    "addEmail": "Adicionar E-mail",
+    "expirationLabel": "Expiração do Link",
+    "expirations": {
+      "1h": "1 hora",
+      "24h": "24 horas",
+      "7d": "7 dias",
+      "30d": "30 dias"
+    },
+    "createButton": "Criar e Enviar",
+    "createButtonNoEmail": "Criar Link",
+    "creating": "Criando...",
+    "copyLink": "Copiar Link",
+    "linkCopied": "Link copiado para a área de transferência!",
+    "activeShares": "Compartilhamentos Ativos",
+    "noActiveShares": "Nenhum compartilhamento ativo ainda.",
+    "expiresIn": "Expira em",
+    "expiredLabel": "Expirado",
+    "revokeButton": "Revogar",
+    "revokeConfirm": "Remover este link compartilhado?",
+    "revokingLabel": "Revogando...",
+    "shareSuccess": "Link criado e e-mails enviados!",
+    "shareSuccessNoEmail": "Link criado!",
+    "shareError": "Falha ao criar link de compartilhamento",
+    "invalidEmail": "Formato de e-mail inválido"
+  },
+  "sharedView": {
+    "loading": "Carregando projeto compartilhado...",
+    "expired": "Este link compartilhado expirou",
+    "notFound": "Projeto compartilhado não encontrado",
+    "revoked": "Este link compartilhado foi revogado",
+    "expiresAt": "Este link expira {date}",
+    "readonlyBanner": "Visualizando em modo somente leitura",
+    "poweredBy": "Desenvolvido por GanttFlow"
   }
 }

@@ -392,3 +392,71 @@ export async function sendInvitationEmail(
     html,
   });
 }
+
+export async function sendShareLinkEmails(
+  emails: string[],
+  projectName: string,
+  sharerName: string,
+  shareUrl: string,
+  expiresAt: Date,
+  locale?: string | null
+): Promise<void> {
+  const loc = resolveEmailLocale(locale);
+  const from = process.env.EMAIL_FROM ?? 'GanttFlow <ganttflow@severotech.com>';
+  const params = { sharerName, projectName };
+  const t = (key: string, extra?: Record<string, string | number>) =>
+    getEmailText(loc, `emails.share.${key}`, { ...params, ...extra });
+
+  const escapedParams = {
+    sharerName: escapeHtml(sharerName),
+    projectName: escapeHtml(projectName),
+  };
+
+  const [subject, subjectPlain, title, greeting, body, button, expiry, footer] =
+    await Promise.all([
+      t('subject'),
+      t('subjectPlain'),
+      t('title'),
+      t('greeting'),
+      getEmailText(loc, 'emails.share.body', escapedParams),
+      t('button'),
+      t('expiry', { expiryDate: expiresAt.toLocaleDateString(loc) }),
+      loadFooter(loc),
+    ]);
+
+  const html = renderEmailLayout(
+    subject,
+    `
+    <h1 class="title">${escapeHtml(title)}</h1>
+    <div class="content">
+      <p>${escapeHtml(greeting)}</p>
+      <p>${body}</p>
+    </div>
+    <div class="button-container">
+      <a href="${escapeHtml(shareUrl)}" class="button">${escapeHtml(button)}</a>
+    </div>
+    <div class="content">
+      <p style="font-size: 14px; color: ${MUTED_COLOR};">${escapeHtml(expiry)}</p>
+    </div>
+  `,
+    loc,
+    footer
+  );
+
+  const [plainBody, plainExpiry, plainIgnore] = await Promise.all([
+    t('plainBody'),
+    t('plainExpiry', { expiryDate: expiresAt.toLocaleDateString(loc) }),
+    t('plainIgnore'),
+  ]);
+
+  // Batch send to all recipients
+  const batchEmails = emails.map((to) => ({
+    from,
+    to,
+    subject: subjectPlain,
+    text: [title, '', plainBody, shareUrl, '', plainExpiry, '', plainIgnore].join('\n'),
+    html,
+  }));
+
+  await getResend().batch.send(batchEmails);
+}

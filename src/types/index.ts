@@ -215,6 +215,22 @@ export interface IChangelogEntry {
   changedAt: string;
 }
 
+export interface ISharedLink {
+  _id: string;
+  token: string;
+  projectId: string;
+  accountId: string;
+  mode: 'snapshot' | 'live';
+  snapshotId?: string;
+  snapshotName?: string; // populated from ProjectSnapshot.versionName
+  expiresAt: string;
+  emails: string[];
+  createdBy: string;
+  revokedAt?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface GanttItem {
   id: string;
   parentId?: string;

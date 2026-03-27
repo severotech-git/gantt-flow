@@ -6,7 +6,6 @@ import { useProjectStore, selectDisplayProject } from '@/store/useProjectStore';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { TopNavbar } from '@/components/gantt/TopNavbar';
 import { GanttBoard } from '@/components/gantt/GanttBoard';
-import { NewProjectDialog } from '@/components/dialogs/NewProjectDialog';
 import { EditProjectDialog } from '@/components/dialogs/EditProjectDialog';
 import { SaveVersionDialog } from '@/components/dialogs/SaveVersionDialog';
 import { SearchDialog } from '@/components/dialogs/SearchDialog';
@@ -25,7 +24,6 @@ export default function ProjectPage({ params }: ProjectPageProps) {
   const isLoadingProject = useProjectStore((state) => state.isLoadingProject);
   const projectError = useProjectStore((state) => state.projectError);
 
-  const [newProjectOpen, setNewProjectOpen] = useState(false);
   const [editProjectOpen, setEditProjectOpen] = useState(false);
   const [saveVersionOpen, setSaveVersionOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
@@ -97,9 +95,7 @@ export default function ProjectPage({ params }: ProjectPageProps) {
 
       <div className="flex flex-col flex-1 overflow-hidden">
         <TopNavbar
-          onEditProject={() => setEditProjectOpen(true)}
           onSaveVersion={() => setSaveVersionOpen(true)}
-          onNewProject={() => setNewProjectOpen(true)}
           onSearch={() => setSearchOpen(true)}
           sidebarOpen={sidebarOpen}
           onToggleSidebar={() => setSidebarOpen((v) => !v)}
@@ -108,7 +104,6 @@ export default function ProjectPage({ params }: ProjectPageProps) {
         <GanttBoard />
       </div>
 
-      <NewProjectDialog open={newProjectOpen} onClose={() => setNewProjectOpen(false)} />
       <EditProjectDialog open={editProjectOpen} onClose={() => setEditProjectOpen(false)} />
       <SaveVersionDialog open={saveVersionOpen} onClose={() => setSaveVersionOpen(false)} />
       <SearchDialog open={searchOpen} onClose={() => setSearchOpen(false)} />
