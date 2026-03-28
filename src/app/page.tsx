@@ -26,6 +26,8 @@ import {
   Share2,
   ClipboardList,
   MessageSquare,
+  Globe,
+  FileUp,
 } from 'lucide-react';
 import Image, { type StaticImageData } from 'next/image';
 import { cn } from '@/lib/utils';
@@ -133,36 +135,42 @@ export default function LandingPage() {
       icon: <Layers className="w-6 h-6 text-primary" />,
       title: t('features.hierarchicalStructure.title'),
       description: t('features.hierarchicalStructure.description'),
+      bullets: [t('features.hierarchicalStructure.bullet1'), t('features.hierarchicalStructure.bullet2')],
       image: structureImg
     },
     {
       icon: <Zap className="w-6 h-6 text-primary" />,
       title: t('features.automatedRollups.title'),
       description: t('features.automatedRollups.description'),
+      bullets: [t('features.automatedRollups.bullet1'), t('features.automatedRollups.bullet2')],
       image: rollupImg
     },
     {
       icon: <History className="w-6 h-6 text-primary" />,
       title: t('features.versionSnapshots.title'),
       description: t('features.versionSnapshots.description'),
+      bullets: [t('features.versionSnapshots.bullet1'), t('features.versionSnapshots.bullet2')],
       image: snapshotImg
     },
     {
       icon: <Clock className="w-6 h-6 text-primary" />,
       title: t('features.delayTracking.title'),
       description: t('features.delayTracking.description'),
+      bullets: [t('features.delayTracking.bullet1'), t('features.delayTracking.bullet2')],
       image: overdueImg
     },
     {
       icon: <Settings className="w-6 h-6 text-primary" />,
       title: t('features.customization.title'),
       description: t('features.customization.description'),
+      bullets: [t('features.customization.bullet1'), t('features.customization.bullet2')],
       images: [levelCustomImg, statusCustomImg, calendarCustomImg]
     },
     {
       icon: <Calendar className="w-6 h-6 text-primary" />,
       title: t('features.flexibleTimelines.title'),
       description: t('features.flexibleTimelines.description'),
+      bullets: [t('features.flexibleTimelines.bullet1'), t('features.flexibleTimelines.bullet2')],
       image: timelineImg
     }
   ];
@@ -466,14 +474,12 @@ export default function LandingPage() {
                       {feature.description}
                     </p>
                     <ul className="space-y-3">
-                      <li className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <Check className="w-4 h-4 text-primary" />
-                        {t('features.bulletNoSpreadsheets')}
-                      </li>
-                      <li className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <Check className="w-4 h-4 text-primary" />
-                        {t('features.bulletSingleSource')}
-                      </li>
+                      {feature.bullets.map((bullet, i) => (
+                        <li key={i} className="flex items-center gap-2 text-sm text-muted-foreground">
+                          <Check className="w-4 h-4 text-primary shrink-0" />
+                          {bullet}
+                        </li>
+                      ))}
                     </ul>
                   </div>
 
@@ -508,12 +514,14 @@ export default function LandingPage() {
               <h2 className="text-3xl md:text-4xl font-bold mb-4 tracking-tight">{t('features.moreTitle')}</h2>
               <p className="text-muted-foreground max-w-xl mx-auto text-lg">{t('features.moreSubtitle')}</p>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {[
                 { icon: <Users className="w-6 h-6" />, title: t('features.realTimeCollab.title'), description: t('features.realTimeCollab.description') },
                 { icon: <Share2 className="w-6 h-6" />, title: t('features.projectSharing.title'), description: t('features.projectSharing.description') },
                 { icon: <ClipboardList className="w-6 h-6" />, title: t('features.changeHistory.title'), description: t('features.changeHistory.description') },
                 { icon: <MessageSquare className="w-6 h-6" />, title: t('features.teamComments.title'), description: t('features.teamComments.description') },
+                { icon: <Globe className="w-6 h-6" />, title: t('features.multiLanguage.title'), description: t('features.multiLanguage.description') },
+                { icon: <FileUp className="w-6 h-6" />, title: t('features.projectImport.title'), description: t('features.projectImport.description') },
               ].map((card, idx) => (
                 <div
                   key={idx}

@@ -21,15 +21,34 @@ Package manager: **pnpm**. Always use `pnpm` — never `npm` or `yarn`.
 
 ### Data Model
 Three-level hierarchy stored as embedded documents in a single MongoDB `Project` document:
-- **Epic** → **Feature** → **Task** (all have `plannedStart`, `plannedEnd`, `actualStart`, `actualEnd`, `status`, `owner`, `pctComplete`)
+- The three levels are stored internally as `epics → features → tasks`, but **all three display labels are fully configurable per workspace** via `WorkspaceSettings.levelNames`. Never hardcode "Epic / Feature / Task" in UI strings — always read from settings.
+- Each item at every level has: `plannedStart`, `plannedEnd`, `actualStart`, `actualEnd`, `status`, `owner`, `pctComplete`
 - Dates roll up automatically: task dates → feature dates → epic dates on every mutation (see `src/lib/dateUtils.ts`: `rollupFeatureDates`, `rollupEpicDates`)
 - **Account** is the multi-tenant boundary. Every project and workspace setting is scoped to `accountId`. Users belong to accounts with roles: `owner | admin | member`.
 
 ### State Management
 - `src/store/useProjectStore.ts` — Zustand + immer; owns all Gantt CRUD. Every mutating action calls `persistProject()` (debounced PATCH to `/api/projects/[id]`) and re-runs date rollup.
 - `src/store/useSettingsStore.ts` — workspace settings (status configs, level names, theme, locale).
-- `src/store/useAccountStore.ts` — current account, members, invitations.
+- `src/store/useAccountStore.ts` — current account, members, invitations, billing.
 - `src/store/usePresenceStore.ts` — real-time cursors, drags, connected users (WebSocket/Socket.IO).
+
+### Real-Time Collaboration (Socket.IO)
+- `usePresenceStore` connects to a Socket.IO server on mount and emits cursor move / drag start / drag end events.
+- Other clients receive these events and render remote-cursor overlays and drag ghost bars.
+- Connected-user avatars are shown in the Gantt toolbar.
+- Socket.IO falls back to HTTP long-polling when WebSocket is unavailable.
+
+### Public Shared Links
+- `SharedLink` model stores `projectId`, optional `snapshotId`, `expiresAt`, and a cryptographically random `token`.
+- `GET /api/shared/[token]` is unauthenticated; it loads the project or snapshot, strips `accountId` and internal metadata, and returns the sanitized tree.
+- `src/app/shared/[token]/page.tsx` is an SSR page that pre-fetches shared data and renders `GanttReadonlyBoard`.
+- `GanttReadonlyBoard` has theme and language toggles (stored in cookies) but no editing capability.
+- Creating and revoking share links requires `owner` or `admin` role (`requireManage()`).
+
+### Item Changelog
+- Every mutating store action that changes item fields writes an `ItemChangelog` document with `{ projectId, itemId, itemType, field, oldValue, newValue, changedBy, changedAt }`.
+- `GET /api/projects/[id]/changelog` returns the full history, sorted by `changedAt` descending.
+- The **Changelog** tab in `ItemDetailDrawer` renders these entries grouped by item.
 
 ### Auth Flow
 - **NextAuth v5** (beta) with JWT strategy. Config split: `src/auth.config.ts` (edge-safe, no Mongoose) + `src/auth.ts` (Node.js, full providers).
@@ -70,6 +89,14 @@ Three-level hierarchy stored as embedded documents in a single MongoDB `Project`
 | Rate limiting | `src/lib/rateLimit.ts` (in-memory sliding window) |
 | Styling utility | `src/lib/utils.ts` (`cn()` = clsx + tailwind-merge) |
 | Custom hooks | `src/hooks/` (e.g. `useAccountRole.ts`) |
+| Share link model | `src/lib/models/SharedLink.ts` |
+| Item changelog model | `src/lib/models/ItemChangelog.ts` |
+| Read-only board | `src/components/gantt/GanttReadonlyBoard.tsx` |
+| Item detail drawer | `src/components/shared/ItemDetailDrawer.tsx` (Overview / Comments / Changelog tabs) |
+| Public shared page | `src/app/shared/[token]/page.tsx` (SSR, no auth required) |
+| Share API | `src/app/api/projects/[id]/shares/` |
+| Changelog API | `src/app/api/projects/[id]/changelog/` |
+| Public share API | `src/app/api/shared/[token]/` (rate-limited, sanitized) |
 
 ### Environment Variables Required
 ```

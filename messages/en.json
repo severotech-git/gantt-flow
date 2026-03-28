@@ -46,28 +46,40 @@
       "bulletSingleSource": "Maintain single source of truth for the team",
       "bulletNoSpreadsheets": "Eliminate manual spreadsheet updates",
       "hierarchicalStructure": {
-        "title": "Hierarchical Project Structure",
-        "description": "Organize your work into three clean levels: Epics, Features, and Tasks. Maintain perfect clarity on complex projects."
+        "title": "Customizable Hierarchical Structure",
+        "description": "Organize your work into three levels — and name them whatever fits your team. Call them Phases, Initiatives, Milestones, or anything else. The structure adapts to your workflow, not the other way around.",
+        "bullet1": "Rename every level to match your team's terminology",
+        "bullet2": "Progress and dates roll up automatically across all levels"
       },
       "automatedRollups": {
         "title": "Automated Date Rollups",
-        "description": "Save time as child tasks automatically update their parent dates and progress percentages. Syncing is effortless."
+        "description": "Save time as child tasks automatically update their parent dates and progress percentages. Syncing is effortless.",
+        "bullet1": "Child changes instantly update parent timelines",
+        "bullet2": "No manual recalculation — always accurate"
       },
       "versionSnapshots": {
         "title": "Version Snapshots",
-        "description": "Capture the entire state of your project at any moment. Browse history and restore previous versions with a single click."
+        "description": "Capture the entire state of your project at any moment. Browse history and restore previous versions with a single click.",
+        "bullet1": "Save a named snapshot at any milestone",
+        "bullet2": "Restore any past version with a single click"
       },
       "delayTracking": {
         "title": "Proactive Delay Tracking",
-        "description": "Instantly see overdue items and delay counts. Our visual health indicators keep you ahead of every deadline."
+        "description": "Instantly see overdue items and delay counts. Our visual health indicators keep you ahead of every deadline.",
+        "bullet1": "Red bars highlight overdue items at a glance",
+        "bullet2": "Delay badge shows exactly how many days behind"
       },
       "customization": {
         "title": "Deep Customization",
-        "description": "Tailor your workspace with custom statuses, colors, and level naming to match your team's specific workflow."
+        "description": "Tailor your workspace with custom statuses, colors, and level naming to match your team's specific workflow.",
+        "bullet1": "Custom status labels, hex colors, and final-state markers",
+        "bullet2": "Rename hierarchy levels to fit any methodology"
       },
       "flexibleTimelines": {
         "title": "Flexible Timelines",
-        "description": "Visualize your roadmap across multiple scales, from daily tasks to quarterly strategic goals."
+        "description": "Visualize your roadmap across multiple scales, from daily tasks to quarterly strategic goals.",
+        "bullet1": "Switch between day, week, month, and quarter scales",
+        "bullet2": "Jump to today and sync scroll across panels instantly"
       },
       "moreTitle": "And Much More",
       "moreSubtitle": "Powerful collaboration and transparency tools built right in.",
@@ -85,7 +97,15 @@
       },
       "teamComments": {
         "title": "Team Comments",
-        "description": "Discuss any Epic, Feature, or Task directly in context. Comments sync in real time across all connected users."
+        "description": "Discuss any item at any level directly in context. Comments sync in real time across all connected users."
+      },
+      "multiLanguage": {
+        "title": "Multi-Language Support",
+        "description": "Work in English, Portuguese, or Spanish. Locale preference is saved per user and applied across the entire interface."
+      },
+      "projectImport": {
+        "title": "External Project File Import",
+        "description": "Bring your existing plans into GanttFlow without starting from scratch. Import project files from tools like Microsoft Project (.mpp), Excel (.xlsx), and CSV — your hierarchy, dates, and assignments are mapped automatically."
       }
     },
     "pricing": {

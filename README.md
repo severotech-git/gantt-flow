@@ -41,7 +41,7 @@
 
 ### Gantt Chart
 
-- Hierarchical three-level task tree: **Epic → Feature → Task**
+- Hierarchical three-level task tree with **fully customizable level names** — the default labels (Epic → Feature → Task) can be renamed per workspace to match any methodology (e.g., Initiative → Story → Sub-task)
 - Live drag-and-drop bar repositioning constrained to the horizontal axis
 - Timeline scale toggles: **Day, Week, Month, Quarter**
 - Today marker with pulse animation and jump-to-today button
@@ -56,8 +56,28 @@
 - Inline status dropdown per row, driven by workspace-configured statuses
 - Inline percentage completion editor with click-to-edit behavior
 - Delay badge showing the number of days a task is behind schedule
-- Add Epic, Feature, and Task items via a guided dialog
-- Date rollup: task dates automatically propagate up to Features and Epics
+- Add items at any level via a guided dialog — level names reflect your workspace configuration
+- Date rollup: child item dates automatically propagate up through every level of the hierarchy
+- **Item Detail Drawer** with three tabs:
+  - _Overview_ — dates, status, owner, and completion progress
+  - _Comments_ — threaded team discussion per item, synced in real time
+  - _Changelog_ — full field-level edit history with actor, timestamp, old and new values
+
+### Real-Time Collaboration
+
+- Live cursor positions for every connected user (displayed as named avatars)
+- Remote drag previews — see a teammate's bar while they are dragging it
+- Connected-users avatars shown in the Gantt toolbar
+- Powered by Socket.IO over WebSocket; falls back to HTTP long-polling
+
+### Project Sharing
+
+- Generate public share links that require no login to view
+- Choose between a live project snapshot or a frozen version snapshot
+- Set optional expiration dates; revoke links at any time
+- Read-only Gantt view (`GanttReadonlyBoard`) with theme and language toggles
+- Shared data is sanitized server-side (no internal IDs or account metadata)
+- Rate-limited to 30 requests per minute per IP
 
 ### Project Management
 
@@ -91,9 +111,10 @@
 
 - Custom status configurations with hex colors and labels
 - Mark statuses as "final" to prevent delayed-bar highlighting on completed items
-- Configurable level names (rename Epic / Feature / Task to match your workflow)
+- **Configurable level names** — rename each hierarchy level to match your team's terminology (e.g., Phase / Deliverable / Action)
 - Default owner assignment for newly created items
 - Dark and light theme toggle applied globally
+- Status reassignment tool — safely migrate items when a status is deleted
 
 ### Internationalization
 
@@ -106,6 +127,15 @@
 - Stripe subscription management
 - Plan-based member limits (Starter: 5, Pro: 20)
 - Trial period with auto-cancel
+- Customer portal for self-serve subscription management
+
+### Security
+
+- MFA via email OTP enforced after credentials login
+- Trusted device tokens — skip MFA for 30 days on recognized devices
+- Rate limiting on all auth endpoints (in-memory sliding window)
+- Password hashing with bcrypt (12 rounds)
+- Share-link data sanitization strips all internal account metadata
 
 ---
 
@@ -120,6 +150,7 @@
 | Drag and Drop | @dnd-kit/core |
 | Database | MongoDB via Mongoose |
 | Auth | NextAuth v5 (JWT strategy) |
+| Real-Time | Socket.IO |
 | Email | Resend + Nodemailer |
 | Payments | Stripe |
 | i18n | next-intl v4 |
@@ -136,23 +167,27 @@
 │   ├── app/
 │   │   ├── api/
 │   │   │   ├── auth/               # NextAuth handlers
-│   │   │   ├── projects/           # CRUD + versions + changelog
+│   │   │   ├── projects/           # CRUD + versions + changelog + share links
 │   │   │   ├── account/            # Account, members, invitations
+│   │   │   ├── accounts/           # Multi-account switching
 │   │   │   ├── settings/           # Workspace + user settings
-│   │   │   └── billing/            # Stripe subscription
+│   │   │   ├── shared/             # Public token-based read-only project access
+│   │   │   └── billing/            # Stripe subscription + webhooks
 │   │   ├── (auth)/                 # login, register, verify-email, mfa pages
 │   │   ├── projects/
 │   │   │   ├── page.tsx            # Project grid view
 │   │   │   └── [id]/page.tsx       # Gantt chart view
+│   │   ├── shared/
+│   │   │   └── [token]/page.tsx    # Public read-only Gantt view
 │   │   ├── settings/page.tsx       # Workspace settings
 │   │   └── layout.tsx              # Root layout with providers
 │   ├── components/
-│   │   ├── dialogs/                # NewProject, AddItem, SaveVersion, etc.
-│   │   ├── gantt/                  # GanttBoard, GanttBar, GanttTimeline, GanttTaskPanel
+│   │   ├── dialogs/                # NewProject, AddItem, SaveVersion, Share, etc.
+│   │   ├── gantt/                  # GanttBoard, GanttBar, GanttTimeline, GanttTaskPanel, GanttReadonlyBoard
 │   │   ├── layout/                 # Sidebar, TopNav
 │   │   ├── providers/              # AuthProvider, ThemeProvider
 │   │   ├── settings/               # Settings section components
-│   │   ├── shared/                 # StatusBadge, OwnerAvatar, ItemDetailDrawer
+│   │   ├── shared/                 # StatusBadge, OwnerAvatar, ItemDetailDrawer (Overview/Comments/Changelog tabs)
 │   │   └── ui/                     # shadcn/ui primitives
 │   ├── hooks/                      # useAccountRole, etc.
 │   ├── i18n/
@@ -177,7 +212,10 @@
 │   ├── en.json
 │   ├── pt-BR.json
 │   └── es.json
-└── public/                         # Static assets
+├── public/
+│   ├── landing/                    # Landing page screenshots
+│   └── icon.png
+└── socket-server/                  # Socket.IO presence server (optional sidecar)
 ```
 
 ---
@@ -279,7 +317,7 @@ All routes are Next.js App Router API routes under `src/app/api/`. Every route r
 |---|---|---|
 | `GET` | `/api/projects` | List all projects in the account |
 | `POST` | `/api/projects` | Create a new project |
-| `GET` | `/api/projects/[id]` | Get a project with its full Epic → Feature → Task tree |
+| `GET` | `/api/projects/[id]` | Get a project with its full three-level hierarchy tree |
 | `PATCH` | `/api/projects/[id]` | Update project fields or the task tree |
 | `DELETE` | `/api/projects/[id]` | Delete a project and all its snapshots |
 
@@ -290,6 +328,26 @@ All routes are Next.js App Router API routes under `src/app/api/`. Every route r
 | `GET` | `/api/projects/[id]/versions` | List all saved snapshots |
 | `POST` | `/api/projects/[id]/versions` | Save a new named snapshot |
 | `GET` | `/api/projects/[id]/versions/[versionId]` | Get a snapshot for restore |
+
+### Changelog
+
+| Method | Path | Description |
+|---|---|---|
+| `GET` | `/api/projects/[id]/changelog` | Get field-level edit history for all items in the project |
+
+### Share Links
+
+| Method | Path | Description |
+|---|---|---|
+| `GET` | `/api/projects/[id]/shares` | List active share links for a project |
+| `POST` | `/api/projects/[id]/shares` | Create a new public share link (optional expiry) |
+| `DELETE` | `/api/projects/[id]/shares/[shareId]` | Revoke a share link |
+
+### Public Shared View
+
+| Method | Path | Description |
+|---|---|---|
+| `GET` | `/api/shared/[token]` | Fetch sanitized project data for a public share token (no auth required, rate-limited) |
 
 ### Settings
 
@@ -325,7 +383,7 @@ Every object (project, settings, member) is scoped to an `accountId`. On first l
 
 GanttFlow uses Zustand stores with immer middleware:
 
-- **`useProjectStore`** — active project, full Epic → Feature → Task tree, drag state, versions. Every mutation triggers date rollup and debounced `PATCH /api/projects/[id]`.
+- **`useProjectStore`** — active project, full three-level hierarchy tree, drag state, versions. Every mutation triggers date rollup and debounced `PATCH /api/projects/[id]`.
 - **`useSettingsStore`** — workspace statuses, level names, theme, locale.
 - **`useAccountStore`** — account info, members, invitations, billing.
 - **`usePresenceStore`** — real-time cursor positions and connected users.
@@ -356,7 +414,7 @@ Dates are converted to pixel positions using `pxPerDay`, which varies by scale:
 | Month | 10 |
 | Quarter | 4 |
 
-On drag end, `delta.x / pxPerDay` → `deltaDays` → `addDays(plannedStart/End)`. Dragging an Epic shifts all descendant Features and Tasks.
+On drag end, `delta.x / pxPerDay` → `deltaDays` → `addDays(plannedStart/End)`. Dragging a top-level item shifts all its descendants down the hierarchy.
 
 ---
 

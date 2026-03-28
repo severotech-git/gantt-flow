@@ -46,28 +46,40 @@
       "bulletSingleSource": "Mantén una única fuente de verdad para el equipo",
       "bulletNoSpreadsheets": "Elimina las actualizaciones manuales de hojas de cálculo",
       "hierarchicalStructure": {
-        "title": "Estructura Jerárquica de Proyectos",
-        "description": "Organiza tu trabajo en tres niveles: Épicos, Funcionalidades y Tareas. Mantén claridad perfecta en proyectos complejos."
+        "title": "Estructura Jerárquica Personalizable",
+        "description": "Organiza tu trabajo en tres niveles — y ponles el nombre que tenga sentido para tu equipo. Llámalos Fases, Iniciativas, Hitos o cualquier otra cosa. La estructura se adapta a tu flujo de trabajo, no al revés.",
+        "bullet1": "Renombra cada nivel con la terminología de tu equipo",
+        "bullet2": "El progreso y las fechas suben automáticamente por toda la jerarquía"
       },
       "automatedRollups": {
         "title": "Actualizaciones Automáticas de Fechas",
-        "description": "Ahorra tiempo ya que las tareas hijas actualizan automáticamente las fechas y porcentajes de sus padres. La sincronización es sin esfuerzo."
+        "description": "Ahorra tiempo ya que las tareas hijas actualizan automáticamente las fechas y porcentajes de sus padres. La sincronización es sin esfuerzo.",
+        "bullet1": "Los cambios en los hijos actualizan los padres al instante",
+        "bullet2": "Sin recálculo manual — siempre preciso"
       },
       "versionSnapshots": {
         "title": "Snapshots de Versión",
-        "description": "Captura el estado completo de tu proyecto en cualquier momento. Navega por el historial y restaura versiones anteriores con un solo clic."
+        "description": "Captura el estado completo de tu proyecto en cualquier momento. Navega por el historial y restaura versiones anteriores con un solo clic.",
+        "bullet1": "Guarda un snapshot con nombre en cualquier hito del proyecto",
+        "bullet2": "Restaura cualquier versión anterior con un solo clic"
       },
       "delayTracking": {
         "title": "Seguimiento Proactivo de Retrasos",
-        "description": "Ve inmediatamente los elementos atrasados y conteos de retrasos. Nuestros indicadores visuales te mantienen adelante de cada fecha límite."
+        "description": "Ve inmediatamente los elementos atrasados y conteos de retrasos. Nuestros indicadores visuales te mantienen adelante de cada fecha límite.",
+        "bullet1": "Barras rojas resaltan los elementos atrasados de un vistazo",
+        "bullet2": "El badge de retraso muestra exactamente cuántos días lleva de atraso"
       },
       "customization": {
         "title": "Personalización Profunda",
-        "description": "Adapta tu workspace con estados, colores y nombres de niveles personalizados para el flujo de trabajo específico de tu equipo."
+        "description": "Adapta tu workspace con estados, colores y nombres de niveles personalizados para el flujo de trabajo específico de tu equipo.",
+        "bullet1": "Etiquetas, colores hex y marcadores de estado final personalizados",
+        "bullet2": "Renombra los niveles de la jerarquía para cualquier metodología"
       },
       "flexibleTimelines": {
         "title": "Cronogramas Flexibles",
-        "description": "Visualiza tu roadmap en múltiples escalas, desde tareas diarias hasta metas estratégicas trimestrales."
+        "description": "Visualiza tu roadmap en múltiples escalas, desde tareas diarias hasta metas estratégicas trimestrales.",
+        "bullet1": "Cambia entre escalas de día, semana, mes y trimestre",
+        "bullet2": "Ve al día de hoy y sincroniza el scroll entre paneles al instante"
       },
       "moreTitle": "Y Mucho Más",
       "moreSubtitle": "Herramientas potentes de colaboración y transparencia integradas desde el inicio.",
@@ -85,7 +97,15 @@
       },
       "teamComments": {
         "title": "Comentarios del Equipo",
-        "description": "Discute cualquier Épico, Funcionalidad o Tarea directamente en contexto. Los comentarios se sincronizan en tiempo real para todos los usuarios conectados."
+        "description": "Discute cualquier elemento en cualquier nivel directamente en contexto. Los comentarios se sincronizan en tiempo real para todos los usuarios conectados."
+      },
+      "multiLanguage": {
+        "title": "Soporte Multilingüe",
+        "description": "Trabaja en inglés, portugués o español. La preferencia de idioma se guarda por usuario y se aplica en toda la interfaz."
+      },
+      "projectImport": {
+        "title": "Importación de Archivos de Proyecto",
+        "description": "Trae tus planes existentes a GanttFlow sin empezar desde cero. Importa archivos de herramientas como Microsoft Project (.mpp), Excel (.xlsx) y CSV — la jerarquía, fechas y responsables se mapean automáticamente."
       }
     },
     "pricing": {
