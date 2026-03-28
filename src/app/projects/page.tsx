@@ -7,9 +7,10 @@ import { PageNavbar } from '@/components/layout/PageNavbar';
 import { NewProjectDialog } from '@/components/dialogs/NewProjectDialog';
 import { EditProjectDialog } from '@/components/dialogs/EditProjectDialog';
 import { OnboardingDialog } from '@/components/dialogs/OnboardingDialog';
+import { ImportProjectDialog } from '@/components/dialogs/import/ImportProjectDialog';
 import { useSettingsStore } from '@/store/useSettingsStore';
 import Link from 'next/link';
-import { FolderKanban, Plus, BarChart3, Archive, ArchiveRestore, ChevronDown, ChevronRight, Trash2, Pencil } from 'lucide-react';
+import { FolderKanban, Plus, Upload, BarChart3, Archive, ArchiveRestore, ChevronDown, ChevronRight, Trash2, Pencil } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useFormatter, useTranslations } from 'next-intl';
 import type { IProject } from '@/types';
@@ -21,6 +22,7 @@ export default function ProjectsPage() {
     archiveProject, unarchiveProject, deleteProject,
   } = useProjectStore();
   const [newProjectOpen, setNewProjectOpen] = useState(false);
+  const [importOpen, setImportOpen] = useState(false);
   const [editProject, setEditProject] = useState<Omit<IProject, 'epics'> | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -42,14 +44,25 @@ export default function ProjectsPage() {
           sidebarOpen={!sidebarCollapsed}
           onToggleSidebar={() => setSidebarCollapsed((v) => !v)}
           actions={
-            <Button
-              size="sm"
-              onClick={() => setNewProjectOpen(true)}
-              className="h-7 px-3 text-xs bg-blue-600 hover:bg-blue-500 text-white gap-1.5"
-            >
-              <Plus size={12} />
-              {t('newProject')}
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => setImportOpen(true)}
+                className="h-7 px-3 text-xs gap-1.5 text-muted-foreground hover:text-foreground"
+              >
+                <Upload size={12} />
+                {t('importProject')}
+              </Button>
+              <Button
+                size="sm"
+                onClick={() => setNewProjectOpen(true)}
+                className="h-7 px-3 text-xs bg-blue-600 hover:bg-blue-500 text-white gap-1.5"
+              >
+                <Plus size={12} />
+                {t('newProject')}
+              </Button>
+            </div>
           }
         />
 
@@ -61,13 +74,23 @@ export default function ProjectsPage() {
             <div className="flex flex-col items-center justify-center h-64 gap-4 text-muted-foreground">
               <BarChart3 size={48} strokeWidth={1} />
               <p className="text-sm">{t('noProjectsYet')}</p>
-              <Button
-                onClick={() => setNewProjectOpen(true)}
-                className="bg-blue-600 hover:bg-blue-500 text-white gap-1.5"
-              >
-                <Plus size={14} />
-                {t('newProject')}
-              </Button>
+              <div className="flex items-center gap-2">
+                <Button
+                  onClick={() => setImportOpen(true)}
+                  variant="outline"
+                  className="gap-1.5"
+                >
+                  <Upload size={14} />
+                  {t('importProject')}
+                </Button>
+                <Button
+                  onClick={() => setNewProjectOpen(true)}
+                  className="bg-blue-600 hover:bg-blue-500 text-white gap-1.5"
+                >
+                  <Plus size={14} />
+                  {t('newProject')}
+                </Button>
+              </div>
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
@@ -121,6 +144,7 @@ export default function ProjectsPage() {
       </main>
 
       <NewProjectDialog open={newProjectOpen} onClose={() => setNewProjectOpen(false)} />
+      <ImportProjectDialog open={importOpen} onClose={() => setImportOpen(false)} />
       <EditProjectDialog
         open={!!editProject}
         project={editProject}

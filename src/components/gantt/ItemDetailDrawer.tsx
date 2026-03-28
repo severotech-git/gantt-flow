@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState, useRef } from 'react';
+import { useMemo, useState, useRef, useEffect } from 'react';
 import { useTranslations, useFormatter } from 'next-intl';
 import { useProjectStore } from '@/store/useProjectStore';
 import { useSettingsStore } from '@/store/useSettingsStore';
@@ -360,7 +360,7 @@ export function ItemDetailDrawer() {
 
                   {/* Status */}
                   <div className="space-y-2">
-                    <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                    <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                       {t('status')}
                     </label>
                     {item.level === 'epic' ? (
@@ -385,7 +385,7 @@ export function ItemDetailDrawer() {
                             className={cn(
                               'px-3 py-1.5 rounded-lg text-[11px] font-semibold uppercase tracking-wider text-white transition-all',
                               item.data.status === s.value
-                                ? 'ring-2 ring-offset-2 ring-offset-background shadow-md'
+                                ? 'ring-2 ring-offset-2 ring-offset-background ring-black/50 dark:ring-white/70 shadow-md scale-105'
                                 : 'opacity-60 hover:opacity-90'
                             )}
                             style={{ backgroundColor: s.color }}
@@ -485,61 +485,33 @@ function DrawerDescription({
   patchItem: (patch: Partial<IEpic & IFeature & ITask>) => void;
 }) {
   const t = useTranslations('gantt.drawer');
-  const [editing, setEditing] = useState(false);
-  const [draft, setDraft] = useState('');
+  const [draft, setDraft] = useState(item.data.description || '');
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const startEditing = () => {
+  useEffect(() => {
     setDraft(item.data.description || '');
-    setEditing(true);
-  };
+  }, [item.data.description]);
 
-  const onSave = () => {
-    patchItem({ description: draft });
-    setEditing(false);
+  const handleChange = (value: string) => {
+    setDraft(value);
+    if (timerRef.current) clearTimeout(timerRef.current);
+    timerRef.current = setTimeout(() => {
+      patchItem({ description: value });
+    }, 800);
   };
 
   return (
     <div className="space-y-2">
-      <div className="flex items-center justify-between">
-        <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-          {t('description')}
-        </label>
-        {!editing && (
-          <button
-            onClick={startEditing}
-            className="text-xs text-primary hover:underline"
-          >
-            {item.data.description ? t('editDescription') : 'Add'}
-          </button>
-        )}
-      </div>
-      {editing ? (
-        <div className="space-y-2">
-          <textarea
-            autoFocus
-            value={draft}
-            onChange={(e) => setDraft(e.target.value)}
-            placeholder="Enter description..."
-            rows={6}
-            className="w-full text-sm bg-muted/40 border rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/50 resize-none leading-relaxed transition-all"
-          />
-          <div className="flex justify-end gap-2">
-            <button
-              onClick={() => setEditing(false)}
-              className="text-xs text-muted-foreground hover:text-foreground px-3 py-1.5"
-            >
-              Cancel
-            </button>
-            <Button size="sm" onClick={onSave}>
-              {t('doneEditing')}
-            </Button>
-          </div>
-        </div>
-      ) : item.data.description ? (
-        <p className="text-sm whitespace-pre-wrap text-foreground leading-relaxed">{item.data.description}</p>
-      ) : (
-        <p className="text-sm text-muted-foreground italic">{t('noDescription')}</p>
-      )}
+      <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+        {t('description')}
+      </label>
+      <textarea
+        value={draft}
+        onChange={(e) => handleChange(e.target.value)}
+        placeholder={t('noDescription')}
+        rows={5}
+        className="w-full text-sm bg-muted/40 border rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/50 resize-none leading-relaxed transition-all"
+      />
     </div>
   );
 }

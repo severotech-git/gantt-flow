@@ -107,7 +107,7 @@ export function GanttBar({
   const delayDays = getDelayDays(plannedEnd, actualEnd, isFinal);
   const isDelayed = delayDays > 0 && !isFinal;
   const isEarly = delayDays < 0 && isFinal;
-  const durationDays = differenceInCalendarDays(parseISO(plannedEnd), parseISO(plannedStart)) + 1;
+  const durationDays = countDays(parseISO(plannedStart), parseISO(plannedEnd), allowWeekends);
 
   // ── Live Preview Logic ──
   let finalLeft = left;

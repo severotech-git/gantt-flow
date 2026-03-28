@@ -72,8 +72,9 @@ export function Sidebar({ collapsed = false }: SidebarProps) {
             key={p._id}
             href={`/projects/${p._id}`}
             active={pathname === `/projects/${p._id}`}
-            icon={<span className="w-2 h-2 rounded-full" style={{ background: p.color ?? '#6366f1' }} />}
+            icon={<span className="inline-block w-2 h-2 rounded-full shrink-0" style={{ background: p.color ?? '#6366f1' }} />}
             label={p.name}
+            rawIcon
           />
         ))}
         {recent.length === 0 && (
@@ -109,11 +110,12 @@ export function Sidebar({ collapsed = false }: SidebarProps) {
   );
 }
 
-function SidebarLink({ href, active, icon, label }: {
+function SidebarLink({ href, active, icon, label, rawIcon }: {
   href: string;
   active: boolean;
   icon: React.ReactNode;
   label: string;
+  rawIcon?: boolean;
 }) {
   return (
     <Link
@@ -125,7 +127,7 @@ function SidebarLink({ href, active, icon, label }: {
           : 'text-muted-foreground hover:text-foreground hover:bg-accent/50'
       )}
     >
-      <span className="shrink-0 text-muted-foreground">{icon}</span>
+      <span className={cn('shrink-0', !rawIcon && 'text-muted-foreground')}>{icon}</span>
       <span className="truncate">{label}</span>
     </Link>
   );

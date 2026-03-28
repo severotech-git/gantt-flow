@@ -58,6 +58,7 @@ interface ProjectActions {
   archiveProject: (id: string) => Promise<void>;
   unarchiveProject: (id: string) => Promise<void>;
   createProject: (name: string, description?: string, color?: string) => Promise<IProject | null>;
+  importProject: (name: string, description: string, color: string, epics: Omit<IEpic, '_id'>[]) => Promise<IProject | null>;
   deleteProject: (id: string) => Promise<void>;
 
   // Active project
@@ -220,6 +221,25 @@ export const useProjectStore = create<ProjectStore>()(
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ name, description, color }),
+        });
+        if (!res.ok) return null;
+        const project: IProject = await res.json();
+        set((s) => {
+          if (!Array.isArray(s.projects)) s.projects = [];
+          s.projects.unshift(project as unknown as Omit<IProject, 'epics'>);
+        });
+        return project;
+      } catch {
+        return null;
+      }
+    },
+
+    importProject: async (name, description, color, epics) => {
+      try {
+        const res = await fetch('/api/projects/import', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, description, color, epics }),
         });
         if (!res.ok) return null;
         const project: IProject = await res.json();

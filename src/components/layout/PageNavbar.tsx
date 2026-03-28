@@ -17,6 +17,7 @@ import { useTranslations } from 'next-intl';
 
 interface PageNavbarProps {
   title: string;
+  titleColor?: string;
   sidebarOpen: boolean;
   onToggleSidebar: () => void;
   /** Rendered immediately after the title (left / center area) */
@@ -27,6 +28,7 @@ interface PageNavbarProps {
 
 export function PageNavbar({
   title,
+  titleColor,
   sidebarOpen,
   onToggleSidebar,
   titleActions,
@@ -47,7 +49,10 @@ export function PageNavbar({
       </button>
 
       {/* Title */}
-      <h1 className="font-semibold text-sm text-foreground truncate shrink-0">
+      <h1 className="flex items-center gap-2 font-semibold text-sm text-foreground truncate shrink-0">
+        {titleColor && (
+          <span className="inline-block w-2.5 h-2.5 rounded-full shrink-0" style={{ background: titleColor }} />
+        )}
         {title}
       </h1>
 

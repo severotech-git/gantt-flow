@@ -251,6 +251,7 @@
   "projects": {
     "pageTitle": "All Projects",
     "newProject": "New Project",
+    "importProject": "Import from File",
     "noProjectsYet": "No projects yet. Create your first one!",
     "archiveProject": "Archive project",
     "editProject": "Edit project",
@@ -424,6 +425,85 @@
       "sendButton": "Send Invitation",
       "failedError": "Failed to send invitation",
       "memberLimitReached": "Member limit reached. Upgrade your plan to add more members."
+    },
+    "importProject": {
+      "title": "Import Project from File",
+      "stepUpload": "Upload",
+      "stepMap": "Map Columns",
+      "stepPreview": "Preview",
+      "upload": {
+        "dropzone": "Drop your CSV or XLSX file here, or click to browse",
+        "acceptedFormats": "Accepted formats: .csv, .xlsx — max 10 MB",
+        "fileLoaded": "{fileName} — {rowCount} rows, {colCount} columns",
+        "multipleSheets": "This file has multiple sheets. Select which one to use:",
+        "sheetLabel": "Sheet",
+        "projectName": "Project name",
+        "projectNamePlaceholder": "e.g. Imported Roadmap",
+        "descriptionLabel": "Description (optional)",
+        "descriptionPlaceholder": "Short description…",
+        "colorLabel": "Color",
+        "parseError": "Could not read file. Please check the format.",
+        "fileTooLarge": "File exceeds 10 MB limit."
+      },
+      "map": {
+        "levelSection": "Level / Hierarchy Column",
+        "levelColumnLabel": "Which column indicates the level ({epic}, {feature}, {task})?",
+        "levelColumnPlaceholder": "Select column…",
+        "levelValuesTitle": "Map level values",
+        "levelValuesHint": "For each value found in that column, select the corresponding level:",
+        "dateFormatSection": "Date Format",
+        "dateFormatLabel": "Date format used in the file",
+        "attributeSection": "Attribute Mapping",
+        "attributeHint": "Map file columns to project attributes. Required: Name.",
+        "selectColumn": "Select column…",
+        "none": "— None —",
+        "required": "(required)",
+        "fieldName": "Name",
+        "fieldStatus": "Status",
+        "fieldOwner": "Owner",
+        "fieldCompletionPct": "Completion %",
+        "fieldPlannedStart": "Planned Start",
+        "fieldPlannedEnd": "Planned End",
+        "fieldActualStart": "Actual Start",
+        "fieldActualEnd": "Actual End",
+        "fieldDescription": "Description",
+        "fieldColor": "Color",
+        "fieldNotes": "Notes",
+        "statusMappingSection": "Status Value Mapping",
+        "statusMappingHint": "Map values from your file to workspace statuses:",
+        "ownerMappingSection": "Owner Mapping",
+        "ownerMappingHint": "Map owner names from your file to workspace members:",
+        "unassigned": "Unassigned"
+      },
+      "preview": {
+        "summary": "{epics} {epicLabel}, {features} {featureLabel}, {tasks} {taskLabel}",
+        "warningsTitle": "{count} {count, plural, one {warning} other {warnings}}",
+        "noData": "No valid rows found. Please go back and check your column mapping.",
+        "rowLabel": "Row {row}"
+      },
+      "actions": {
+        "next": "Next",
+        "back": "Back",
+        "import": "Import",
+        "importing": "Importing…",
+        "viewProject": "View Project"
+      },
+      "errors": {
+        "noFile": "Please select a file first.",
+        "noName": "Project name is required.",
+        "noLevelColumn": "Please select the level column.",
+        "noNameColumn": "Please map a column to Name.",
+        "noLevelValues": "Please map all level values to a hierarchy level.",
+        "importFailed": "Import failed. Please try again."
+      },
+      "creating": {
+        "title": "Creating project…",
+        "subtitle": "This may take a moment for large files."
+      },
+      "success": {
+        "title": "Project imported!",
+        "subtitle": "Your project is ready."
+      }
     }
   },
   "layout": {

@@ -208,6 +208,7 @@ export function TopNavbar({ onSaveVersion, onSearch, sidebarOpen, onToggleSideba
     <>
       <PageNavbar
         title={project?.name ?? 'Searching...'}
+        titleColor={project?.color ?? undefined}
         sidebarOpen={sidebarOpen}
         onToggleSidebar={onToggleSidebar}
         titleActions={titleActions}

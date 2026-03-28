@@ -522,7 +522,10 @@ export function GanttReadonlyBoard({ project, statuses = [], users = [], expires
       {/* ── Top Navbar ──────────────────────────────────────────── */}
       <header className="flex items-center h-12 px-4 gap-3 border-b border-border bg-surface-2 shrink-0">
         {/* Project name */}
-        <h1 className="font-semibold text-sm text-foreground truncate shrink-0">
+        <h1 className="flex items-center gap-2 font-semibold text-sm text-foreground truncate shrink-0">
+          {project.color && (
+            <span className="inline-block w-2.5 h-2.5 rounded-full shrink-0" style={{ background: project.color }} />
+          )}
           {project.name}
         </h1>
 
