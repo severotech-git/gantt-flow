@@ -251,6 +251,7 @@
   "projects": {
     "pageTitle": "Todos os Projetos",
     "newProject": "Novo Projeto",
+    "importProject": "Importar de Arquivo",
     "noProjectsYet": "Nenhum projeto ainda. Crie o primeiro!",
     "archiveProject": "Arquivar projeto",
     "editProject": "Editar projeto",
@@ -424,6 +425,85 @@
       "sendButton": "Enviar Convite",
       "failedError": "Falha ao enviar o convite",
       "memberLimitReached": "Limite de membros atingido. Faça upgrade do seu plano para adicionar mais membros."
+    },
+    "importProject": {
+      "title": "Importar Projeto de Arquivo",
+      "stepUpload": "Upload",
+      "stepMap": "Mapear Colunas",
+      "stepPreview": "Pré-visualizar",
+      "upload": {
+        "dropzone": "Solte seu arquivo CSV ou XLSX aqui, ou clique para navegar",
+        "acceptedFormats": "Formatos aceitos: .csv, .xlsx — máx. 10 MB",
+        "fileLoaded": "{fileName} — {rowCount} linhas, {colCount} colunas",
+        "multipleSheets": "Este arquivo tem várias abas. Selecione qual usar:",
+        "sheetLabel": "Aba",
+        "projectName": "Nome do projeto",
+        "projectNamePlaceholder": "ex.: Roadmap Importado",
+        "descriptionLabel": "Descrição (opcional)",
+        "descriptionPlaceholder": "Descrição curta…",
+        "colorLabel": "Cor",
+        "parseError": "Não foi possível ler o arquivo. Verifique o formato.",
+        "fileTooLarge": "Arquivo excede o limite de 10 MB."
+      },
+      "map": {
+        "levelSection": "Coluna de Nível / Hierarquia",
+        "levelColumnLabel": "Qual coluna indica o nível ({epic}, {feature}, {task})?",
+        "levelColumnPlaceholder": "Selecionar coluna…",
+        "levelValuesTitle": "Mapear valores de nível",
+        "levelValuesHint": "Para cada valor encontrado nessa coluna, selecione o nível correspondente:",
+        "dateFormatSection": "Formato de Data",
+        "dateFormatLabel": "Formato de data usado no arquivo",
+        "attributeSection": "Mapeamento de Atributos",
+        "attributeHint": "Mapeie as colunas do arquivo para os atributos do projeto. Obrigatório: Nome.",
+        "selectColumn": "Selecionar coluna…",
+        "none": "— Nenhuma —",
+        "required": "(obrigatório)",
+        "fieldName": "Nome",
+        "fieldStatus": "Status",
+        "fieldOwner": "Responsável",
+        "fieldCompletionPct": "Conclusão %",
+        "fieldPlannedStart": "Início Planejado",
+        "fieldPlannedEnd": "Fim Planejado",
+        "fieldActualStart": "Início Real",
+        "fieldActualEnd": "Fim Real",
+        "fieldDescription": "Descrição",
+        "fieldColor": "Cor",
+        "fieldNotes": "Notas",
+        "statusMappingSection": "Mapeamento de Status",
+        "statusMappingHint": "Mapeie os valores de status do arquivo para os status do workspace:",
+        "ownerMappingSection": "Mapeamento de Responsável",
+        "ownerMappingHint": "Mapeie os nomes de responsáveis do arquivo para os membros do workspace:",
+        "unassigned": "Sem responsável"
+      },
+      "preview": {
+        "summary": "{epics} {epicLabel}, {features} {featureLabel}, {tasks} {taskLabel}",
+        "warningsTitle": "{count} {count, plural, one {aviso} other {avisos}}",
+        "noData": "Nenhuma linha válida encontrada. Volte e verifique o mapeamento.",
+        "rowLabel": "Linha {row}"
+      },
+      "actions": {
+        "next": "Próximo",
+        "back": "Voltar",
+        "import": "Importar",
+        "importing": "Importando…",
+        "viewProject": "Ver Projeto"
+      },
+      "errors": {
+        "noFile": "Selecione um arquivo primeiro.",
+        "noName": "Nome do projeto é obrigatório.",
+        "noLevelColumn": "Selecione a coluna de nível.",
+        "noNameColumn": "Mapeie uma coluna para Nome.",
+        "noLevelValues": "Mapeie todos os valores de nível.",
+        "importFailed": "Importação falhou. Tente novamente."
+      },
+      "creating": {
+        "title": "Criando projeto…",
+        "subtitle": "Isso pode demorar um pouco para arquivos grandes."
+      },
+      "success": {
+        "title": "Projeto importado!",
+        "subtitle": "Seu projeto está pronto."
+      }
     }
   },
   "layout": {

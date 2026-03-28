@@ -251,6 +251,7 @@
   "projects": {
     "pageTitle": "Todos los Proyectos",
     "newProject": "Nuevo Proyecto",
+    "importProject": "Importar desde Archivo",
     "noProjectsYet": "Sin proyectos aún. ¡Crea el primero!",
     "archiveProject": "Archivar proyecto",
     "editProject": "Editar proyecto",
@@ -424,6 +425,85 @@
       "sendButton": "Enviar Invitación",
       "failedError": "Error al enviar la invitación",
       "memberLimitReached": "Límite de miembros alcanzado. Actualiza tu plan para agregar más miembros."
+    },
+    "importProject": {
+      "title": "Importar Proyecto desde Archivo",
+      "stepUpload": "Cargar",
+      "stepMap": "Mapear Columnas",
+      "stepPreview": "Vista Previa",
+      "upload": {
+        "dropzone": "Suelta tu archivo CSV o XLSX aquí, o haz clic para explorar",
+        "acceptedFormats": "Formatos aceptados: .csv, .xlsx — máx. 10 MB",
+        "fileLoaded": "{fileName} — {rowCount} filas, {colCount} columnas",
+        "multipleSheets": "Este archivo tiene varias hojas. Selecciona cuál usar:",
+        "sheetLabel": "Hoja",
+        "projectName": "Nombre del proyecto",
+        "projectNamePlaceholder": "ej.: Hoja de Ruta Importada",
+        "descriptionLabel": "Descripción (opcional)",
+        "descriptionPlaceholder": "Descripción breve…",
+        "colorLabel": "Color",
+        "parseError": "No se pudo leer el archivo. Verifica el formato.",
+        "fileTooLarge": "El archivo supera el límite de 10 MB."
+      },
+      "map": {
+        "levelSection": "Columna de Nivel / Jerarquía",
+        "levelColumnLabel": "¿Qué columna indica el nivel ({epic}, {feature}, {task})?",
+        "levelColumnPlaceholder": "Seleccionar columna…",
+        "levelValuesTitle": "Mapear valores de nivel",
+        "levelValuesHint": "Para cada valor encontrado en esa columna, selecciona el nivel correspondiente:",
+        "dateFormatSection": "Formato de Fecha",
+        "dateFormatLabel": "Formato de fecha usado en el archivo",
+        "attributeSection": "Mapeo de Atributos",
+        "attributeHint": "Mapea las columnas del archivo a los atributos del proyecto. Obligatorio: Nombre.",
+        "selectColumn": "Seleccionar columna…",
+        "none": "— Ninguna —",
+        "required": "(requerido)",
+        "fieldName": "Nombre",
+        "fieldStatus": "Estado",
+        "fieldOwner": "Responsable",
+        "fieldCompletionPct": "Completado %",
+        "fieldPlannedStart": "Inicio Planificado",
+        "fieldPlannedEnd": "Fin Planificado",
+        "fieldActualStart": "Inicio Real",
+        "fieldActualEnd": "Fin Real",
+        "fieldDescription": "Descripción",
+        "fieldColor": "Color",
+        "fieldNotes": "Notas",
+        "statusMappingSection": "Mapeo de Estado",
+        "statusMappingHint": "Mapea los valores de estado del archivo a los estados del workspace:",
+        "ownerMappingSection": "Mapeo de Responsable",
+        "ownerMappingHint": "Mapea los nombres de responsables del archivo a los miembros del workspace:",
+        "unassigned": "Sin asignar"
+      },
+      "preview": {
+        "summary": "{epics} {epicLabel}, {features} {featureLabel}, {tasks} {taskLabel}",
+        "warningsTitle": "{count} {count, plural, one {advertencia} other {advertencias}}",
+        "noData": "No se encontraron filas válidas. Vuelve y verifica el mapeo.",
+        "rowLabel": "Fila {row}"
+      },
+      "actions": {
+        "next": "Siguiente",
+        "back": "Atrás",
+        "import": "Importar",
+        "importing": "Importando…",
+        "viewProject": "Ver Proyecto"
+      },
+      "errors": {
+        "noFile": "Selecciona un archivo primero.",
+        "noName": "El nombre del proyecto es obligatorio.",
+        "noLevelColumn": "Selecciona la columna de nivel.",
+        "noNameColumn": "Mapea una columna a Nombre.",
+        "noLevelValues": "Mapea todos los valores de nivel.",
+        "importFailed": "La importación falló. Inténtalo de nuevo."
+      },
+      "creating": {
+        "title": "Creando proyecto…",
+        "subtitle": "Esto puede tardar un momento para archivos grandes."
+      },
+      "success": {
+        "title": "¡Proyecto importado!",
+        "subtitle": "Tu proyecto está listo."
+      }
     }
   },
   "layout": {
