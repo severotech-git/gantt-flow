@@ -7,6 +7,8 @@ import { ZoomIn, ZoomOut, ChevronRight, ChevronDown, Crosshair, Eye, ChevronsDow
 import { cn } from '@/lib/utils';
 import { useFormatter, useTranslations, type DateTimeFormatOptions } from 'next-intl';
 import { OwnerAvatar } from '@/components/shared/OwnerAvatar';
+import { ThemeToggle } from '@/components/shared/ThemeToggle';
+import { LanguageSwitcher } from '@/components/shared/LanguageSwitcher';
 import { getDelayDays } from '@/lib/dateUtils';
 import type { IProject, IStatusConfig, IUserConfig } from '@/types';
 
@@ -553,6 +555,10 @@ export function GanttReadonlyBoard({ project, statuses = [], users = [], expires
         </button>
 
         <div className="flex-1" />
+
+        {/* Language & theme controls */}
+        <LanguageSwitcher variant="dropdown" />
+        <ThemeToggle />
 
         {/* Snapshot badge */}
         {mode === 'snapshot' && versionName && (
