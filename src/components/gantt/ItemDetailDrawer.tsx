@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState, useRef, useEffect } from 'react';
+import { useMemo, useState, useRef } from 'react';
 import { useTranslations, useFormatter } from 'next-intl';
 import { useProjectStore } from '@/store/useProjectStore';
 import { useSettingsStore } from '@/store/useSettingsStore';
@@ -17,7 +17,7 @@ import { Input } from '@/components/ui/input';
 import { OwnerAvatar } from '@/components/shared/OwnerAvatar';
 import { StatusBadge } from '@/components/shared/StatusBadge';
 import { cn } from '@/lib/utils';
-import { IEpic, IFeature, ITask } from '@/types';
+import { IEpic, IFeature, ITask, IUserConfig } from '@/types';
 import { SendIcon } from 'lucide-react';
 import { parseISO } from 'date-fns';
 import { snapToWorkday } from '@/lib/dateUtils';
@@ -56,7 +56,7 @@ export function ItemDetailDrawer() {
     // Find user by exact name match in workspace
     const user = users.find((u) => u.name === session.user.name);
     return user?.uid || session.user.name;
-  }, [session?.user?.name, users]);
+  }, [session, users]);
 
   // Derive the item from openItemRef
   const item = useMemo(() => {
@@ -482,15 +482,16 @@ function DrawerDescription({
   patchItem,
 }: {
   item: ItemRef;
-  patchItem: (patch: any) => void;
+  patchItem: (patch: Partial<IEpic & IFeature & ITask>) => void;
 }) {
   const t = useTranslations('gantt.drawer');
   const [editing, setEditing] = useState(false);
-  const [draft, setDraft] = useState(item.data.description || '');
+  const [draft, setDraft] = useState('');
 
-  useEffect(() => {
+  const startEditing = () => {
     setDraft(item.data.description || '');
-  }, [item.data.description]);
+    setEditing(true);
+  };
 
   const onSave = () => {
     patchItem({ description: draft });
@@ -505,10 +506,10 @@ function DrawerDescription({
         </label>
         {!editing && (
           <button
-            onClick={() => setEditing(true)}
+            onClick={startEditing}
             className="text-xs text-primary hover:underline"
           >
-            {draft ? t('editDescription') : 'Add'}
+            {item.data.description ? t('editDescription') : 'Add'}
           </button>
         )}
       </div>
@@ -524,7 +525,7 @@ function DrawerDescription({
           />
           <div className="flex justify-end gap-2">
             <button
-              onClick={() => { setEditing(false); setDraft(item.data.description || ''); }}
+              onClick={() => setEditing(false)}
               className="text-xs text-muted-foreground hover:text-foreground px-3 py-1.5"
             >
               Cancel
@@ -534,8 +535,8 @@ function DrawerDescription({
             </Button>
           </div>
         </div>
-      ) : draft ? (
-        <p className="text-sm whitespace-pre-wrap text-foreground leading-relaxed">{draft}</p>
+      ) : item.data.description ? (
+        <p className="text-sm whitespace-pre-wrap text-foreground leading-relaxed">{item.data.description}</p>
       ) : (
         <p className="text-sm text-muted-foreground italic">{t('noDescription')}</p>
       )}
@@ -549,7 +550,7 @@ function DrawerActivity({
   onComment,
 }: {
   item: ItemRef;
-  users: any[];
+  users: IUserConfig[];
   onComment: (text: string) => void;
 }) {
   const t = useTranslations('gantt.drawer');

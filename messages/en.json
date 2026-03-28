@@ -68,6 +68,24 @@
       "flexibleTimelines": {
         "title": "Flexible Timelines",
         "description": "Visualize your roadmap across multiple scales, from daily tasks to quarterly strategic goals."
+      },
+      "moreTitle": "And Much More",
+      "moreSubtitle": "Powerful collaboration and transparency tools built right in.",
+      "realTimeCollab": {
+        "title": "Real-Time Collaboration",
+        "description": "See who's online, track live cursors, and watch edits happen in real time. Your whole team stays in sync."
+      },
+      "projectSharing": {
+        "title": "Shareable Project Links",
+        "description": "Generate public links to share your project with stakeholders. Choose live or snapshot mode with automatic expiration."
+      },
+      "changeHistory": {
+        "title": "Full Change History",
+        "description": "Every edit is logged with who changed what and when. Compare old and new values for complete audit trails."
+      },
+      "teamComments": {
+        "title": "Team Comments",
+        "description": "Discuss any Epic, Feature, or Task directly in context. Comments sync in real time across all connected users."
       }
     },
     "pricing": {
@@ -597,6 +615,7 @@
     "PLAN_NOT_FOUND": "Selected plan not found.",
     "NO_STRIPE_CUSTOMER": "No billing account found. Please subscribe first.",
     "TOO_MANY_SHARES": "Too many share requests. Please try again later.",
+    "TOO_MANY_RECIPIENTS": "Maximum 20 recipients per share link.",
     "GENERIC": "Something went wrong. Please try again."
   },
   "billing": {
@@ -813,6 +832,9 @@
     "revoked": "This shared link has been revoked",
     "expiresAt": "This link expires {date}",
     "readonlyBanner": "Viewing in read-only mode",
-    "poweredBy": "Powered by GanttFlow"
+    "poweredBy": "Powered by GanttFlow",
+    "expiredDescription": "This shared link is no longer available.",
+    "error": "Error",
+    "tooManyRequests": "Too many requests. Please try again later."
   }
 }

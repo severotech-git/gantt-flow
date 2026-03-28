@@ -48,25 +48,30 @@ export function DrawerChangelog({
   unknownLabel,
 }: DrawerChangelogProps) {
   const format = useFormatter();
-  const [entries, setEntries] = useState<IChangelogEntry[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [{ loading, entries }, setFetchState] = useState<{ loading: boolean; entries: IChangelogEntry[] }>({ loading: true, entries: [] });
 
   const userMap = Object.fromEntries(users.map((u) => [u.uid, u]));
   const userByName = Object.fromEntries(users.map((u) => [u.name, u]));
 
   useEffect(() => {
-    setLoading(true);
     const params = new URLSearchParams({ epicId });
     if (featureId) params.set('featureId', featureId);
     if (taskId) params.set('taskId', taskId);
 
+    let active = true;
     fetch(`/api/projects/${projectId}/changelog?${params}`)
       .then((r) => r.json())
       .then((data) => {
-        if (Array.isArray(data)) setEntries(data);
+        if (!active) return;
+        setFetchState({ loading: false, entries: Array.isArray(data) ? data : [] });
       })
-      .catch(() => {})
-      .finally(() => setLoading(false));
+      .catch(() => {
+        if (active) setFetchState((s) => ({ ...s, loading: false }));
+      });
+    return () => {
+      active = false;
+      setFetchState((s) => ({ ...s, loading: true }));
+    };
   }, [projectId, epicId, featureId, taskId, refreshKey]);
 
   const formatValue = (field: string, value: string | null): string => {

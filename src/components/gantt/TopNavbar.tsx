@@ -11,7 +11,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Camera, ChevronDown, History, Search, Plus, Crosshair, Loader2, Eye, RotateCcw, Trash2, Share2 } from 'lucide-react';
+import { Camera, ChevronDown, History, Search, Crosshair, Loader2, Eye, RotateCcw, Trash2, Share2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useState } from 'react';
 import { PageNavbar } from '@/components/layout/PageNavbar';
