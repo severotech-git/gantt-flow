@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { randomBytes } from 'crypto';
 import { connectDB } from '@/lib/mongodb';
-import { requireAuth } from '@/lib/apiAuth';
+import { requireManage } from '@/lib/apiAuth';
 import { checkRateLimit } from '@/lib/rateLimit';
 import { sendShareLinkEmails } from '@/lib/email';
 import Project from '@/lib/models/Project';
@@ -23,7 +23,7 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const authResult = await requireAuth();
+    const authResult = await requireManage();
     if (authResult instanceof NextResponse) return authResult;
     const { userId, accountId, locale } = authResult;
 
@@ -156,7 +156,7 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const authResult = await requireAuth();
+    const authResult = await requireManage();
     if (authResult instanceof NextResponse) return authResult;
     const { accountId } = authResult;
 

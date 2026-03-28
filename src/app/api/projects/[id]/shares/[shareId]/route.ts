@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { connectDB } from '@/lib/mongodb';
-import { requireAuth } from '@/lib/apiAuth';
+import { requireManage } from '@/lib/apiAuth';
 import Project from '@/lib/models/Project';
 import SharedLink from '@/lib/models/SharedLink';
 
@@ -12,7 +12,7 @@ export async function GET(
   { params }: { params: Promise<{ id: string; shareId: string }> }
 ) {
   try {
-    const authResult = await requireAuth();
+    const authResult = await requireManage();
     if (authResult instanceof NextResponse) return authResult;
     const { accountId } = authResult;
 
@@ -47,7 +47,7 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string; shareId: string }> }
 ) {
   try {
-    const authResult = await requireAuth();
+    const authResult = await requireManage();
     if (authResult instanceof NextResponse) return authResult;
     const { accountId } = authResult;
 

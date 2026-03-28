@@ -18,6 +18,7 @@ import { PageNavbar } from '@/components/layout/PageNavbar';
 import { PresenceAvatars } from './PresenceAvatars';
 import { useTranslations } from 'next-intl';
 import { ShareDialog } from '@/components/dialogs/ShareDialog';
+import { useCanManage } from '@/hooks/useAccountRole';
 
 const SCALE_VALUES: TimelineScale[] = ['week', 'month', 'quarter'];
 
@@ -46,6 +47,7 @@ export function TopNavbar({ onSaveVersion, onSearch, sidebarOpen, onToggleSideba
 
   const [versionMenuOpen, setVersionMenuOpen] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
+  const canManage = useCanManage();
   const project = useProjectStore(selectDisplayProject);
 
   // ── Slot: next to title ──────────────────────────────────────────────────
@@ -124,7 +126,7 @@ export function TopNavbar({ onSaveVersion, onSearch, sidebarOpen, onToggleSideba
         </button>
 
         {/* Share */}
-        {!isVersionReadOnly && project && (
+        {!isVersionReadOnly && project && canManage && (
           <Button size="sm" variant="outline" onClick={() => setShareOpen(true)} className="h-7 px-3 text-xs gap-1">
             <Share2 size={12} />
             {t('share')}
