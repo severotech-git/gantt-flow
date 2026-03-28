@@ -92,7 +92,7 @@ export function GanttBoard() {
   const project = useProjectStore(selectDisplayProject);
   const {
     timelineScale,
-    updateTask, updateFeature, updateEpic, updateDayCount,
+    updateTask, updateFeature, updateDayCount,
     isVersionReadOnly, isLoadingProject,
     zoomLevel, setZoomLevel,
   } = useProjectStore();
@@ -527,7 +527,7 @@ export function GanttBoard() {
         }
       }
     }
-  }, [visibleRows, pxPerDay, allowWeekends, updateTask, updateFeature, updateEpic, project, currentProjectId]);
+  }, [visibleRows, pxPerDay, allowWeekends, updateTask, updateFeature, project, currentProjectId]);
 
   // ── Loading skeleton ────────────────────────────────────────────────────
   if (isLoadingProject) {

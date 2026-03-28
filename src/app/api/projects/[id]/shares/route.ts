@@ -50,6 +50,12 @@ export async function POST(
     if (!Array.isArray(body.emails)) {
       return NextResponse.json({ error: 'emails must be an array' }, { status: 400 });
     }
+    if (body.emails.length > 20) {
+      return NextResponse.json(
+        { error: 'Maximum 20 recipients per share link', code: 'TOO_MANY_RECIPIENTS' },
+        { status: 400 }
+      );
+    }
     if (!body.expiresIn || !Object.keys(EXPIRATION_PRESETS).includes(body.expiresIn)) {
       return NextResponse.json(
         { error: 'expiresIn must be one of: 1h, 24h, 7d, 30d' },

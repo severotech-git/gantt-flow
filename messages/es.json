@@ -68,6 +68,24 @@
       "flexibleTimelines": {
         "title": "Cronogramas Flexibles",
         "description": "Visualiza tu roadmap en múltiples escalas, desde tareas diarias hasta metas estratégicas trimestrales."
+      },
+      "moreTitle": "Y Mucho Más",
+      "moreSubtitle": "Herramientas potentes de colaboración y transparencia integradas desde el inicio.",
+      "realTimeCollab": {
+        "title": "Colaboración en Tiempo Real",
+        "description": "Mira quién está conectado, sigue cursores en vivo y observa las ediciones en tiempo real. Todo tu equipo siempre sincronizado."
+      },
+      "projectSharing": {
+        "title": "Links de Proyecto Compartibles",
+        "description": "Genera links públicos para compartir tu proyecto con stakeholders. Elige modo en vivo o snapshot con expiración automática."
+      },
+      "changeHistory": {
+        "title": "Historial Completo de Cambios",
+        "description": "Cada edición queda registrada con quién cambió qué y cuándo. Compara valores anteriores y nuevos para auditorías completas."
+      },
+      "teamComments": {
+        "title": "Comentarios del Equipo",
+        "description": "Discute cualquier Épico, Funcionalidad o Tarea directamente en contexto. Los comentarios se sincronizan en tiempo real para todos los usuarios conectados."
       }
     },
     "pricing": {
@@ -597,6 +615,7 @@
     "PLAN_NOT_FOUND": "Plan seleccionado no encontrado.",
     "NO_STRIPE_CUSTOMER": "No se encontró cuenta de facturación. Por favor, suscríbete primero.",
     "TOO_MANY_SHARES": "Demasiadas solicitudes de compartición. Por favor, intenta más tarde.",
+    "TOO_MANY_RECIPIENTS": "Máximo 20 destinatarios por enlace compartido.",
     "GENERIC": "Algo salió mal. Por favor, intenta de nuevo."
   },
   "billing": {
@@ -813,6 +832,9 @@
     "revoked": "Este enlace compartido ha sido revocado",
     "expiresAt": "Este enlace expira {date}",
     "readonlyBanner": "Viendo en modo de solo lectura",
-    "poweredBy": "Desarrollado por GanttFlow"
+    "poweredBy": "Desarrollado por GanttFlow",
+    "expiredDescription": "Este enlace compartido ya no está disponible.",
+    "error": "Error",
+    "tooManyRequests": "Demasiadas solicitudes. Por favor, intenta más tarde."
   }
 }

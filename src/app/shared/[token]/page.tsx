@@ -1,124 +1,110 @@
-'use client';
-
-import { useEffect, useState } from 'react';
+import { notFound } from 'next/navigation';
+import { headers } from 'next/headers';
+import { getTranslations } from 'next-intl/server';
+import { connectDB } from '@/lib/mongodb';
+import { checkRateLimit, getClientIp } from '@/lib/rateLimit';
+import { sanitizeProjectForShare, filterUsersForProject } from '@/lib/shareUtils';
+import Project from '@/lib/models/Project';
+import ProjectSnapshot from '@/lib/models/ProjectSnapshot';
+import SharedLink from '@/lib/models/SharedLink';
+import Account from '@/lib/models/Account';
 import { GanttReadonlyBoard } from '@/components/gantt/GanttReadonlyBoard';
-import { Loader2 } from 'lucide-react';
-import type { IProject, IStatusConfig, IUserConfig } from '@/types';
-import { useTranslations } from 'next-intl';
+import type { IStatusConfig, IUserConfig } from '@/types';
+
+export const runtime = 'nodejs';
 
 interface SharedPageProps {
   params: Promise<{ token: string }>;
 }
 
-type PageState = 'loading' | 'success' | 'expired' | 'notFound' | 'error';
+export default async function SharedPage({ params }: SharedPageProps) {
+  const t = await getTranslations('sharedView');
+  const { token } = await params;
 
-export default function SharedPage({ params }: SharedPageProps) {
-  const t = useTranslations('sharedView');
-  const [state, setState] = useState<PageState>('loading');
-  const [project, setProject] = useState<IProject | null>(null);
-  const [statuses, setStatuses] = useState<IStatusConfig[]>([]);
-  const [users, setUsers] = useState<IUserConfig[]>([]);
-  const [expiresAt, setExpiresAt] = useState<Date | null>(null);
-  const [versionName, setVersionName] = useState<string | null>(null);
-  const [mode, setMode] = useState<'snapshot' | 'live' | null>(null);
-
-  useEffect(() => {
-    async function loadSharedProject() {
-      try {
-        const { token: tokenParam } = await params;
-        const response = await fetch(`/api/shared/${tokenParam}`);
-
-        if (response.status === 404) {
-          setState('notFound');
-          return;
-        }
-
-        if (response.status === 410) {
-          setState('expired');
-          return;
-        }
-
-        if (!response.ok) {
-          setState('error');
-          return;
-        }
-
-        const data = await response.json();
-
-        if (!data.project) {
-          setState('notFound');
-          return;
-        }
-
-        setProject(data.project as IProject);
-        setStatuses(data.statuses ?? []);
-        setUsers(data.users ?? []);
-        setExpiresAt(new Date(data.expiresAt));
-        setMode(data.mode ?? null);
-        setVersionName(data.versionName ?? null);
-        setState('success');
-      } catch (err) {
-        console.error('[SharedPage] Error loading shared project:', err);
-        setState('error');
-      }
-    }
-
-    loadSharedProject();
-  }, [params]);
-
-  if (state === 'loading') {
-    return (
-      <div className="flex items-center justify-center h-screen bg-background">
-        <div className="flex flex-col items-center gap-4">
-          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-          <p className="text-muted-foreground">{t('loading')}</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (state === 'notFound') {
+  // Rate limit by IP
+  const hdrs = await headers();
+  const clientIp = getClientIp(hdrs);
+  const rateCheck = checkRateLimit(`shared:${clientIp}`, 30, 60_000);
+  if (!rateCheck.ok) {
     return (
       <div className="flex items-center justify-center h-screen bg-background">
         <div className="text-center">
-          <h1 className="text-2xl font-bold mb-2">{t('notFound')}</h1>
-          <p className="text-muted-foreground">The project you are looking for does not exist.</p>
+          <h1 className="text-2xl font-bold mb-2">{t('error')}</h1>
+          <p className="text-muted-foreground">{t('tooManyRequests')}</p>
         </div>
       </div>
     );
   }
 
-  if (state === 'expired') {
+  await connectDB();
+
+  const now = new Date();
+
+  const share = await SharedLink.findOne({
+    token,
+    revokedAt: null,
+  }).lean();
+
+  if (!share) {
+    notFound();
+  }
+
+  // Check expiration separately so we can show a distinct message
+  if (share.expiresAt <= now) {
     return (
       <div className="flex items-center justify-center h-screen bg-background">
         <div className="text-center">
           <h1 className="text-2xl font-bold mb-2">{t('expired')}</h1>
-          <p className="text-muted-foreground">This shared link has expired.</p>
+          <p className="text-muted-foreground">{t('expiredDescription')}</p>
         </div>
       </div>
     );
   }
 
-  if (state === 'error' || !project) {
-    return (
-      <div className="flex items-center justify-center h-screen bg-background">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold mb-2">Error</h1>
-          <p className="text-muted-foreground">Failed to load the shared project.</p>
-        </div>
-      </div>
-    );
+  let rawData: Record<string, unknown> | null = null;
+  let versionName: string | undefined;
+
+  if (share.mode === 'snapshot') {
+    if (!share.snapshotId) notFound();
+    const snapshot = await ProjectSnapshot.findOne({ _id: share.snapshotId }).lean();
+    if (!snapshot) notFound();
+    rawData = snapshot!.snapshotData as Record<string, unknown>;
+    versionName = snapshot!.versionName;
+  } else {
+    const project = await Project.findOne({ _id: share.projectId }).lean();
+    if (!project) notFound();
+    rawData = project as unknown as Record<string, unknown>;
   }
+
+  if (!rawData) notFound();
+
+  // Serialize to plain objects (converts ObjectId → string, Date → ISO string)
+  const projectData = JSON.parse(JSON.stringify(rawData)) as Record<string, unknown>;
+
+  // Sanitize project: strip accountId, createdBy, comments, descriptions, etc.
+  const sanitizedProject = sanitizeProjectForShare(projectData);
+
+  // Fetch workspace settings
+  const account = await Account.findById(share.accountId).select('settings').lean();
+  const rawStatuses = account?.settings?.statuses ?? [];
+  const rawUsers = account?.settings?.users ?? [];
+
+  // Serialize to plain objects (converts ObjectId → string)
+  const statuses: IStatusConfig[] = JSON.parse(JSON.stringify(rawStatuses));
+  const allUsers: IUserConfig[] = JSON.parse(JSON.stringify(rawUsers));
+
+  // Filter users to only those referenced in this project
+  const users = filterUsersForProject(allUsers, sanitizedProject);
 
   return (
     <div className="flex flex-col h-screen overflow-hidden">
       <GanttReadonlyBoard
-        project={project}
+        project={sanitizedProject}
         statuses={statuses}
         users={users}
-        expiresAt={expiresAt}
-        mode={mode}
-        versionName={versionName}
+        expiresAt={share.expiresAt.toISOString()}
+        mode={share.mode as 'snapshot' | 'live'}
+        versionName={versionName ?? null}
       />
     </div>
   );

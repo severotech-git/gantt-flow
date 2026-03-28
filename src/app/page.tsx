@@ -22,6 +22,10 @@ import {
   LogOut,
   User,
   CreditCard,
+  Users,
+  Share2,
+  ClipboardList,
+  MessageSquare,
 } from 'lucide-react';
 import Image, { type StaticImageData } from 'next/image';
 import { cn } from '@/lib/utils';
@@ -491,6 +495,35 @@ export default function LandingPage() {
                       </div>
                     )}
                   </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* More Features Grid */}
+        <section className="py-24 bg-background overflow-hidden">
+          <div className="container mx-auto px-4">
+            <div className="text-center mb-16">
+              <h2 className="text-3xl md:text-4xl font-bold mb-4 tracking-tight">{t('features.moreTitle')}</h2>
+              <p className="text-muted-foreground max-w-xl mx-auto text-lg">{t('features.moreSubtitle')}</p>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              {[
+                { icon: <Users className="w-6 h-6" />, title: t('features.realTimeCollab.title'), description: t('features.realTimeCollab.description') },
+                { icon: <Share2 className="w-6 h-6" />, title: t('features.projectSharing.title'), description: t('features.projectSharing.description') },
+                { icon: <ClipboardList className="w-6 h-6" />, title: t('features.changeHistory.title'), description: t('features.changeHistory.description') },
+                { icon: <MessageSquare className="w-6 h-6" />, title: t('features.teamComments.title'), description: t('features.teamComments.description') },
+              ].map((card, idx) => (
+                <div
+                  key={idx}
+                  className="group flex flex-col gap-4 rounded-2xl border border-border/60 bg-surface-1 p-6 hover:border-primary/40 hover:shadow-lg transition-all duration-200"
+                >
+                  <div className="inline-flex w-12 h-12 items-center justify-center rounded-xl bg-primary/10 text-primary group-hover:bg-primary/20 transition-colors">
+                    {card.icon}
+                  </div>
+                  <h3 className="text-base font-semibold tracking-tight">{card.title}</h3>
+                  <p className="text-sm text-muted-foreground leading-relaxed">{card.description}</p>
                 </div>
               ))}
             </div>

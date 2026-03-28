@@ -264,7 +264,7 @@ interface Props {
   project: IProject;
   statuses?: IStatusConfig[];
   users?: IUserConfig[];
-  expiresAt?: Date | null;
+  expiresAt?: string | Date | null;
   mode?: 'snapshot' | 'live' | null;
   versionName?: string | null;
 }
@@ -321,7 +321,6 @@ export function GanttReadonlyBoard({ project, statuses = [], users = [], expires
       pendingScrollTarget.current = null;
     }
   // Only run on mount
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // When scale changes: remember the date at the current viewport center, reset local state,
@@ -567,7 +566,7 @@ export function GanttReadonlyBoard({ project, statuses = [], users = [], expires
         {expiresAt && (
           <span className="text-[11px] text-muted-foreground">
             {tShared('expiresAt', {
-              date: expiresAt.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' }),
+              date: fmt.dateTime(new Date(expiresAt), { year: 'numeric', month: 'short', day: 'numeric' }),
             })}
           </span>
         )}

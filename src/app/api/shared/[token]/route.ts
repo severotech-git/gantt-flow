@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { connectDB } from '@/lib/mongodb';
 import { checkRateLimit, getClientIp } from '@/lib/rateLimit';
+import { sanitizeProjectForShare, filterUsersForProject } from '@/lib/shareUtils';
 import Project from '@/lib/models/Project';
 import ProjectSnapshot from '@/lib/models/ProjectSnapshot';
 import SharedLink from '@/lib/models/SharedLink';
@@ -68,14 +69,20 @@ export async function GET(
       return NextResponse.json({ error: 'Project data not available' }, { status: 404 });
     }
 
+    // Sanitize project: strip accountId, createdBy, comments, descriptions, etc.
+    const sanitizedProject = sanitizeProjectForShare(projectData!);
+
     // Fetch workspace settings (statuses + users) for proper rendering
     const account = await Account.findById(share.accountId).select('settings').lean();
     const statuses = account?.settings?.statuses ?? [];
-    const users = account?.settings?.users ?? [];
+    const allUsers = account?.settings?.users ?? [];
+
+    // Filter users to only those referenced in this project
+    const users = filterUsersForProject(allUsers, sanitizedProject);
 
     return NextResponse.json({
       mode: share.mode,
-      project: projectData,
+      project: sanitizedProject,
       expiresAt: share.expiresAt.toISOString(),
       statuses,
       users,
