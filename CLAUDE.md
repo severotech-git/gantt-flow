@@ -234,6 +234,26 @@ export function FooComponent({ value, onChange }: Props) {
 - Prefer named exports; default exports only for pages and providers.
 - Dynamic colors go in `style={{ backgroundColor: color }}`; all other classes via `cn()`.
 
+### Resetting State When Props Change (Derived State)
+
+**Never** call `setState` synchronously inside a `useEffect` to reset state when a prop changes — this triggers a cascading extra render and is a lint error (`react-hooks/set-state-in-effect`).
+
+```tsx
+// ❌ Wrong — triggers cascading render, lint error
+useEffect(() => {
+  setDraft(item.description || '');
+}, [item.description]);
+
+// ✅ Correct — derived-state pattern, resets in the same render
+const [trackedDesc, setTrackedDesc] = useState(item.description);
+if (trackedDesc !== item.description) {
+  setTrackedDesc(item.description);
+  setDraft(item.description || '');
+}
+```
+
+The same rule applies in custom hooks that reset state when a key/id prop changes.
+
 ### Dialog / Form Components
 
 ```tsx

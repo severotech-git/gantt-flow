@@ -26,7 +26,8 @@ import { useThrottledCallback } from '@/hooks/useThrottledCallback';
 import type { IStatusConfig } from '@/types';
 import { BarChart3, ZoomIn, ZoomOut, Share2 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import { KanbanToolbar, KanbanFilters, DEFAULT_KANBAN_FILTERS } from '@/components/kanban/KanbanToolbar';
+import { KanbanToolbar } from '@/components/kanban/KanbanToolbar';
+import { usePersistedFilters } from '@/hooks/usePersistedFilters';
 import { ShareDialog } from '@/components/dialogs/ShareDialog';
 import { useCanManage } from '@/hooks/useAccountRole';
 import { Button } from '@/components/ui/button';
@@ -107,7 +108,7 @@ export function GanttBoard() {
 
   const finalValues = useMemo(() => new Set(statuses.filter((s) => s.isFinal).map((s) => s.value)), [statuses]);
 
-  const [filters, setFilters] = useState<KanbanFilters>(DEFAULT_KANBAN_FILTERS);
+  const [filters, setFilters] = usePersistedFilters(project?._id, 'gantt');
   const [shareOpen, setShareOpen] = useState(false);
   const canManage = useCanManage();
 

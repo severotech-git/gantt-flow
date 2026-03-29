@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useMemo, useCallback, useRef } from 'react';
+import { usePersistedFilters } from '@/hooks/usePersistedFilters';
 import {
   DndContext,
   DragEndEvent,
@@ -19,7 +20,7 @@ import { getDelayDays } from '@/lib/dateUtils';
 import { cn } from '@/lib/utils';
 import { KanbanCard } from './KanbanCard';
 import { KanbanEmptyState } from './KanbanEmptyState';
-import { KanbanToolbar, KanbanFilters } from './KanbanToolbar';
+import { KanbanToolbar } from './KanbanToolbar';
 import { KanbanFeatureRow } from './KanbanFeatureRow';
 import { KanbanStandaloneSection, StandaloneFeatureEntry } from './KanbanStandaloneSection';
 
@@ -40,13 +41,6 @@ function postItemChangelog(
   }).catch(() => {});
 }
 
-const DEFAULT_FILTERS: KanbanFilters = {
-  epicId: null,
-  assigneeId: null,
-  onlyOverdue: false,
-  hideDone: false,
-  search: '',
-};
 
 export function KanbanBoard() {
   const t = useTranslations('kanban');
@@ -59,7 +53,7 @@ export function KanbanBoard() {
 
   const boardRef = useRef<HTMLDivElement>(null);
 
-  const [filters, setFilters] = useState<KanbanFilters>(DEFAULT_FILTERS);
+  const [filters, setFilters] = usePersistedFilters(project?._id, 'kanban');
   const [collapsedFeatures, setCollapsedFeatures] = useState<Record<string, boolean>>({});
   const [standaloneCollapsed, setStandaloneCollapsed] = useState(false);
   const [activeDragId, setActiveDragId] = useState<string | null>(null);

@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState, useRef, useEffect } from 'react';
+import { useMemo, useState, useRef } from 'react';
 import { useTranslations, useFormatter } from 'next-intl';
 import { useProjectStore } from '@/store/useProjectStore';
 import { useSettingsStore } from '@/store/useSettingsStore';
@@ -489,12 +489,14 @@ function DrawerDescription({
   patchItem: (patch: Partial<IEpic & IFeature & ITask>) => void;
 }) {
   const t = useTranslations('gantt.drawer');
+  const [trackedDesc, setTrackedDesc] = useState(item.data.description);
   const [draft, setDraft] = useState(item.data.description || '');
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  useEffect(() => {
+  if (trackedDesc !== item.data.description) {
+    setTrackedDesc(item.data.description);
     setDraft(item.data.description || '');
-  }, [item.data.description]);
+  }
 
   const handleChange = (value: string) => {
     setDraft(value);
