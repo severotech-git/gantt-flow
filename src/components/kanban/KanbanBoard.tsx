@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useRef } from 'react';
 import {
   DndContext,
   DragEndEvent,
@@ -12,13 +12,16 @@ import {
   pointerWithin,
 } from '@dnd-kit/core';
 import { useTranslations } from 'next-intl';
+import { ITask } from '@/types';
 import { useProjectStore, selectDisplayProject } from '@/store/useProjectStore';
 import { useSettingsStore } from '@/store/useSettingsStore';
+import { getDelayDays } from '@/lib/dateUtils';
 import { cn } from '@/lib/utils';
-import { KanbanColumn, KanbanColumnItem } from './KanbanColumn';
 import { KanbanCard } from './KanbanCard';
 import { KanbanEmptyState } from './KanbanEmptyState';
-import { KanbanToolbar, GroupBy } from './KanbanToolbar';
+import { KanbanToolbar, KanbanFilters } from './KanbanToolbar';
+import { KanbanFeatureRow } from './KanbanFeatureRow';
+import { KanbanStandaloneSection, StandaloneFeatureEntry } from './KanbanStandaloneSection';
 
 function postItemChangelog(
   projectId: string,
@@ -37,6 +40,14 @@ function postItemChangelog(
   }).catch(() => {});
 }
 
+const DEFAULT_FILTERS: KanbanFilters = {
+  epicId: null,
+  assigneeId: null,
+  onlyOverdue: false,
+  hideDone: false,
+  search: '',
+};
+
 export function KanbanBoard() {
   const t = useTranslations('kanban');
 
@@ -46,127 +57,91 @@ export function KanbanBoard() {
   const statuses = useSettingsStore((s) => s.statuses);
   const levelNames = useSettingsStore((s) => s.levelNames);
 
-  const [selectedEpicId, setSelectedEpicId] = useState<string | null>(null);
-  const [groupBy, setGroupBy] = useState<GroupBy>('none');
-  const [collapsedGroups, setCollapsedGroups] = useState<Record<string, boolean>>({});
+  const boardRef = useRef<HTMLDivElement>(null);
+
+  const [filters, setFilters] = useState<KanbanFilters>(DEFAULT_FILTERS);
+  const [collapsedFeatures, setCollapsedFeatures] = useState<Record<string, boolean>>({});
+  const [standaloneCollapsed, setStandaloneCollapsed] = useState(false);
   const [activeDragId, setActiveDragId] = useState<string | null>(null);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } })
   );
 
-  // Filter epics by selected tab
-  const visibleEpics = useMemo(() => {
-    if (!project) return [];
-    if (selectedEpicId === null) return project.epics;
-    return project.epics.filter((e) => e._id === selectedEpicId);
-  }, [project, selectedEpicId]);
+  const finalStatusValues = useMemo(
+    () => new Set(statuses.filter((s) => s.isFinal).map((s) => s.value)),
+    [statuses]
+  );
 
-  // Build flat annotated item list from all visible epics
-  const flatItems = useMemo(() => {
-    const items: Array<{
-      item: Parameters<typeof KanbanCard>[0]['item'];
+  // Build task filter predicate from current filters
+  const taskMatchesFilters = useCallback(
+    (task: ITask): boolean => {
+      if (filters.assigneeId && task.ownerId !== filters.assigneeId) return false;
+      if (filters.hideDone && finalStatusValues.has(task.status)) return false;
+      if (filters.onlyOverdue) {
+        const isFinal = finalStatusValues.has(task.status);
+        if (isFinal || getDelayDays(task.plannedEnd, task.actualEnd, isFinal) <= 0) return false;
+      }
+      if (filters.search) {
+        const q = filters.search.toLowerCase();
+        if (!task.name.toLowerCase().includes(q)) return false;
+      }
+      return true;
+    },
+    [filters, finalStatusValues]
+  );
+
+  // Build feature groups from visible epics
+  const { featureGroups, standaloneEntries } = useMemo(() => {
+    if (!project) return { featureGroups: [], standaloneEntries: [] as StandaloneFeatureEntry[] };
+
+    const epicSource = filters.epicId
+      ? project.epics.filter((e) => e._id === filters.epicId)
+      : project.epics;
+
+    const groups: Array<{
+      feature: (typeof epicSource)[0]['features'][0];
       epicId: string;
       epicName: string;
       epicColor?: string;
-      featureId: string;
-      featureName: string;
-      featureColor?: string;
-      taskId?: string;
-      isFeatureCard: boolean;
-      status: string;
+      filteredTasks: ITask[];
     }> = [];
+    const standalone: StandaloneFeatureEntry[] = [];
 
-    for (const epic of visibleEpics) {
+    for (const epic of epicSource) {
       for (const feature of epic.features) {
         if (feature.tasks.length > 0) {
-          // Task cards
-          for (const task of feature.tasks) {
-            items.push({
-              item: task,
-              epicId: epic._id,
-              epicName: epic.name,
-              epicColor: epic.color,
-              featureId: feature._id,
-              featureName: feature.name,
-              featureColor: feature.color,
-              taskId: task._id,
-              isFeatureCard: false,
-              status: task.status,
-            });
-          }
-        } else {
-          // Standalone feature card
-          items.push({
-            item: feature,
+          const filteredTasks = feature.tasks.filter(taskMatchesFilters);
+          // Hide feature row entirely if no tasks pass filter (when any active filter)
+          const hasActiveFilter =
+            filters.assigneeId || filters.onlyOverdue || filters.hideDone || filters.search;
+          if (hasActiveFilter && filteredTasks.length === 0) continue;
+          groups.push({
+            feature,
             epicId: epic._id,
             epicName: epic.name,
             epicColor: epic.color,
-            featureId: feature._id,
-            featureName: feature.name,
-            featureColor: feature.color,
-            isFeatureCard: true,
-            status: feature.status,
+            filteredTasks,
           });
-        }
-      }
-    }
-    return items;
-  }, [visibleEpics]);
-
-  // Build per-column items with optional grouping
-  const columnItems = useMemo(() => {
-    const map = new Map<string, KanbanColumnItem[]>();
-    for (const s of statuses) {
-      map.set(s.value, []);
-    }
-
-    // Group items by status, then optionally insert group headers
-    const byStatus = new Map<string, typeof flatItems>();
-    for (const s of statuses) byStatus.set(s.value, []);
-    for (const item of flatItems) {
-      byStatus.get(item.status)?.push(item);
-    }
-
-    for (const s of statuses) {
-      const statusItems = byStatus.get(s.value) ?? [];
-      const col: KanbanColumnItem[] = [];
-
-      if (groupBy === 'none') {
-        for (const item of statusItems) {
-          col.push({ type: 'card', ...item });
-        }
-      } else {
-        // Group by epic or feature
-        const grouped = new Map<string, { header: KanbanColumnItem; cards: KanbanColumnItem[] }>();
-        for (const item of statusItems) {
-          const groupId = groupBy === 'epic' ? item.epicId : item.featureId;
-          const groupName = groupBy === 'epic' ? item.epicName : item.featureName;
-          const groupColor = groupBy === 'epic' ? item.epicColor : item.featureColor;
-
-          if (!grouped.has(groupId)) {
-            grouped.set(groupId, {
-              header: { type: 'group-header', id: groupId, name: groupName, color: groupColor },
-              cards: [],
-            });
+        } else {
+          // Standalone feature: apply filters at feature level
+          if (filters.assigneeId && feature.ownerId !== filters.assigneeId) continue;
+          if (filters.hideDone && finalStatusValues.has(feature.status)) continue;
+          if (filters.onlyOverdue) {
+            const isFinal = finalStatusValues.has(feature.status);
+            if (isFinal || getDelayDays(feature.plannedEnd, feature.actualEnd, isFinal) <= 0) continue;
           }
-          grouped.get(groupId)!.cards.push({ type: 'card', ...item });
-        }
-
-        for (const { header, cards } of grouped.values()) {
-          col.push(header);
-          col.push(...cards);
+          if (filters.search && !feature.name.toLowerCase().includes(filters.search.toLowerCase())) continue;
+          standalone.push({ feature, epicId: epic._id, epicName: epic.name, epicColor: epic.color });
         }
       }
-
-      map.set(s.value, col);
     }
 
-    return map;
-  }, [flatItems, statuses, groupBy]);
+    return { featureGroups: groups, standaloneEntries: standalone };
+  }, [project, filters, taskMatchesFilters, finalStatusValues]);
 
-  function toggleGroup(groupId: string) {
-    setCollapsedGroups((prev) => ({ ...prev, [groupId]: !prev[groupId] }));
+  function toggleFeature(featureId: string) {
+    setCollapsedFeatures((prev) => ({ ...prev, [featureId]: !prev[featureId] }));
   }
 
   function handleDragStart(event: DragStartEvent) {
@@ -178,12 +153,12 @@ export function KanbanBoard() {
     const { active, over } = event;
     if (!over || !project) return;
 
-    const overId = String(over.id);
-    if (!overId.startsWith('kanban-col-')) return;
-
-    const dropData = over.data.current as { statusValue: string };
-    const newStatus = dropData.statusValue;
-
+    const dropData = over.data.current as {
+      statusValue: string;
+      featureId?: string;
+      epicId?: string;
+      zoneType: 'task' | 'standalone';
+    };
     const dragData = active.data.current as {
       type: 'task' | 'feature';
       epicId: string;
@@ -192,18 +167,25 @@ export function KanbanBoard() {
       currentStatus: string;
     };
 
-    if (!dragData || dragData.currentStatus === newStatus) return;
+    if (!dropData || !dragData || dragData.currentStatus === dropData.statusValue) return;
 
-    if (dragData.type === 'task' && dragData.taskId) {
+    const newStatus = dropData.statusValue;
+
+    if (dropData.zoneType === 'task') {
+      // Task drops: only within same feature
+      if (dragData.type !== 'task' || !dragData.taskId) return;
+      if (dragData.featureId !== dropData.featureId) return;
       updateTask(dragData.epicId, dragData.featureId, dragData.taskId, { status: newStatus });
       postItemChangelog(project._id, dragData.epicId, dragData.featureId, dragData.taskId, 'status', dragData.currentStatus, newStatus);
-    } else if (dragData.type === 'feature') {
+    } else if (dropData.zoneType === 'standalone') {
+      // Standalone feature drops
+      if (dragData.type !== 'feature') return;
       updateFeature(dragData.epicId, dragData.featureId, { status: newStatus });
       postItemChangelog(project._id, dragData.epicId, dragData.featureId, undefined, 'status', dragData.currentStatus, newStatus);
     }
   }
 
-  // Find active drag item for DragOverlay (no useMemo — React Compiler handles this)
+  // Find active drag data for DragOverlay
   const findActiveDragData = useCallback(() => {
     if (!activeDragId || !project) return null;
     if (activeDragId.startsWith('kanban-task-')) {
@@ -228,7 +210,16 @@ export function KanbanBoard() {
     }
     return null;
   }, [activeDragId, project]);
+
   const activeDragData = findActiveDragData();
+
+  // Sync horizontal scroll across all card-grid zones (and the hidden global header)
+  const handleScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
+    const left = e.currentTarget.scrollLeft;
+    boardRef.current?.querySelectorAll<HTMLElement>('[data-kanban-scroll]').forEach((el) => {
+      if (el !== e.currentTarget) el.scrollLeft = left;
+    });
+  }, []);
 
   if (!project) return null;
 
@@ -238,17 +229,16 @@ export function KanbanBoard() {
       <div className="flex-1 flex items-center justify-center">
         <KanbanEmptyState
           message={t('emptyBoard')}
-          subtitle={t('emptyBoardSubtitle', {
-            epicLabel: levelNames.epic,
-            featureLabel: levelNames.feature,
-          })}
+          subtitle={t('emptyBoardSubtitle', { epicLabel: levelNames.epic, featureLabel: levelNames.feature })}
           variant="board"
         />
       </div>
     );
   }
 
+  const hasFilteredResults = featureGroups.length > 0 || standaloneEntries.length > 0;
   const isDragging = activeDragId !== null;
+  const gridTemplate = `repeat(${statuses.length}, minmax(190px, 1fr))`;
 
   return (
     <DndContext
@@ -257,37 +247,81 @@ export function KanbanBoard() {
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
     >
-      <div className="flex flex-col flex-1 overflow-hidden">
-        {/* Toolbar: epic filter + groupBy */}
+      <div ref={boardRef} className="flex flex-col flex-1 overflow-hidden">
+        {/* Toolbar */}
         <KanbanToolbar
           epics={project.epics}
-          selectedEpicId={selectedEpicId}
-          onSelectEpic={setSelectedEpicId}
-          groupBy={groupBy}
-          onGroupByChange={setGroupBy}
+          filters={filters}
+          onFiltersChange={setFilters}
         />
 
-        {/* Columns */}
-        <div className={cn('flex-1 overflow-x-auto overflow-y-hidden')}>
-          <div className="flex flex-row h-full">
+        {/* Global column header — clipped horizontally, scrollLeft synced via JS */}
+        <div
+          data-kanban-scroll
+          className="shrink-0 overflow-x-hidden border-b border-border/50 bg-background z-20"
+        >
+          <div
+            className="min-w-max"
+            style={{ display: 'grid', gridTemplateColumns: gridTemplate }}
+          >
             {statuses.map((status) => (
-              <KanbanColumn
+              <div
                 key={status.value}
-                status={status}
-                items={columnItems.get(status.value) ?? []}
-                collapsedGroups={collapsedGroups}
-                onToggleGroup={toggleGroup}
-                isDragging={isDragging}
-              />
+                className="flex items-center gap-2 px-3 py-2 border-r border-border/20 last:border-r-0 border-t-[3px]"
+                style={{ borderTopColor: status.color }}
+              >
+                <span className="text-xs font-semibold text-foreground truncate">
+                  {status.label}
+                </span>
+              </div>
             ))}
           </div>
+        </div>
+
+        {/* Body — vertical scroll only; feature headers stay full-width */}
+        <div className="flex-1 overflow-y-auto">
+          {/* No results */}
+          {!hasFilteredResults && (
+            <div className="flex items-center justify-center py-16">
+              <KanbanEmptyState message={t('noResults')} variant="column" />
+            </div>
+          )}
+
+          {/* Feature swim lane rows */}
+          {featureGroups.map(({ feature, epicId, epicName, epicColor, filteredTasks }) => (
+            <KanbanFeatureRow
+              key={feature._id}
+              feature={feature}
+              epicId={epicId}
+              epicName={epicName}
+              epicColor={epicColor}
+              statuses={statuses}
+              collapsed={!!collapsedFeatures[feature._id]}
+              onToggle={() => toggleFeature(feature._id)}
+              filteredTasks={filteredTasks}
+              isDragging={isDragging}
+              onScroll={handleScroll}
+            />
+          ))}
+
+          {/* Standalone features section */}
+          {standaloneEntries.length > 0 && (
+            <KanbanStandaloneSection
+              entries={standaloneEntries}
+              statuses={statuses}
+              collapsed={standaloneCollapsed}
+              onToggle={() => setStandaloneCollapsed((v) => !v)}
+              isDragging={isDragging}
+              onScroll={handleScroll}
+            />
+          )}
         </div>
       </div>
 
       {/* Drag overlay */}
       <DragOverlay dropAnimation={null}>
         {activeDragData && (
-          <div className="w-[256px] shadow-xl ring-2 ring-primary/30 scale-[1.02] rounded-lg pointer-events-none">
+          <div className={cn('w-[220px] shadow-xl ring-2 ring-primary/30 scale-[1.02] rounded-lg pointer-events-none')}>
             <KanbanCard
               item={activeDragData.item}
               epicId={activeDragData.epicId}

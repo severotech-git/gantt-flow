@@ -24,8 +24,12 @@ import { usePresenceStore } from '@/store/usePresenceStore';
 import { getSocket } from '@/lib/socket';
 import { useThrottledCallback } from '@/hooks/useThrottledCallback';
 import type { IStatusConfig } from '@/types';
-import { BarChart3, ZoomIn, ZoomOut } from 'lucide-react';
+import { BarChart3, ZoomIn, ZoomOut, Share2 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
+import { KanbanToolbar, KanbanFilters, DEFAULT_KANBAN_FILTERS } from '@/components/kanban/KanbanToolbar';
+import { ShareDialog } from '@/components/dialogs/ShareDialog';
+import { useCanManage } from '@/hooks/useAccountRole';
+import { Button } from '@/components/ui/button';
 
 const BASE_PX_PER_DAY: Record<string, number> = { week: 28, month: 10, quarter: 4 };
 const OVERLAY_BAR_H = 22;
@@ -100,6 +104,12 @@ export function GanttBoard() {
 
   const allowWeekends = useSettingsStore((s) => s.allowWeekends);
   const statuses = useSettingsStore((s) => s.statuses);
+
+  const finalValues = useMemo(() => new Set(statuses.filter((s) => s.isFinal).map((s) => s.value)), [statuses]);
+
+  const [filters, setFilters] = useState<KanbanFilters>(DEFAULT_KANBAN_FILTERS);
+  const [shareOpen, setShareOpen] = useState(false);
+  const canManage = useCanManage();
 
   // ── Remote drag streaming ──────────────────────────────────────────────────
   const currentProjectId = usePresenceStore((s) => s.currentProjectId);
@@ -331,6 +341,41 @@ export function GanttBoard() {
     return rows;
   }, [project, isVersionReadOnly, statuses]);
 
+  const filteredRows = useMemo(() => {
+    const { epicId: epicFilter, assigneeId, onlyOverdue, hideDone, search } = filters;
+    const hasFilter = epicFilter || assigneeId || onlyOverdue || hideDone || search;
+    if (!hasFilter) return visibleRows;
+
+    const base = visibleRows.filter((r) => !r.isAddRow);
+    const epicFiltered = epicFilter ? base.filter((r) => r.epicId === epicFilter) : base;
+
+    if (!assigneeId && !onlyOverdue && !hideDone && !search) return epicFiltered;
+
+    const survivingFeatureIds = new Set<string>();
+    const survivingEpicIds = new Set<string>();
+    const now = new Date();
+
+    for (const row of epicFiltered) {
+      if (row.level !== 'task') continue;
+      if (assigneeId && row.ownerId !== assigneeId) continue;
+      if (hideDone && finalValues.has(row.status)) continue;
+      if (onlyOverdue && (finalValues.has(row.status) || parseISO(row.plannedEnd) >= now)) continue;
+      if (search && !row.name.toLowerCase().includes(search.toLowerCase())) continue;
+      if (row.featureId) survivingFeatureIds.add(row.featureId);
+      survivingEpicIds.add(row.epicId);
+    }
+
+    return epicFiltered.filter((row) => {
+      if (row.level === 'epic') return survivingEpicIds.has(row.epicId);
+      if (row.level === 'feature') return row.featureId ? survivingFeatureIds.has(row.featureId) : false;
+      if (assigneeId && row.ownerId !== assigneeId) return false;
+      if (hideDone && finalValues.has(row.status)) return false;
+      if (onlyOverdue && (finalValues.has(row.status) || parseISO(row.plannedEnd) >= now)) return false;
+      if (search && !row.name.toLowerCase().includes(search.toLowerCase())) return false;
+      return true;
+    });
+  }, [visibleRows, filters, finalValues]);
+
   // ── DnD ────────────────────────────────────────────────────────────────
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 3 } })
@@ -554,7 +599,6 @@ export function GanttBoard() {
 
   const epics = project.epics || []; // Ensure epics is an array
   const totalTasks = epics.reduce((s, e) => s + (e.features || []).reduce((ss, f) => ss + (f.tasks || []).length, 0), 0);
-  const finalValues = new Set(statuses.filter(s => s.isFinal).map(s => s.value));
   const overdueCount = epics.reduce(
     (s, e) => s + (e.features || []).reduce(
       (ss, f) => ss + (f.tasks || []).filter(
@@ -587,10 +631,28 @@ export function GanttBoard() {
       }}
     >
       <div ref={boardRef} className="flex flex-col flex-1 overflow-hidden">
+        <KanbanToolbar
+          epics={epics}
+          filters={filters}
+          onFiltersChange={setFilters}
+          rightSlot={!isVersionReadOnly && canManage && project ? (
+            <Button size="sm" variant="outline" onClick={() => setShareOpen(true)} className="h-7 px-3 text-xs gap-1 shrink-0">
+              <Share2 size={12} />
+              {t('topnav.share')}
+            </Button>
+          ) : undefined}
+        />
+        {project && (
+          <ShareDialog
+            open={shareOpen}
+            onClose={() => setShareOpen(false)}
+            projectId={project._id}
+          />
+        )}
         <div className="flex flex-1 overflow-hidden">
           <GanttTaskPanel
             ref={taskPanelRef}
-            visibleRows={visibleRows}
+            visibleRows={filteredRows}
             onScrollY={onTaskPanelScroll}
             onAddFeature={(epicId) => setAddDialog({ mode: 'feature', epicId })}
             onAddTask={(epicId, featureId) => setAddDialog({ mode: 'task', epicId, featureId })}
@@ -599,7 +661,7 @@ export function GanttBoard() {
 
           <GanttTimeline
             ref={timelineRef}
-            visibleRows={visibleRows}
+            visibleRows={filteredRows}
             onScrollY={onTimelineScroll}
             dragDelta={dragDelta}
             justDragged={justDragged}

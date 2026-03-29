@@ -99,7 +99,6 @@ export default function ProjectPage({ params }: ProjectPageProps) {
       <div className="flex flex-col flex-1 overflow-hidden">
         <TopNavbar
           onSaveVersion={() => setSaveVersionOpen(true)}
-          onSearch={() => setSearchOpen(true)}
           sidebarOpen={sidebarOpen}
           onToggleSidebar={() => setSidebarOpen((v) => !v)}
         />

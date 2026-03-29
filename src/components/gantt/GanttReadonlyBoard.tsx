@@ -1,6 +1,7 @@
 'use client';
 
 import { useRef, useState, useMemo, useCallback, useEffect, useLayoutEffect } from 'react';
+import { KanbanToolbar, KanbanFilters, DEFAULT_KANBAN_FILTERS } from '@/components/kanban/KanbanToolbar';
 import { createPortal } from 'react-dom';
 import { differenceInCalendarDays, parseISO, isValid, addDays, startOfWeek } from 'date-fns';
 import { ZoomIn, ZoomOut, ChevronRight, ChevronDown, Crosshair, Eye, ChevronsDownUp, ChevronsUpDown } from 'lucide-react';
@@ -390,6 +391,14 @@ export function GanttReadonlyBoard({ project, statuses = [], users = [], expires
     setExpandedFeatures(new Set());
   }, []);
 
+  const [ganttFilters, setGanttFilters] = useState<KanbanFilters>(DEFAULT_KANBAN_FILTERS);
+  const hasActiveFilters = !!(ganttFilters.epicId || ganttFilters.assigneeId || ganttFilters.onlyOverdue || ganttFilters.hideDone || ganttFilters.search);
+
+  useEffect(() => {
+    if (hasActiveFilters) expandAll();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hasActiveFilters]);
+
   const rows = useMemo(
     () => buildRows(project, expandedEpics, expandedFeatures),
     [project, expandedEpics, expandedFeatures]
@@ -513,6 +522,39 @@ export function GanttReadonlyBoard({ project, statuses = [], users = [], expires
     ), 0
   );
 
+  const filteredRows = useMemo(() => {
+    const { epicId: epicFilter, assigneeId, onlyOverdue, hideDone, search } = ganttFilters;
+    const hasFilter = epicFilter || assigneeId || onlyOverdue || hideDone || search;
+    if (!hasFilter) return rows;
+
+    const base = epicFilter ? rows.filter((r) => r.epicId === epicFilter) : rows;
+    if (!assigneeId && !onlyOverdue && !hideDone && !search) return base;
+
+    const survivingFeatureIds = new Set<string>();
+    const survivingEpicIds = new Set<string>();
+    const now = new Date();
+
+    for (const row of base) {
+      if (row.level !== 'task') continue;
+      if (assigneeId && row.ownerId !== assigneeId) continue;
+      if (hideDone && finalValues.has(row.status)) continue;
+      if (onlyOverdue && (finalValues.has(row.status) || parseISO(row.plannedEnd) >= now)) continue;
+      if (search && !row.name.toLowerCase().includes(search.toLowerCase())) continue;
+      if (row.featureId) survivingFeatureIds.add(row.featureId);
+      survivingEpicIds.add(row.epicId);
+    }
+
+    return base.filter((row) => {
+      if (row.level === 'epic') return survivingEpicIds.has(row.epicId);
+      if (row.level === 'feature') return row.featureId ? survivingFeatureIds.has(row.featureId) : false;
+      if (assigneeId && row.ownerId !== assigneeId) return false;
+      if (hideDone && finalValues.has(row.status)) return false;
+      if (onlyOverdue && (finalValues.has(row.status) || parseISO(row.plannedEnd) >= now)) return false;
+      if (search && !row.name.toLowerCase().includes(search.toLowerCase())) return false;
+      return true;
+    });
+  }, [rows, ganttFilters, finalValues]);
+
   // Bar tooltip state
   const [tooltip, setTooltip] = useState<{ row: FlatRow; x: number; y: number } | null>(null);
 
@@ -581,6 +623,13 @@ export function GanttReadonlyBoard({ project, statuses = [], users = [], expires
         )}
       </header>
 
+      <KanbanToolbar
+        epics={project.epics}
+        filters={ganttFilters}
+        onFiltersChange={setGanttFilters}
+        users={users}
+      />
+
       <div className="flex flex-1 overflow-hidden">
         {/* ── Task Panel ────────────────────────────────────────── */}
         <div className="relative flex flex-col shrink-0" style={{ width: panelWidth }}>
@@ -611,7 +660,7 @@ export function GanttReadonlyBoard({ project, statuses = [], users = [], expires
             className="overflow-y-auto overflow-x-hidden gantt-scroll"
             onScroll={onPanelScroll}
           >
-            {rows.map((row) => {
+            {filteredRows.map((row) => {
               const groupColor = EPIC_COLORS_PANEL[row.epicColorIdx % EPIC_COLORS_PANEL.length];
               const statusConfig = statuses.find((s) => s.value === row.status);
               const isFinal = statusConfig?.isFinal ?? false;
@@ -770,7 +819,7 @@ export function GanttReadonlyBoard({ project, statuses = [], users = [], expires
 
             {/* Rows */}
             <div style={{ position: 'relative' }}>
-              {rows.map((row) => {
+              {filteredRows.map((row) => {
                 const groupColor = EPIC_COLORS_TIMELINE[row.epicColorIdx % EPIC_COLORS_TIMELINE.length];
                 const bLeft = barLeft(row.plannedStart);
                 const bWidth = barWidth(row.plannedStart, row.plannedEnd);

@@ -957,6 +957,16 @@
     "dueDate": "Due {date}",
     "overdueShort": "{days}d late",
     "featureBadge": "{featureLabel}",
-    "itemsCount": "{count, plural, one {# item} other {# items}}"
+    "itemsCount": "{count, plural, one {# item} other {# items}}",
+    "subtasksCount": "{count, plural, one {# subtask} other {# subtasks}}",
+    "standaloneSection": "Standalone {featureLabel}s",
+    "filterAssignee": "Assignee",
+    "filterOverdue": "Overdue only",
+    "filterHideDone": "Hide done",
+    "filterSearch": "Search...",
+    "allAssignees": "All assignees",
+    "noResults": "No items match the current filters.",
+    "clearFilters": "Clear filters",
+    "filters": "Filters"
   }
 }

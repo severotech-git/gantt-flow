@@ -22,6 +22,8 @@ interface KanbanCardProps {
   epicName: string;
   epicColor?: string;
   featureName: string;
+  /** When true, hides the breadcrumb row (used inside feature swim lanes where context is shown in the lane header) */
+  compact?: boolean;
   disabled?: boolean;
 }
 
@@ -34,6 +36,7 @@ export function KanbanCard({
   epicName,
   epicColor,
   featureName,
+  compact,
   disabled,
 }: KanbanCardProps) {
   const t = useTranslations('kanban');
@@ -70,7 +73,6 @@ export function KanbanCard({
   const delayDays = getDelayDays(item.plannedEnd, item.actualEnd, isFinal);
   const isOverdue = delayDays > 0 && !isFinal;
 
-  // Left border color: red if overdue, status color for feature cards, transparent otherwise
   const leftBorderColor = isOverdue
     ? 'var(--destructive, #ef4444)'
     : isFeatureCard
@@ -99,10 +101,7 @@ export function KanbanCard({
   return (
     <div
       ref={setNodeRef}
-      style={{
-        ...style,
-        borderLeftColor: leftBorderColor,
-      }}
+      style={{ ...style, borderLeftColor: leftBorderColor }}
       {...listeners}
       {...attributes}
       role="button"
@@ -131,29 +130,30 @@ export function KanbanCard({
         {item.name}
       </p>
 
-      {/* Breadcrumb context */}
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <div className="flex items-center gap-1 mb-2 min-w-0">
-            {epicColor && (
-              <span
-                className="w-1.5 h-1.5 rounded-full shrink-0"
-                style={{ backgroundColor: epicColor }}
-              />
-            )}
-            <span className="text-[10px] text-muted-foreground truncate">
-              {breadcrumb}
-            </span>
-          </div>
-        </TooltipTrigger>
-        <TooltipContent side="bottom" className="text-xs">
-          {breadcrumb}
-        </TooltipContent>
-      </Tooltip>
+      {/* Breadcrumb context — hidden in compact mode (shown in swim lane header instead) */}
+      {!compact && (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <div className="flex items-center gap-1 mb-2 min-w-0">
+              {epicColor && (
+                <span
+                  className="w-1.5 h-1.5 rounded-full shrink-0"
+                  style={{ backgroundColor: epicColor }}
+                />
+              )}
+              <span className="text-[10px] text-muted-foreground truncate">
+                {breadcrumb}
+              </span>
+            </div>
+          </TooltipTrigger>
+          <TooltipContent side="bottom" className="text-xs">
+            {breadcrumb}
+          </TooltipContent>
+        </Tooltip>
+      )}
 
       {/* Footer: due date + completion + owner */}
       <div className="flex items-center gap-2 mt-auto">
-        {/* Due date */}
         {dueDateDisplay && (
           <div
             className={cn(
@@ -163,14 +163,11 @@ export function KanbanCard({
           >
             <CalendarDays size={10} />
             <span>
-              {isOverdue
-                ? t('overdueShort', { days: delayDays })
-                : dueDateDisplay}
+              {isOverdue ? t('overdueShort', { days: delayDays }) : dueDateDisplay}
             </span>
           </div>
         )}
 
-        {/* Completion bar */}
         <div className="flex-1 flex items-center gap-1 min-w-0">
           <div className="flex-1 h-1 bg-accent/60 rounded-full overflow-hidden">
             <div
@@ -185,12 +182,7 @@ export function KanbanCard({
           )}
         </div>
 
-        {/* Owner avatar */}
-        <OwnerAvatar
-          name={owner?.name}
-          color={owner?.color}
-          size={20}
-        />
+        <OwnerAvatar name={owner?.name} color={owner?.color} size={20} />
       </div>
     </div>
   );

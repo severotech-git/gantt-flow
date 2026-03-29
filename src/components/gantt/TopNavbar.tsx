@@ -11,25 +11,22 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Camera, ChevronDown, History, Search, Crosshair, Loader2, Eye, RotateCcw, Trash2, Share2, BarChart3, Columns3 } from 'lucide-react';
+import { Camera, ChevronDown, History, Crosshair, Loader2, Eye, RotateCcw, Trash2, BarChart3, Columns3 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useState } from 'react';
 import { PageNavbar } from '@/components/layout/PageNavbar';
 import { PresenceAvatars } from './PresenceAvatars';
 import { useTranslations } from 'next-intl';
-import { ShareDialog } from '@/components/dialogs/ShareDialog';
-import { useCanManage } from '@/hooks/useAccountRole';
 
 const SCALE_VALUES: TimelineScale[] = ['week', 'month', 'quarter'];
 
 interface TopNavbarProps {
   onSaveVersion: () => void;
-  onSearch: () => void;
   sidebarOpen: boolean;
   onToggleSidebar: () => void;
 }
 
-export function TopNavbar({ onSaveVersion, onSearch, sidebarOpen, onToggleSidebar }: TopNavbarProps) {
+export function TopNavbar({ onSaveVersion, sidebarOpen, onToggleSidebar }: TopNavbarProps) {
   const t = useTranslations('gantt.topnav');
   const {
     timelineScale,
@@ -49,8 +46,6 @@ export function TopNavbar({ onSaveVersion, onSearch, sidebarOpen, onToggleSideba
   const setViewMode = useProjectStore((s) => s.setViewMode);
 
   const [versionMenuOpen, setVersionMenuOpen] = useState(false);
-  const [shareOpen, setShareOpen] = useState(false);
-  const canManage = useCanManage();
   const project = useProjectStore(selectDisplayProject);
 
   // ── Slot: next to title ──────────────────────────────────────────────────
@@ -71,7 +66,7 @@ export function TopNavbar({ onSaveVersion, onSearch, sidebarOpen, onToggleSideba
           {t('views.gantt')}
         </button>
         <button
-          onClick={() => setViewMode('kanban')}
+          onClick={() => { if (isVersionReadOnly) clearVersion(); setViewMode('kanban'); }}
           className={cn(
             'px-3 py-1 text-xs font-medium rounded transition-colors flex items-center gap-1.5',
             viewMode === 'kanban'
@@ -149,26 +144,6 @@ export function TopNavbar({ onSaveVersion, onSearch, sidebarOpen, onToggleSideba
         </span>
       )}
 
-      {/* Search + Share */}
-      <div className="flex items-center gap-2">
-        <button
-          onClick={onSearch}
-          className="flex items-center gap-2 px-3 py-1.5 text-xs text-muted-foreground bg-accent/40 border border-border rounded-md hover:bg-accent transition-colors min-w-[160px]"
-        >
-          <Search size={12} />
-          <span className="flex-1 text-left">{t('searchPlaceholder')}</span>
-          <kbd className="text-[10px] text-muted-foreground/60 font-sans">⌘K</kbd>
-        </button>
-
-        {/* Share — Gantt only */}
-        {viewMode === 'gantt' && !isVersionReadOnly && project && canManage && (
-          <Button size="sm" variant="outline" onClick={() => setShareOpen(true)} className="h-7 px-3 text-xs gap-1">
-            <Share2 size={12} />
-            {t('share')}
-          </Button>
-        )}
-      </div>
-
       {/* Version picker — Gantt only */}
       {viewMode === 'gantt' && project && (
         <DropdownMenu open={versionMenuOpen} onOpenChange={setVersionMenuOpen}>
@@ -236,26 +211,18 @@ export function TopNavbar({ onSaveVersion, onSearch, sidebarOpen, onToggleSideba
           {t('saveSnapshot')}
         </Button>
       )}
+
     </>
   );
 
   return (
-    <>
-      <PageNavbar
-        title={project?.name ?? 'Searching...'}
-        titleColor={project?.color ?? undefined}
-        sidebarOpen={sidebarOpen}
-        onToggleSidebar={onToggleSidebar}
-        titleActions={titleActions}
-        actions={actions}
-      />
-      {project && (
-        <ShareDialog
-          open={shareOpen}
-          onClose={() => setShareOpen(false)}
-          projectId={project._id}
-        />
-      )}
-    </>
+    <PageNavbar
+      title={project?.name ?? 'Searching...'}
+      titleColor={project?.color ?? undefined}
+      sidebarOpen={sidebarOpen}
+      onToggleSidebar={onToggleSidebar}
+      titleActions={titleActions}
+      actions={actions}
+    />
   );
 }

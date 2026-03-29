@@ -957,6 +957,16 @@
     "dueDate": "Vence em {date}",
     "overdueShort": "{days}d atrasado",
     "featureBadge": "{featureLabel}",
-    "itemsCount": "{count, plural, one {# item} other {# itens}}"
+    "itemsCount": "{count, plural, one {# item} other {# itens}}",
+    "subtasksCount": "{count, plural, one {# subtarefa} other {# subtarefas}}",
+    "standaloneSection": "{featureLabel}s sem tarefas",
+    "filterAssignee": "Responsável",
+    "filterOverdue": "Apenas atrasados",
+    "filterHideDone": "Ocultar concluídos",
+    "filterSearch": "Buscar...",
+    "allAssignees": "Todos os responsáveis",
+    "noResults": "Nenhum item corresponde aos filtros atuais.",
+    "clearFilters": "Limpar filtros",
+    "filters": "Filtros"
   }
 }
