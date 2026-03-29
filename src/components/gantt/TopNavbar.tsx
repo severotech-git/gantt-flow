@@ -11,7 +11,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Camera, ChevronDown, History, Search, Crosshair, Loader2, Eye, RotateCcw, Trash2, Share2 } from 'lucide-react';
+import { Camera, ChevronDown, History, Search, Crosshair, Loader2, Eye, RotateCcw, Trash2, Share2, BarChart3, Columns3 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useState } from 'react';
 import { PageNavbar } from '@/components/layout/PageNavbar';
@@ -45,6 +45,9 @@ export function TopNavbar({ onSaveVersion, onSearch, sidebarOpen, onToggleSideba
     isSaving,
   } = useProjectStore();
 
+  const viewMode = useProjectStore((s) => s.viewMode);
+  const setViewMode = useProjectStore((s) => s.setViewMode);
+
   const [versionMenuOpen, setVersionMenuOpen] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
   const canManage = useCanManage();
@@ -53,26 +56,56 @@ export function TopNavbar({ onSaveVersion, onSearch, sidebarOpen, onToggleSideba
   // ── Slot: next to title ──────────────────────────────────────────────────
   const titleActions = (
     <>
-      {/* Scale toggles */}
+      {/* View mode toggle */}
       <div className="flex items-center bg-accent/60 rounded-md p-0.5 gap-0">
-        {SCALE_VALUES.map((value) => (
-          <button
-            key={value}
-            onClick={() => setTimelineScale(value)}
-            className={cn(
-              'px-3 py-1 text-xs font-medium rounded transition-colors',
-              timelineScale === value
-                ? 'bg-background text-foreground shadow-sm'
-                : 'text-muted-foreground hover:text-foreground'
-            )}
-          >
-            {t(`scales.${value}`)}
-          </button>
-        ))}
+        <button
+          onClick={() => setViewMode('gantt')}
+          className={cn(
+            'px-3 py-1 text-xs font-medium rounded transition-colors flex items-center gap-1.5',
+            viewMode === 'gantt'
+              ? 'bg-background text-foreground shadow-sm'
+              : 'text-muted-foreground hover:text-foreground'
+          )}
+        >
+          <BarChart3 size={12} />
+          {t('views.gantt')}
+        </button>
+        <button
+          onClick={() => setViewMode('kanban')}
+          className={cn(
+            'px-3 py-1 text-xs font-medium rounded transition-colors flex items-center gap-1.5',
+            viewMode === 'kanban'
+              ? 'bg-background text-foreground shadow-sm'
+              : 'text-muted-foreground hover:text-foreground'
+          )}
+        >
+          <Columns3 size={12} />
+          {t('views.kanban')}
+        </button>
       </div>
 
-      {/* Read-only version banner */}
-      {isVersionReadOnly && (
+      {/* Scale toggles — Gantt only */}
+      {viewMode === 'gantt' && (
+        <div className="flex items-center bg-accent/60 rounded-md p-0.5 gap-0">
+          {SCALE_VALUES.map((value) => (
+            <button
+              key={value}
+              onClick={() => setTimelineScale(value)}
+              className={cn(
+                'px-3 py-1 text-xs font-medium rounded transition-colors',
+                timelineScale === value
+                  ? 'bg-background text-foreground shadow-sm'
+                  : 'text-muted-foreground hover:text-foreground'
+              )}
+            >
+              {t(`scales.${value}`)}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* Read-only version banner — Gantt only */}
+      {viewMode === 'gantt' && isVersionReadOnly && (
         <div className="flex items-center text-xs font-medium">
           <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-l-md bg-amber-500/10 border border-amber-500/30 border-r-0 text-amber-600 dark:text-amber-400">
             <Eye size={12} className="shrink-0" />
@@ -88,15 +121,17 @@ export function TopNavbar({ onSaveVersion, onSearch, sidebarOpen, onToggleSideba
         </div>
       )}
 
-      {/* Jump to today */}
-      <button
-        onClick={jumpToToday}
-        title={t('jumpToToday')}
-        className="flex items-center gap-1.5 px-2 py-1.5 text-xs text-muted-foreground hover:text-foreground bg-accent/40 border border-border rounded-md hover:bg-accent transition-colors"
-      >
-        <Crosshair size={12} />
-        {t('today')}
-      </button>
+      {/* Jump to today — Gantt only */}
+      {viewMode === 'gantt' && (
+        <button
+          onClick={jumpToToday}
+          title={t('jumpToToday')}
+          className="flex items-center gap-1.5 px-2 py-1.5 text-xs text-muted-foreground hover:text-foreground bg-accent/40 border border-border rounded-md hover:bg-accent transition-colors"
+        >
+          <Crosshair size={12} />
+          {t('today')}
+        </button>
+      )}
     </>
   );
 
@@ -125,8 +160,8 @@ export function TopNavbar({ onSaveVersion, onSearch, sidebarOpen, onToggleSideba
           <kbd className="text-[10px] text-muted-foreground/60 font-sans">⌘K</kbd>
         </button>
 
-        {/* Share */}
-        {!isVersionReadOnly && project && canManage && (
+        {/* Share — Gantt only */}
+        {viewMode === 'gantt' && !isVersionReadOnly && project && canManage && (
           <Button size="sm" variant="outline" onClick={() => setShareOpen(true)} className="h-7 px-3 text-xs gap-1">
             <Share2 size={12} />
             {t('share')}
@@ -134,8 +169,8 @@ export function TopNavbar({ onSaveVersion, onSearch, sidebarOpen, onToggleSideba
         )}
       </div>
 
-      {/* Version picker */}
-      {project && (
+      {/* Version picker — Gantt only */}
+      {viewMode === 'gantt' && project && (
         <DropdownMenu open={versionMenuOpen} onOpenChange={setVersionMenuOpen}>
           <DropdownMenuTrigger asChild>
             <button className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs bg-accent/40 border border-border rounded-md text-muted-foreground hover:bg-accent hover:text-foreground transition-colors">
@@ -194,8 +229,8 @@ export function TopNavbar({ onSaveVersion, onSearch, sidebarOpen, onToggleSideba
         </DropdownMenu>
       )}
 
-      {/* Save Snapshot */}
-      {!isVersionReadOnly && project && (
+      {/* Save Snapshot — Gantt only */}
+      {viewMode === 'gantt' && !isVersionReadOnly && project && (
         <Button size="sm" onClick={onSaveVersion} className="h-7 px-3 text-xs bg-blue-600 hover:bg-blue-500 text-white gap-1.5">
           <Camera size={12} />
           {t('saveSnapshot')}

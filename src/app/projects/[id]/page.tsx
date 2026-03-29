@@ -6,6 +6,8 @@ import { useProjectStore, selectDisplayProject } from '@/store/useProjectStore';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { TopNavbar } from '@/components/gantt/TopNavbar';
 import { GanttBoard } from '@/components/gantt/GanttBoard';
+import { KanbanBoard } from '@/components/kanban/KanbanBoard';
+import { ItemDetailDrawer } from '@/components/gantt/ItemDetailDrawer';
 import { EditProjectDialog } from '@/components/dialogs/EditProjectDialog';
 import { SaveVersionDialog } from '@/components/dialogs/SaveVersionDialog';
 import { SearchDialog } from '@/components/dialogs/SearchDialog';
@@ -21,6 +23,7 @@ export default function ProjectPage({ params }: ProjectPageProps) {
   const router = useRouter();
   const { fetchProject, fetchVersions, clearActiveProject } = useProjectStore();
   const project = useProjectStore(selectDisplayProject);
+  const viewMode = useProjectStore((s) => s.viewMode);
   const isLoadingProject = useProjectStore((state) => state.isLoadingProject);
   const projectError = useProjectStore((state) => state.projectError);
 
@@ -101,9 +104,10 @@ export default function ProjectPage({ params }: ProjectPageProps) {
           onToggleSidebar={() => setSidebarOpen((v) => !v)}
         />
 
-        <GanttBoard />
+        {viewMode === 'gantt' ? <GanttBoard /> : <KanbanBoard />}
       </div>
 
+      <ItemDetailDrawer />
       <EditProjectDialog open={editProjectOpen} onClose={() => setEditProjectOpen(false)} />
       <SaveVersionDialog open={saveVersionOpen} onClose={() => setSaveVersionOpen(false)} />
       <SearchDialog open={searchOpen} onClose={() => setSearchOpen(false)} />

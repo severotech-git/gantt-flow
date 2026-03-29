@@ -16,7 +16,6 @@ import { useProjectStore, selectDisplayProject } from '@/store/useProjectStore';
 import { GanttTaskPanel, VisibleRow } from './GanttTaskPanel';
 import { GanttTimeline, GanttTimelineHandle } from './GanttTimeline';
 import { GanttBar, GanttBarData } from './GanttBar';
-import { ItemDetailDrawer } from './ItemDetailDrawer';
 import { AddItemDialog } from '@/components/dialogs/AddItemDialog';
 import { addDays, parseISO, isValid, differenceInCalendarDays } from 'date-fns';
 import { snapToWorkday } from '@/lib/dateUtils';
@@ -675,7 +674,6 @@ export function GanttBoard() {
         />
       )}
 
-      <ItemDetailDrawer />
     </DndContext>
   );
 }

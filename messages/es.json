@@ -326,6 +326,10 @@
       "moreUsers": "+{count} más"
     },
     "topnav": {
+      "views": {
+        "gantt": "Gantt",
+        "kanban": "Board"
+      },
       "scales": {
         "week": "Semana",
         "month": "Mes",
@@ -936,5 +940,23 @@
     "expiredDescription": "Este enlace compartido ya no está disponible.",
     "error": "Error",
     "tooManyRequests": "Demasiadas solicitudes. Por favor, intenta más tarde."
+  },
+  "kanban": {
+    "emptyBoard": "Aún no hay elementos en este proyecto.",
+    "emptyBoardSubtitle": "Agrega {epicLabel}s y {featureLabel}s en la vista Gantt para verlos aquí.",
+    "emptyColumn": "Sin elementos",
+    "allEpics": "Todos los {epicLabel}s",
+    "standaloneFeatures": "{featureLabel} sin tareas",
+    "dropHere": "Mover a {status}",
+    "collapse": "Contraer",
+    "expand": "Expandir",
+    "groupBy": "Agrupar por",
+    "noGrouping": "Sin agrupación",
+    "groupByEpic": "Agrupar por {epicLabel}",
+    "groupByFeature": "Agrupar por {featureLabel}",
+    "dueDate": "Vence {date}",
+    "overdueShort": "{days}d tarde",
+    "featureBadge": "{featureLabel}",
+    "itemsCount": "{count, plural, one {# elemento} other {# elementos}}"
   }
 }

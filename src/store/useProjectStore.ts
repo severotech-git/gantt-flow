@@ -43,6 +43,7 @@ interface ProjectState {
   // UI state
   isSaving: boolean;
   focusedBarId: string | null;
+  viewMode: 'gantt' | 'kanban';
 
   // Item detail drawer
   openItemRef: { epicId: string; featureId?: string; taskId?: string } | null;
@@ -104,6 +105,7 @@ interface ProjectActions {
   expandAll: () => void;
   collapseAll: () => void;
   setFocusedBarId: (id: string | null) => void;
+  setViewMode: (mode: 'gantt' | 'kanban') => void;
 
   // Item detail drawer
   openItem: (ref: { epicId: string; featureId?: string; taskId?: string }) => void;
@@ -162,6 +164,7 @@ export const useProjectStore = create<ProjectStore>()(
     zoomLevel: 1,
     isSaving: false,
     focusedBarId: null,
+    viewMode: 'gantt',
     openItemRef: null,
 
     // ── Project list ────────────────────────────────────────────────────────
@@ -731,6 +734,10 @@ export const useProjectStore = create<ProjectStore>()(
 
     setFocusedBarId: (id) => {
       set((s) => { s.focusedBarId = id; });
+    },
+
+    setViewMode: (mode) => {
+      set((s) => { s.viewMode = mode; });
     },
 
     // ── Real-time: apply remote action without persisting ──────────────────
