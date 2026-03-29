@@ -10,7 +10,7 @@ export interface IProjectSnapshotDocument extends Document {
 const ProjectSnapshotSchema = new Schema<IProjectSnapshotDocument>(
   {
     projectId: { type: Schema.Types.ObjectId, ref: 'Project', required: true, index: true },
-    versionName: { type: String, required: true, trim: true },
+    versionName: { type: String, required: true, trim: true, maxlength: 255 },
     snapshotData: { type: Schema.Types.Mixed, required: true },
   },
   {

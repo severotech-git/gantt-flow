@@ -119,7 +119,7 @@ export function KanbanFeatureRow({
   const owner = feature.ownerId ? users.find((u) => u.uid === feature.ownerId) : undefined;
 
   const totalTasks = feature.tasks.length;
-  const gridTemplate = `repeat(${statuses.length}, minmax(190px, 1fr))`;
+  const gridTemplate = `repeat(${statuses.length}, 280px)`;
 
   return (
     <div className="border-b border-border/30">

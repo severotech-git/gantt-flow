@@ -55,17 +55,17 @@ const MemberSchema = new Schema<IEmbeddedMember>(
 const UserConfigSchema = new Schema(
   {
     uid:   { type: String, required: true },
-    name:  { type: String, default: '' },
-    color: { type: String, default: '#6366f1' },
+    name:  { type: String, default: '', maxlength: 100 },
+    color: { type: String, default: '#6366f1', maxlength: 7 },
   },
   { _id: false, id: false }
 );
 
 const StatusConfigSchema = new Schema(
   {
-    value:    { type: String, required: true },
-    label:    { type: String, required: true },
-    color:    { type: String, required: true },
+    value:    { type: String, required: true, maxlength: 100 },
+    label:    { type: String, required: true, maxlength: 100 },
+    color:    { type: String, required: true, maxlength: 7 },
     isFinal:  { type: Boolean, default: false },
     isSystem: { type: Boolean, default: false },
   },
@@ -77,9 +77,9 @@ const SettingsSchema = new Schema(
     users:         { type: [UserConfigSchema], default: [] },
     allowWeekends: { type: Boolean, default: false },
     levelNames: {
-      epic:    { type: String, default: 'Epic' },
-      feature: { type: String, default: 'Feature' },
-      task:    { type: String, default: 'Task' },
+      epic:    { type: String, default: 'Epic', maxlength: 100 },
+      feature: { type: String, default: 'Feature', maxlength: 100 },
+      task:    { type: String, default: 'Task', maxlength: 100 },
     },
     statuses: { type: [StatusConfigSchema], default: DEFAULT_STATUSES },
   },
@@ -88,8 +88,8 @@ const SettingsSchema = new Schema(
 
 const AccountSchema = new Schema<IAccountDocument>(
   {
-    name:        { type: String, required: true, trim: true },
-    slug:        { type: String, required: true, unique: true, lowercase: true, trim: true },
+    name:        { type: String, required: true, trim: true, maxlength: 255 },
+    slug:        { type: String, required: true, unique: true, lowercase: true, trim: true, maxlength: 255 },
     plan:        { type: String, enum: ['trial', 'monthly-5', 'yearly-5', 'monthly-20', 'yearly-20'], default: 'trial' },
     stripeCustomerId: { type: String, sparse: true, index: true },
     onboardingComplete: { type: Boolean, default: false },

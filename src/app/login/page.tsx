@@ -132,6 +132,7 @@ function LoginPageContent() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder={t('emailPlaceholder')}
+              maxLength={254}
               disabled={loading}
               required
             />
@@ -151,6 +152,7 @@ function LoginPageContent() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder={t('passwordPlaceholder')}
+              maxLength={128}
               disabled={loading}
               required
             />

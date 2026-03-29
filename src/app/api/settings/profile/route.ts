@@ -15,6 +15,9 @@ export async function PATCH(req: NextRequest) {
     if (!name || typeof name !== 'string' || name.trim().length < 2) {
       return NextResponse.json({ error: 'Name must be at least 2 characters' }, { status: 400 });
     }
+    if (name.trim().length > 100) {
+      return NextResponse.json({ error: 'Name must be 100 characters or fewer' }, { status: 400 });
+    }
 
     await connectDB();
 

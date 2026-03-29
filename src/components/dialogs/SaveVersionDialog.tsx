@@ -51,6 +51,7 @@ export function SaveVersionDialog({ open, onClose }: SaveVersionDialogProps) {
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder={t('namePlaceholder')}
+              maxLength={255}
               className="focus-visible:ring-blue-500"
             />
           </div>

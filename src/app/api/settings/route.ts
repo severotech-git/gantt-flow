@@ -81,8 +81,43 @@ export async function PATCH(request: Request) {
     // account-level fields (owner/admin only)
     const $set: Record<string, unknown> = {};
     if (needsManage) {
-      for (const key of MANAGED_FIELDS) {
-        if (key in body) $set[`settings.${key}`] = body[key];
+      if ('levelNames' in body) {
+        const { epic, feature, task } = body.levelNames as Record<string, string>;
+        if (epic && typeof epic === 'string' && epic.trim().length > 100) {
+          return NextResponse.json({ error: 'epic level name must be 100 characters or fewer' }, { status: 400 });
+        }
+        if (feature && typeof feature === 'string' && feature.trim().length > 100) {
+          return NextResponse.json({ error: 'feature level name must be 100 characters or fewer' }, { status: 400 });
+        }
+        if (task && typeof task === 'string' && task.trim().length > 100) {
+          return NextResponse.json({ error: 'task level name must be 100 characters or fewer' }, { status: 400 });
+        }
+        $set['settings.levelNames'] = body.levelNames;
+      }
+      if ('statuses' in body) {
+        const statuses = body.statuses as Array<Record<string, unknown>>;
+        if (Array.isArray(statuses)) {
+          for (const s of statuses) {
+            if (s.label && typeof s.label === 'string' && s.label.trim().length > 100) {
+              return NextResponse.json({ error: 'status label must be 100 characters or fewer' }, { status: 400 });
+            }
+          }
+        }
+        $set['settings.statuses'] = body.statuses;
+      }
+      if ('users' in body) {
+        const users = body.users as Array<Record<string, unknown>>;
+        if (Array.isArray(users)) {
+          for (const u of users) {
+            if (u.name && typeof u.name === 'string' && u.name.trim().length > 100) {
+              return NextResponse.json({ error: 'user name must be 100 characters or fewer' }, { status: 400 });
+            }
+          }
+        }
+        $set['settings.users'] = body.users;
+      }
+      if ('allowWeekends' in body) {
+        $set['settings.allowWeekends'] = body.allowWeekends;
       }
     }
     if (Object.keys($set).length > 0) {

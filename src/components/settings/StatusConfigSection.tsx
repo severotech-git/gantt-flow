@@ -196,6 +196,7 @@ function StatusRow({ status, idx, total, readonly, usageCount, deleteDisabled, o
         value={status.label}
         onChange={(e) => !readonly && onUpdate({ label: e.target.value })}
         disabled={readonly}
+        maxLength={100}
         className="flex-1 h-7 text-xs focus-visible:ring-blue-500"
       />
 

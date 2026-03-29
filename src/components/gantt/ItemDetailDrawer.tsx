@@ -214,7 +214,7 @@ export function ItemDetailDrawer() {
 
   return (
     <Sheet open={!!openItemRef} onOpenChange={(open) => { if (!open) closeItem(); }}>
-      <SheetContent showCloseButton={false} className="overflow-hidden flex flex-col gap-0 p-0">
+      <SheetContent showCloseButton={false} className="overflow-hidden flex flex-col gap-0 p-0" onOpenAutoFocus={(e) => e.preventDefault()}>
         <SheetTitle className="sr-only">{item?.data.name} Details</SheetTitle>
         {item && (
           <Tabs defaultValue="details" className="flex-1 min-h-0 flex flex-col overflow-hidden">
@@ -227,20 +227,24 @@ export function ItemDetailDrawer() {
                     <StatusBadge status={item.data.status} className="text-[9px]" />
                     <span className="text-xs font-mono text-muted-foreground">{itemLabel}</span>
                   </div>
-                  <input
-                    type="text"
-                    value={nameDraft}
-                    onChange={(e) => setNameDraft(e.target.value)}
-                    onBlur={() => {
-                      const next = nameDraft.trim();
-                      if (!next) { setNameDraft(item.data.name); return; }
-                      if (next !== item.data.name) {
-                        writeChangelog('name', item.data.name, next);
-                        patchItem({ name: next });
-                      }
-                    }}
-                    className="w-full text-lg font-semibold bg-transparent border-0 focus:outline-none p-0 focus:ring-0 leading-snug"
-                  />
+                  <div className="flex items-baseline justify-between gap-2">
+                    <input
+                      type="text"
+                      value={nameDraft}
+                      onChange={(e) => setNameDraft(e.target.value)}
+                      onBlur={() => {
+                        const next = nameDraft.trim();
+                        if (!next) { setNameDraft(item.data.name); return; }
+                        if (next !== item.data.name) {
+                          writeChangelog('name', item.data.name, next);
+                          patchItem({ name: next });
+                        }
+                      }}
+                      maxLength={255}
+                      className="flex-1 text-lg font-semibold bg-transparent border-0 focus:outline-none p-0 focus:ring-0 leading-snug"
+                    />
+                    <p className="text-[10px] text-muted-foreground/60 shrink-0">{nameDraft.length}/255</p>
+                  </div>
                 </div>
                 <SheetClose className="flex-shrink-0 mt-0.5 rounded-md opacity-60 hover:opacity-100 hover:bg-muted p-1.5 transition-all" />
               </div>
@@ -502,13 +506,17 @@ function DrawerDescription({
 
   return (
     <div className="space-y-2">
-      <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-        {t('description')}
-      </label>
+      <div className="flex items-center justify-between">
+        <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+          {t('description')}
+        </label>
+        <span className="text-[10px] text-muted-foreground/60">{draft.length}/5000</span>
+      </div>
       <textarea
         value={draft}
         onChange={(e) => handleChange(e.target.value)}
         placeholder={t('noDescription')}
+        maxLength={5000}
         rows={5}
         className="w-full text-sm bg-muted/40 border rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/50 resize-none leading-relaxed transition-all"
       />
@@ -589,6 +597,7 @@ function DrawerActivity({
             onChange={(e) => setCommentDraft(e.target.value)}
             onKeyDown={handleSubmit}
             placeholder={t('addComment')}
+            maxLength={5000}
             rows={3}
             className="w-full text-sm bg-transparent px-4 pt-3 pb-1 focus:outline-none resize-none leading-relaxed"
           />

@@ -636,9 +636,9 @@ export function GanttBoard() {
           filters={filters}
           onFiltersChange={setFilters}
           rightSlot={!isVersionReadOnly && canManage && project ? (
-            <Button size="sm" variant="outline" onClick={() => setShareOpen(true)} className="h-7 px-3 text-xs gap-1 shrink-0">
+            <Button size="sm" variant="outline" onClick={() => setShareOpen(true)} title={t('topnav.share')} className="h-7 px-2 lg:px-3 text-xs gap-1 shrink-0">
               <Share2 size={12} />
-              {t('topnav.share')}
+              <span className="hidden lg:inline">{t('topnav.share')}</span>
             </Button>
           ) : undefined}
         />

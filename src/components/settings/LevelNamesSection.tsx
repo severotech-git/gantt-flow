@@ -58,6 +58,7 @@ export function LevelNamesSection() {
               value={local[key]}
               onChange={(e) => setLocal((p) => ({ ...p, [key]: e.target.value }))}
               placeholder={DEFAULTS[key]}
+              maxLength={100}
               disabled={!canManage}
               className="focus-visible:ring-blue-500"
             />

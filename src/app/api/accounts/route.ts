@@ -46,6 +46,9 @@ export async function POST(req: NextRequest) {
     }
 
     const name = body.name.trim();
+    if (name.length > 255) {
+      return NextResponse.json({ error: 'name must be 255 characters or fewer' }, { status: 400 });
+    }
     let slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'workspace';
     const existing = await Account.findOne({ slug });
     if (existing) slug = `${slug}-${Date.now()}`;

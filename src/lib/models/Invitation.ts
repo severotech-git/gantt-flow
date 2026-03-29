@@ -14,8 +14,8 @@ const InvitationSchema = new Schema<IInvitationDocument>(
   {
     accountId:       { type: Schema.Types.ObjectId, ref: 'Account', required: true, index: true },
     invitedByUserId: { type: String, required: true },
-    email:           { type: String, required: true, lowercase: true, trim: true },
-    token:           { type: String, required: true, unique: true },
+    email:           { type: String, required: true, lowercase: true, trim: true, maxlength: 254 },
+    token:           { type: String, required: true, unique: true, maxlength: 64 },
     role:            { type: String, enum: ['admin', 'member'], default: 'member' },
     status:          { type: String, enum: ['pending', 'accepted', 'rejected', 'canceled'], default: 'pending' },
     expiresAt:       { type: Date, required: true },

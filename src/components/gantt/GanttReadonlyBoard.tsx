@@ -4,7 +4,7 @@ import { useRef, useState, useMemo, useCallback, useEffect, useLayoutEffect } fr
 import { KanbanToolbar, KanbanFilters, DEFAULT_KANBAN_FILTERS } from '@/components/kanban/KanbanToolbar';
 import { createPortal } from 'react-dom';
 import { differenceInCalendarDays, parseISO, isValid, addDays, startOfWeek } from 'date-fns';
-import { ZoomIn, ZoomOut, ChevronRight, ChevronDown, Crosshair, Eye, ChevronsDownUp, ChevronsUpDown } from 'lucide-react';
+import { ZoomIn, ZoomOut, ChevronRight, ChevronDown, Crosshair, Eye, ChevronsDownUp, ChevronsUpDown, CalendarDays, CalendarRange, Layers } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useFormatter, useTranslations, type DateTimeFormatOptions } from 'next-intl';
 import { OwnerAvatar } from '@/components/shared/OwnerAvatar';
@@ -18,6 +18,7 @@ import type { IProject, IStatusConfig, IUserConfig } from '@/types';
 const PX_PER_DAY_MAP: Record<string, number> = { week: 28, month: 10, quarter: 4 };
 const SCALE_VALUES = ['week', 'month', 'quarter'] as const;
 type Scale = typeof SCALE_VALUES[number];
+const SCALE_ICONS = { week: CalendarDays, month: CalendarRange, quarter: Layers };
 const ZOOM_STEPS = [0.25, 0.5, 0.75, 1, 1.25, 1.5, 2, 3, 4];
 const ROW_H = 36;
 const PANEL_MIN = 200;
@@ -562,44 +563,49 @@ export function GanttReadonlyBoard({ project, statuses = [], users = [], expires
     <div className="flex flex-col h-full overflow-hidden">
 
       {/* ── Top Navbar ──────────────────────────────────────────── */}
-      <header className="flex items-center h-12 px-4 gap-3 border-b border-border bg-surface-2 shrink-0">
+      <header className="flex items-center h-12 px-4 gap-3 border-b border-border bg-surface-2 shrink-0 overflow-x-auto">
         {/* Project name */}
-        <h1 className="flex items-center gap-2 font-semibold text-sm text-foreground truncate shrink-0">
+        <h1 className="flex items-center gap-2 font-semibold text-sm text-foreground min-w-0 w-[100px] md:w-[160px] lg:w-auto lg:max-w-[240px] shrink-0">
           {project.color && (
             <span className="inline-block w-2.5 h-2.5 rounded-full shrink-0" style={{ background: project.color }} />
           )}
-          {project.name}
+          <span className="truncate">{project.name}</span>
         </h1>
 
         {/* Scale toggles */}
-        <div className="flex items-center bg-accent/60 rounded-md p-0.5 gap-0">
-          {SCALE_VALUES.map((value) => (
-            <button
-              key={value}
-              onClick={() => setScale(value)}
-              className={cn(
-                'px-3 py-1 text-xs font-medium rounded transition-colors',
-                scale === value
-                  ? 'bg-background text-foreground shadow-sm'
-                  : 'text-muted-foreground hover:text-foreground'
-              )}
-            >
-              {t(`topnav.scales.${value}`)}
-            </button>
-          ))}
+        <div className="flex items-center bg-accent/60 rounded-md p-0.5 gap-0 shrink-0">
+          {SCALE_VALUES.map((value) => {
+            const Icon = SCALE_ICONS[value];
+            return (
+              <button
+                key={value}
+                onClick={() => setScale(value)}
+                title={t(`topnav.scales.${value}`)}
+                className={cn(
+                  'p-2 sm:px-3 sm:py-1 text-xs font-medium rounded transition-colors flex items-center gap-1.5',
+                  scale === value
+                    ? 'bg-background text-foreground shadow-sm'
+                    : 'text-muted-foreground hover:text-foreground'
+                )}
+              >
+                <Icon size={13} className="shrink-0" />
+                <span className="hidden sm:inline">{t(`topnav.scales.${value}`)}</span>
+              </button>
+            );
+          })}
         </div>
 
         {/* Jump to today */}
         <button
           onClick={jumpToToday}
           title={t('topnav.jumpToToday')}
-          className="flex items-center gap-1.5 px-2 py-1.5 text-xs text-muted-foreground hover:text-foreground bg-accent/40 border border-border rounded-md hover:bg-accent transition-colors"
+          className="flex items-center gap-1.5 p-2 md:px-2 md:py-1.5 text-xs text-muted-foreground hover:text-foreground bg-accent/40 border border-border rounded-md hover:bg-accent transition-colors shrink-0"
         >
-          <Crosshair size={12} />
-          {t('topnav.today')}
+          <Crosshair size={13} />
+          <span className="hidden md:inline">{t('topnav.today')}</span>
         </button>
 
-        <div className="flex-1" />
+        <div className="flex-1 min-w-0" />
 
         {/* Language & theme controls */}
         <LanguageSwitcher variant="dropdown" />

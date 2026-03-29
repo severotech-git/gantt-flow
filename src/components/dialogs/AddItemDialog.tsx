@@ -113,6 +113,7 @@ export function AddItemDialog({ open, onClose, mode, epicId, featureId }: AddIte
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder={t('namePlaceholder', { levelLabel })}
+              maxLength={255}
               className="focus-visible:ring-blue-500"
             />
           </div>

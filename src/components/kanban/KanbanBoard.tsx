@@ -238,7 +238,7 @@ export function KanbanBoard() {
 
   const hasFilteredResults = featureGroups.length > 0 || standaloneEntries.length > 0;
   const isDragging = activeDragId !== null;
-  const gridTemplate = `repeat(${statuses.length}, minmax(190px, 1fr))`;
+  const gridTemplate = `repeat(${statuses.length}, 280px)`;
 
   return (
     <DndContext
@@ -321,7 +321,7 @@ export function KanbanBoard() {
       {/* Drag overlay */}
       <DragOverlay dropAnimation={null}>
         {activeDragData && (
-          <div className={cn('w-[220px] shadow-xl ring-2 ring-primary/30 scale-[1.02] rounded-lg pointer-events-none')}>
+          <div className={cn('w-[280px] shadow-xl ring-2 ring-primary/30 scale-[1.02] rounded-lg pointer-events-none')}>
             <KanbanCard
               item={activeDragData.item}
               epicId={activeDragData.epicId}

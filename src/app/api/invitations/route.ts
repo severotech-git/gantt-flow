@@ -84,6 +84,9 @@ export async function POST(req: NextRequest) {
     if (!email || typeof email !== 'string') {
       return NextResponse.json({ error: 'email is required', code: 'EMAIL_REQUIRED' }, { status: 400 });
     }
+    if (email.length > 254) {
+      return NextResponse.json({ error: 'email must be 254 characters or fewer', code: 'EMAIL_TOO_LONG' }, { status: 400 });
+    }
     if (!['admin', 'member'].includes(role)) {
       return NextResponse.json({ error: 'Invalid role', code: 'INVALID_ROLE' }, { status: 400 });
     }

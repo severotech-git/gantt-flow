@@ -140,6 +140,7 @@ function RegisterPageContent() {
               value={formData.name}
               onChange={handleChange}
               placeholder={t('namePlaceholder')}
+              maxLength={100}
               disabled={loading}
               required
             />
@@ -155,6 +156,7 @@ function RegisterPageContent() {
               value={formData.email}
               onChange={handleChange}
               placeholder={t('emailPlaceholder')}
+              maxLength={254}
               disabled={loading}
               required
             />
@@ -171,6 +173,7 @@ function RegisterPageContent() {
               onChange={handleChange}
               onFocus={() => setPasswordFocused(true)}
               placeholder={t('passwordPlaceholder')}
+              maxLength={128}
               disabled={loading}
               required
             />
@@ -199,6 +202,7 @@ function RegisterPageContent() {
               value={formData.confirmPassword}
               onChange={handleChange}
               placeholder={t('confirmPasswordPlaceholder')}
+              maxLength={128}
               disabled={loading}
               required
             />

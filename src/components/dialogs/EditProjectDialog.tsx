@@ -101,6 +101,7 @@ export function EditProjectDialog({ open, onClose, project: propProject }: EditP
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder={t('namePlaceholder')}
+              maxLength={255}
               className="focus-visible:ring-blue-500"
             />
           </div>
@@ -110,6 +111,7 @@ export function EditProjectDialog({ open, onClose, project: propProject }: EditP
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder={t('descriptionPlaceholder')}
+              maxLength={5000}
               className="focus-visible:ring-blue-500"
             />
           </div>

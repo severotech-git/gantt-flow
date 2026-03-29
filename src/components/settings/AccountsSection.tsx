@@ -224,6 +224,7 @@ export function AccountsSection() {
               onChange={(e) => { setEditName(e.target.value); setEditError(''); }}
               onKeyDown={(e) => { if (e.key === 'Enter') handleRename(); }}
               placeholder={t('workspaceNamePlaceholder')}
+              maxLength={255}
               autoFocus
               className="focus-visible:ring-blue-500"
             />

@@ -46,13 +46,37 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'epics array is required and must not be empty' }, { status: 400 });
     }
 
-    // Count total items across all levels
+    // Count total items and validate field lengths
     let totalItems = body.epics.length;
     for (const epic of body.epics) {
+      if (epic.name && typeof epic.name === 'string' && epic.name.length > 255) {
+        return NextResponse.json({ error: 'Epic name must be 255 characters or fewer' }, { status: 400 });
+      }
+      if (epic.description && typeof epic.description === 'string' && epic.description.length > 5000) {
+        return NextResponse.json({ error: 'Epic description must be 5000 characters or fewer' }, { status: 400 });
+      }
       const features = Array.isArray(epic.features) ? epic.features : [];
       totalItems += features.length;
       for (const feature of features) {
-        totalItems += Array.isArray(feature.tasks) ? feature.tasks.length : 0;
+        if (feature.name && typeof feature.name === 'string' && feature.name.length > 255) {
+          return NextResponse.json({ error: 'Feature name must be 255 characters or fewer' }, { status: 400 });
+        }
+        if (feature.description && typeof feature.description === 'string' && feature.description.length > 5000) {
+          return NextResponse.json({ error: 'Feature description must be 5000 characters or fewer' }, { status: 400 });
+        }
+        const tasks = Array.isArray(feature.tasks) ? feature.tasks : [];
+        totalItems += tasks.length;
+        for (const task of tasks) {
+          if (task.name && typeof task.name === 'string' && task.name.length > 255) {
+            return NextResponse.json({ error: 'Task name must be 255 characters or fewer' }, { status: 400 });
+          }
+          if (task.description && typeof task.description === 'string' && task.description.length > 5000) {
+            return NextResponse.json({ error: 'Task description must be 5000 characters or fewer' }, { status: 400 });
+          }
+          if (task.notes && typeof task.notes === 'string' && task.notes.length > 5000) {
+            return NextResponse.json({ error: 'Task notes must be 5000 characters or fewer' }, { status: 400 });
+          }
+        }
       }
     }
     if (totalItems > MAX_TOTAL_ITEMS) {

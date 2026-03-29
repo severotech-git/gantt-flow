@@ -126,14 +126,14 @@ export function KanbanToolbar({ epics, filters, onFiltersChange, users: propUser
         onClick={() => set({ onlyOverdue: !filters.onlyOverdue })}
         title={t('filterOverdue')}
         className={cn(
-          'flex items-center gap-1.5 h-7 px-2.5 rounded-md text-xs font-medium border transition-colors shrink-0',
+          'flex items-center gap-1.5 h-7 w-7 lg:w-auto lg:px-2.5 justify-center rounded-md text-xs font-medium border transition-colors shrink-0',
           filters.onlyOverdue
             ? 'bg-destructive/15 border-destructive/40 text-destructive'
             : 'border-border/60 text-muted-foreground hover:text-foreground hover:bg-accent/60'
         )}
       >
-        <AlertCircle size={11} />
-        {t('filterOverdue')}
+        <AlertCircle size={13} />
+        <span className="hidden lg:inline">{t('filterOverdue')}</span>
       </button>
 
       {/* Hide done toggle */}
@@ -141,24 +141,25 @@ export function KanbanToolbar({ epics, filters, onFiltersChange, users: propUser
         onClick={() => set({ hideDone: !filters.hideDone })}
         title={t('filterHideDone')}
         className={cn(
-          'flex items-center gap-1.5 h-7 px-2.5 rounded-md text-xs font-medium border transition-colors shrink-0',
+          'flex items-center gap-1.5 h-7 w-7 lg:w-auto lg:px-2.5 justify-center rounded-md text-xs font-medium border transition-colors shrink-0',
           filters.hideDone
             ? 'bg-primary/10 border-primary/30 text-primary'
             : 'border-border/60 text-muted-foreground hover:text-foreground hover:bg-accent/60'
         )}
       >
-        <CheckCircle2 size={11} />
-        {t('filterHideDone')}
+        <CheckCircle2 size={13} />
+        <span className="hidden lg:inline">{t('filterHideDone')}</span>
       </button>
 
       {/* Clear filters */}
       {hasActiveFilters && (
         <button
           onClick={clearAll}
-          className="flex items-center gap-1 h-7 px-2 rounded-md text-xs text-muted-foreground hover:text-foreground hover:bg-accent/60 transition-colors shrink-0"
+          title={t('clearFilters')}
+          className="flex items-center gap-1 h-7 w-7 lg:w-auto justify-center rounded-md text-xs text-muted-foreground hover:text-foreground hover:bg-accent/60 transition-colors shrink-0"
         >
-          <X size={11} />
-          {t('clearFilters')}
+          <X size={13} />
+          <span className="hidden lg:inline">{t('clearFilters')}</span>
         </button>
       )}
 

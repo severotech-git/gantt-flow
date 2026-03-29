@@ -62,6 +62,7 @@ export function NewProjectDialog({ open, onClose }: NewProjectDialogProps) {
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder={t('namePlaceholder')}
+              maxLength={255}
               className="focus-visible:ring-blue-500"
             />
           </div>
@@ -71,6 +72,7 @@ export function NewProjectDialog({ open, onClose }: NewProjectDialogProps) {
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder={t('descriptionPlaceholder')}
+              maxLength={5000}
               className="focus-visible:ring-blue-500"
             />
           </div>

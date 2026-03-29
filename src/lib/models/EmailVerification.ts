@@ -10,9 +10,9 @@ export interface IEmailVerification extends Document {
 
 const EmailVerificationSchema = new Schema<IEmailVerification>({
   userId: { type: String, required: true, index: true },
-  token: { type: String, required: true, unique: true },
+  token: { type: String, required: true, unique: true, maxlength: 64 },
   expiresAt: { type: Date, required: true },
-  bypassToken: { type: String, sparse: true, index: true },
+  bypassToken: { type: String, sparse: true, index: true, maxlength: 64 },
   bypassExpiresAt: { type: Date },
 });
 

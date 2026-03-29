@@ -79,6 +79,7 @@ export function ProfileSection() {
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="Your name"
+            maxLength={100}
             disabled={status === 'loading'}
           />
         </div>

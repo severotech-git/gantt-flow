@@ -78,6 +78,7 @@ export function InviteMemberDialog({ open, onOpenChange }: InviteMemberDialogPro
               placeholder={t('emailPlaceholder')}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              maxLength={254}
               disabled={loading || success}
               required
             />

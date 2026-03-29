@@ -38,7 +38,7 @@ export function PageNavbar({
   const t = useTranslations('layout.navbar');
 
   return (
-    <header className="flex items-center h-12 px-4 gap-3 border-b border-border bg-surface-2 shrink-0">
+    <header className="flex items-center h-12 px-4 gap-3 border-b border-border bg-surface-2 shrink-0 overflow-x-auto">
       {/* Sidebar toggle */}
       <button
         onClick={onToggleSidebar}
@@ -49,24 +49,24 @@ export function PageNavbar({
       </button>
 
       {/* Title */}
-      <h1 className="flex items-center gap-2 font-semibold text-sm text-foreground truncate shrink-0">
+      <h1 className="flex items-center gap-2 font-semibold text-sm text-foreground min-w-0 w-[100px] md:w-[160px] lg:w-auto lg:max-w-[240px] shrink-0">
         {titleColor && (
           <span className="inline-block w-2.5 h-2.5 rounded-full shrink-0" style={{ background: titleColor }} />
         )}
-        {title}
+        <span className="truncate">{title}</span>
       </h1>
 
       {/* Slot: next to title */}
       {titleActions && (
-        <div className="flex items-center gap-2 min-w-0">
+        <div className="flex items-center gap-2 shrink-0">
           {titleActions}
         </div>
       )}
 
-      <div className="flex-1" />
+      <div className="flex-1 min-w-0" />
 
       {/* Slot: right side */}
-      <div className="flex items-center gap-4 shrink-0">
+      <div className="flex items-center gap-2 lg:gap-4 shrink-0">
         {actions && (
           <div className="flex items-center gap-2">
             {actions}

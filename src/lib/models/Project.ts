@@ -5,7 +5,7 @@ import mongoose, { Schema, Document, Model } from 'mongoose';
 const CommentSchema = new Schema(
   {
     authorId:  { type: String, required: true },
-    text:      { type: String, required: true },
+    text:      { type: String, required: true, maxlength: 5000 },
     createdAt: { type: Date, default: Date.now },
   },
   { _id: true }
@@ -13,7 +13,7 @@ const CommentSchema = new Schema(
 
 const TaskSchema = new Schema(
   {
-    name:          { type: String, required: true, trim: true },
+    name:          { type: String, required: true, trim: true, maxlength: 255 },
     status:        { type: String, default: 'todo' },
     ownerId:       { type: String },   // references IUserConfig.uid
     completionPct: { type: Number, min: 0, max: 100, default: 0 },
@@ -21,9 +21,9 @@ const TaskSchema = new Schema(
     plannedEnd:    { type: Date, required: true },
     actualStart:   { type: Date },
     actualEnd:     { type: Date },
-    notes:         { type: String },
-    description:   { type: String },
-    color:         { type: String },
+    notes:         { type: String, maxlength: 5000 },
+    description:   { type: String, maxlength: 5000 },
+    color:         { type: String, maxlength: 7 },
     dayCount:      { type: Number },
     comments:      { type: [CommentSchema], default: [] },
   },
@@ -32,7 +32,7 @@ const TaskSchema = new Schema(
 
 const FeatureSchema = new Schema(
   {
-    name:          { type: String, required: true, trim: true },
+    name:          { type: String, required: true, trim: true, maxlength: 255 },
     status:        { type: String, default: 'todo' },
     ownerId:       { type: String },   // references IUserConfig.uid
     completionPct: { type: Number, min: 0, max: 100, default: 0 },
@@ -40,8 +40,8 @@ const FeatureSchema = new Schema(
     plannedEnd:    { type: Date, required: true },
     actualStart:   { type: Date },
     actualEnd:     { type: Date },
-    description:   { type: String },
-    color:         { type: String },
+    description:   { type: String, maxlength: 5000 },
+    color:         { type: String, maxlength: 7 },
     dayCount:      { type: Number },
     collapsed:     { type: Boolean, default: false },
     tasks:         { type: [TaskSchema], default: [] },
@@ -52,7 +52,7 @@ const FeatureSchema = new Schema(
 
 const EpicSchema = new Schema(
   {
-    name:          { type: String, required: true, trim: true },
+    name:          { type: String, required: true, trim: true, maxlength: 255 },
     status:        { type: String, default: 'todo' },
     ownerId:       { type: String },   // references IUserConfig.uid
     completionPct: { type: Number, min: 0, max: 100, default: 0 },
@@ -60,8 +60,8 @@ const EpicSchema = new Schema(
     plannedEnd:    { type: Date, required: true },
     actualStart:   { type: Date },
     actualEnd:     { type: Date },
-    description:   { type: String },
-    color:         { type: String },
+    description:   { type: String, maxlength: 5000 },
+    color:         { type: String, maxlength: 7 },
     dayCount:      { type: Number },
     collapsed:     { type: Boolean, default: false },
     features:      { type: [FeatureSchema], default: [] },
@@ -85,10 +85,10 @@ export interface IProjectDocument extends Document {
 
 const ProjectSchema = new Schema<IProjectDocument>(
   {
-    name:           { type: String, required: true, trim: true },
-    description:    { type: String },
-    color:          { type: String, default: '#6366f1' },
-    currentVersion: { type: String, default: 'Live' },
+    name:           { type: String, required: true, trim: true, maxlength: 255 },
+    description:    { type: String, maxlength: 5000 },
+    color:          { type: String, default: '#6366f1', maxlength: 7 },
+    currentVersion: { type: String, default: 'Live', maxlength: 255 },
     archived:       { type: Boolean, default: false },
     accountId:      { type: Schema.Types.ObjectId, ref: 'Account', required: true, index: true },
     createdBy:      { type: String, required: true, index: true },

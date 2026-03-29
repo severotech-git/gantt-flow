@@ -15,13 +15,13 @@ export interface ISharedLinkDocument extends Document {
 
 const SharedLinkSchema = new Schema<ISharedLinkDocument>(
   {
-    token: { type: String, required: true, unique: true },
+    token: { type: String, required: true, unique: true, maxlength: 64 },
     projectId: { type: Schema.Types.ObjectId, ref: 'Project', required: true, index: true },
     accountId: { type: Schema.Types.ObjectId, ref: 'Account', required: true, index: true },
     mode: { type: String, enum: ['snapshot', 'live'], required: true },
     snapshotId: { type: Schema.Types.ObjectId, ref: 'ProjectSnapshot' },
     expiresAt: { type: Date, required: true },
-    emails: { type: [String], default: [] },
+    emails: { type: [{ type: String, maxlength: 254 }], default: [] },
     createdBy: { type: String, required: true },
     revokedAt: { type: Date },
   },

@@ -109,7 +109,7 @@ export function KanbanCard({
       onClick={handleClick}
       onKeyDown={handleKeyDown}
       className={cn(
-        'group bg-card border border-l-[3px] rounded-lg p-2.5 cursor-pointer select-none',
+        'group bg-card border border-l-[3px] rounded-lg p-3.5 cursor-pointer select-none overflow-hidden min-w-0',
         'hover:border-border hover:shadow-sm transition-all',
         isFeatureCard ? 'border-dashed border-border/80' : 'border-border/50',
         isDragging && 'opacity-40 shadow-lg'
@@ -126,7 +126,7 @@ export function KanbanCard({
       </div>
 
       {/* Item name */}
-      <p className="text-xs font-medium text-foreground leading-snug line-clamp-2 mb-1.5">
+      <p className="text-sm font-medium text-foreground leading-snug line-clamp-2 break-words mb-2">
         {item.name}
       </p>
 
@@ -157,11 +157,11 @@ export function KanbanCard({
         {dueDateDisplay && (
           <div
             className={cn(
-              'flex items-center gap-0.5 text-[10px] shrink-0',
+              'flex items-center gap-1 text-xs shrink-0',
               isOverdue ? 'text-destructive font-medium' : 'text-muted-foreground'
             )}
           >
-            <CalendarDays size={10} />
+            <CalendarDays size={12} />
             <span>
               {isOverdue ? t('overdueShort', { days: delayDays }) : dueDateDisplay}
             </span>
@@ -176,13 +176,13 @@ export function KanbanCard({
             />
           </div>
           {item.completionPct > 0 && (
-            <span className="text-[10px] text-muted-foreground shrink-0">
+            <span className="text-xs text-muted-foreground shrink-0">
               {item.completionPct}%
             </span>
           )}
         </div>
 
-        <OwnerAvatar name={owner?.name} color={owner?.color} size={20} />
+        <OwnerAvatar name={owner?.name} color={owner?.color} size={24} />
       </div>
     </div>
   );

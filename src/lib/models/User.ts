@@ -20,11 +20,13 @@ const UserSchema = new Schema<IUserDocument>(
       unique: true,
       lowercase: true,
       trim: true,
+      maxlength: 254,
     },
     name: {
       type: String,
       required: true,
       trim: true,
+      maxlength: 100,
     },
     emailVerified: {
       type: Date,
@@ -36,6 +38,7 @@ const UserSchema = new Schema<IUserDocument>(
     },
     image: {
       type: String,
+      maxlength: 2048,
     },
     mainAccountId: {
       type: String,
