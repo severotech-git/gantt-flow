@@ -26,8 +26,8 @@ import {
   Share2,
   ClipboardList,
   MessageSquare,
-  Globe,
   FileUp,
+  LayoutGrid,
 } from 'lucide-react';
 import Image, { type StaticImageData } from 'next/image';
 import { cn } from '@/lib/utils';
@@ -50,8 +50,8 @@ import heroScreenshot from '../../public/landing/gantt-print-screen.png';
 import structureImg from '../../public/landing/hierarchical-structure.png';
 import rollupImg from '../../public/landing/date-rollup.png';
 import snapshotImg from '../../public/landing/snapshot-save.png';
+import collaboratingImg from '../../public/landing/collaborating.png';
 import overdueImg from '../../public/landing/overdue.png';
-import timelineImg from '../../public/landing/flexible-timelines.png';
 import levelCustomImg from '../../public/landing/level-customization.png';
 import statusCustomImg from '../../public/landing/status-customization.png';
 import calendarCustomImg from '../../public/landing/calendar-customization.png';
@@ -139,25 +139,18 @@ export default function LandingPage() {
       image: structureImg
     },
     {
-      icon: <Zap className="w-6 h-6 text-primary" />,
-      title: t('features.automatedRollups.title'),
-      description: t('features.automatedRollups.description'),
-      bullets: [t('features.automatedRollups.bullet1'), t('features.automatedRollups.bullet2')],
-      image: rollupImg
-    },
-    {
-      icon: <History className="w-6 h-6 text-primary" />,
-      title: t('features.versionSnapshots.title'),
-      description: t('features.versionSnapshots.description'),
-      bullets: [t('features.versionSnapshots.bullet1'), t('features.versionSnapshots.bullet2')],
-      image: snapshotImg
-    },
-    {
       icon: <Clock className="w-6 h-6 text-primary" />,
       title: t('features.delayTracking.title'),
       description: t('features.delayTracking.description'),
       bullets: [t('features.delayTracking.bullet1'), t('features.delayTracking.bullet2')],
       image: overdueImg
+    },
+    {
+      icon: <Zap className="w-6 h-6 text-primary" />,
+      title: t('features.automatedRollups.title'),
+      description: t('features.automatedRollups.description'),
+      bullets: [t('features.automatedRollups.bullet1'), t('features.automatedRollups.bullet2')],
+      image: rollupImg
     },
     {
       icon: <Settings className="w-6 h-6 text-primary" />,
@@ -167,11 +160,18 @@ export default function LandingPage() {
       images: [levelCustomImg, statusCustomImg, calendarCustomImg]
     },
     {
-      icon: <Calendar className="w-6 h-6 text-primary" />,
-      title: t('features.flexibleTimelines.title'),
-      description: t('features.flexibleTimelines.description'),
-      bullets: [t('features.flexibleTimelines.bullet1'), t('features.flexibleTimelines.bullet2')],
-      image: timelineImg
+      icon: <History className="w-6 h-6 text-primary" />,
+      title: t('features.versionSnapshots.title'),
+      description: t('features.versionSnapshots.description'),
+      bullets: [t('features.versionSnapshots.bullet1'), t('features.versionSnapshots.bullet2')],
+      image: snapshotImg
+    },
+    {
+      icon: <Users className="w-6 h-6 text-primary" />,
+      title: t('features.realTimeCollab.title'),
+      description: t('features.realTimeCollab.description'),
+      bullets: [t('features.realTimeCollab.bullet1'), t('features.realTimeCollab.bullet2')],
+      image: collaboratingImg
     }
   ];
 
@@ -516,11 +516,11 @@ export default function LandingPage() {
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {[
-                { icon: <Users className="w-6 h-6" />, title: t('features.realTimeCollab.title'), description: t('features.realTimeCollab.description') },
+                { icon: <LayoutGrid className="w-6 h-6" />, title: t('features.kanbanBoard.title'), description: t('features.kanbanBoard.description') },
                 { icon: <Share2 className="w-6 h-6" />, title: t('features.projectSharing.title'), description: t('features.projectSharing.description') },
                 { icon: <ClipboardList className="w-6 h-6" />, title: t('features.changeHistory.title'), description: t('features.changeHistory.description') },
+                { icon: <Calendar className="w-6 h-6" />, title: t('features.flexibleTimelines.title'), description: t('features.flexibleTimelines.description') },
                 { icon: <MessageSquare className="w-6 h-6" />, title: t('features.teamComments.title'), description: t('features.teamComments.description') },
-                { icon: <Globe className="w-6 h-6" />, title: t('features.multiLanguage.title'), description: t('features.multiLanguage.description') },
                 { icon: <FileUp className="w-6 h-6" />, title: t('features.projectImport.title'), description: t('features.projectImport.description') },
               ].map((card, idx) => (
                 <div

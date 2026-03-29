@@ -35,7 +35,7 @@
     "hero": {
       "badge": "Prueba Gratuita de 30 Días Disponible Ahora",
       "headline": "Domina tu Cronograma con",
-      "subtitle": "La herramienta profesional de gestión de proyectos diseñada para equipos que necesitan más que una lista. Visualiza, rastrea y entrega roadmaps complejos con facilidad.",
+      "subtitle": "La herramienta profesional de gestión de proyectos diseñada para equipos que necesitan más que una lista. Alterna entre diagramas de Gantt y tableros Kanban para visualizar, rastrear y entregar roadmaps complejos a tu manera.",
       "cta": "Iniciar Prueba Gratuita de 30 Días",
       "goToProjects": "Ir a Proyectos",
       "noCreditCard": "Sin tarjeta de crédito. Configura en 2 minutos."
@@ -85,7 +85,13 @@
       "moreSubtitle": "Herramientas potentes de colaboración y transparencia integradas desde el inicio.",
       "realTimeCollab": {
         "title": "Colaboración en Tiempo Real",
-        "description": "Mira quién está conectado, sigue cursores en vivo y observa las ediciones en tiempo real. Todo tu equipo siempre sincronizado."
+        "description": "Mira quién está conectado, sigue cursores en vivo y observa las ediciones en tiempo real. Todo tu equipo siempre sincronizado — sin recargar la página, sin conflictos.",
+        "bullet1": "Los cursores en vivo y previews de arrastre muestran exactamente lo que hacen los compañeros",
+        "bullet2": "Los cambios se propagan al instante a todos los usuarios conectados"
+      },
+      "kanbanBoard": {
+        "title": "Vista de Tablero Kanban",
+        "description": "Cambia al instante de Gantt a Kanban y organiza tareas por estado. Agrupa por Epic o Feature con carriles plegables para un flujo de trabajo enfocado y sin desorden."
       },
       "projectSharing": {
         "title": "Links de Proyecto Compartibles",

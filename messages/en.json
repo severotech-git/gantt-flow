@@ -35,7 +35,7 @@
     "hero": {
       "badge": "Free 30-Day Trial Available Now",
       "headline": "Master Your Timeline with",
-      "subtitle": "The professional project management tool designed for teams who need more than just a list. Visualize, track, and deliver complex roadmaps with ease.",
+      "subtitle": "The professional project management tool designed for teams who need more than just a list. Switch between Gantt charts and Kanban boards to visualize, track, and deliver complex roadmaps your way.",
       "cta": "Start 30-Day Free Trial",
       "goToProjects": "Go to Projects",
       "noCreditCard": "No credit card required. Setup in 2 minutes."
@@ -85,7 +85,13 @@
       "moreSubtitle": "Powerful collaboration and transparency tools built right in.",
       "realTimeCollab": {
         "title": "Real-Time Collaboration",
-        "description": "See who's online, track live cursors, and watch edits happen in real time. Your whole team stays in sync."
+        "description": "See who's online, track live cursors, and watch edits happen in real time. Your whole team stays in sync — no page refreshes, no version conflicts.",
+        "bullet1": "Live cursors and drag previews show exactly what teammates are doing",
+        "bullet2": "Changes propagate instantly to every connected user"
+      },
+      "kanbanBoard": {
+        "title": "Kanban Board View",
+        "description": "Instantly switch from Gantt to Kanban and organize tasks by status. Group by Epic or Feature with collapsible swim lanes for a focused, clutter-free workflow."
       },
       "projectSharing": {
         "title": "Shareable Project Links",

@@ -35,7 +35,7 @@
     "hero": {
       "badge": "Teste Gratuito de 30 Dias Disponível Agora",
       "headline": "Domine seus Prazos com",
-      "subtitle": "A ferramenta profissional de gestão de projetos para equipes que precisam de mais do que uma lista. Visualize, acompanhe e entregue roadmaps complexos com facilidade.",
+      "subtitle": "A ferramenta profissional de gestão de projetos para equipes que precisam de mais do que uma lista. Alterne entre gráficos de Gantt e quadros Kanban para visualizar, acompanhar e entregar roadmaps complexos do seu jeito.",
       "cta": "Iniciar Teste Gratuito de 30 Dias",
       "goToProjects": "Ir para Projetos",
       "noCreditCard": "Sem cartão de crédito. Configure em 2 minutos."
@@ -85,7 +85,13 @@
       "moreSubtitle": "Ferramentas poderosas de colaboração e transparência integradas ao produto.",
       "realTimeCollab": {
         "title": "Colaboração em Tempo Real",
-        "description": "Veja quem está online, acompanhe cursores ao vivo e observe edições acontecendo em tempo real. Sua equipe sempre sincronizada."
+        "description": "Veja quem está online, acompanhe cursores ao vivo e observe edições em tempo real. Sua equipe sempre sincronizada — sem atualizações de página, sem conflitos.",
+        "bullet1": "Cursores ao vivo e previews de arraste mostram exatamente o que os colegas estão fazendo",
+        "bullet2": "Alterações se propagam instantaneamente para todos os usuários conectados"
+      },
+      "kanbanBoard": {
+        "title": "Visualização Kanban",
+        "description": "Alterne instantaneamente do Gantt para o Kanban e organize tarefas por status. Agrupe por Epic ou Feature com raias recolhíveis para um fluxo de trabalho focado e sem bagunça."
       },
       "projectSharing": {
         "title": "Links de Projeto Compartilháveis",

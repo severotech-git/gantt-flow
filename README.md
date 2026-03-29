@@ -15,7 +15,7 @@
 </p>
 
 <p align="center">
-  A full-featured, multi-tenant Gantt chart project management app with hierarchical task planning, live drag-and-drop scheduling, real-time collaboration, version snapshots, and fully customizable workspace settings.
+  A full-featured, multi-tenant project management app with hierarchical task planning, Gantt and Kanban views, live drag-and-drop scheduling, real-time collaboration, version snapshots, and fully customizable workspace settings.
 </p>
 
 ---
@@ -62,6 +62,15 @@
   - _Overview_ — dates, status, owner, and completion progress
   - _Comments_ — threaded team discussion per item, synced in real time
   - _Changelog_ — full field-level edit history with actor, timestamp, old and new values
+
+### Kanban Board
+
+- Switch between **Gantt** and **Kanban** views from the top navbar — the same project, two perspectives
+- Tasks organized as cards across status-based columns
+- **Swim lanes**: group cards by Epic, by Feature, or ungrouped — each group is individually collapsible
+- Filter by assignee, overdue status, completion, or a text search
+- Delay badges on overdue cards, consistent with the Gantt view
+- Drag cards between columns to update their status
 
 ### Real-Time Collaboration
 
