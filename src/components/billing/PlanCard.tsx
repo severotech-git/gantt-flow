@@ -28,7 +28,7 @@ export function PlanCard({ plan, isCurrent, isLoading, onSubscribe }: PlanCardPr
       )}
     >
       {isYearly && (
-        <Badge className="absolute -top-2.5 right-4 bg-violet-600 text-white text-[10px]">
+        <Badge className="absolute -top-2.5 right-4 bg-violet-600 text-white text-2xs">
           {t('planSelection.bestValue')}
         </Badge>
       )}

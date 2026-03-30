@@ -88,7 +88,7 @@ export function GanttBar({
   const ownerUser = users.find((u) => u.uid === ownerId);
   const fmtDate = useFmtDate();
   const statusConfig = statuses.find((s) => s.value === status);
-  const barColorHex = statusConfig?.color ?? '#64748b';
+  const barColorHex = statusConfig?.color ?? 'var(--gantt-bar-default)';
   const isFinal = statusConfig?.isFinal ?? false;
 
   // Move logic
@@ -163,12 +163,12 @@ export function GanttBar({
     top: `${(ROW_H - BAR_H[level]) / 2}px`,
     transform: finalTransform,
     zIndex: isMoving || isResizing ? 100 : 'auto',
-    outline: isResizing ? '2px solid #6366f1' : 'none',
-    boxShadow: isResizing ? '0 0 15px rgba(99, 102, 241, 0.5)' : undefined,
+    outline: isResizing ? '2px solid var(--gantt-resize-accent)' : 'none',
+    boxShadow: isResizing ? '0 0 15px var(--gantt-resize-glow)' : undefined,
     clipPath: epicClipPath,
   };
 
-  const resolvedColor = isDelayed ? '#ef4444' : barColorHex;
+  const resolvedColor = isDelayed ? 'var(--gantt-bar-delayed)' : barColorHex;
 
   const barEl = (
     <div
@@ -204,7 +204,7 @@ export function GanttBar({
         )}
 
         {finalWidth > 44 && level !== 'epic' && (
-          <span className="relative px-2 text-[10px] font-semibold text-white/90 truncate leading-none pointer-events-none whitespace-nowrap flex items-center gap-1">
+          <span className="relative px-2 text-2xs font-semibold text-white/90 truncate leading-none pointer-events-none whitespace-nowrap flex items-center gap-1">
             {hasWarning && !isOverlay && <AlertTriangle size={10} className="shrink-0 text-amber-400" />}
             {isDelayed && <span className="opacity-90">⚠</span>}
             {label}
@@ -220,7 +220,7 @@ export function GanttBar({
 
       {/* Diff label — shown to the left of the bar */}
       {!isOverlay && isDelayed && (
-        <div className="absolute right-full top-1/2 -translate-y-1/2 pr-1.5 text-[10px] font-semibold whitespace-nowrap pointer-events-none text-red-400">
+        <div className="absolute right-full top-1/2 -translate-y-1/2 pr-1.5 text-2xs font-semibold whitespace-nowrap pointer-events-none text-red-400">
           +{delayDays}d
         </div>
       )}

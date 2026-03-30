@@ -229,7 +229,6 @@ export function ImportUploadStep({
           type="button"
           disabled={!canProceed}
           onClick={onNext}
-          className="bg-blue-600 hover:bg-blue-500 text-white"
         >
           {t('actions.next')}
         </Button>

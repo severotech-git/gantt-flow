@@ -105,7 +105,7 @@ export function RemoteCursors({ localPxPerDay }: { localPxPerDay: number }) {
             </svg>
             {/* Name label */}
             <span
-              className="absolute left-4 top-4 whitespace-nowrap rounded px-1.5 py-0.5 text-[10px] font-medium text-white shadow-sm"
+              className="absolute left-4 top-4 whitespace-nowrap rounded px-1.5 py-0.5 text-2xs font-medium text-white shadow-sm"
               style={{ backgroundColor: user.color }}
             >
               {user.name}

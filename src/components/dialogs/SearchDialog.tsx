@@ -220,7 +220,7 @@ export function SearchDialog({ open, onClose }: SearchDialogProps) {
 
           {groups.map((group) => (
             <div key={group.level}>
-              <div className="px-4 py-1.5 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider bg-muted/30 border-b border-border/50 sticky top-0">
+              <div className="px-4 py-1.5 text-2xs font-semibold text-muted-foreground uppercase tracking-wider bg-muted/30 border-b border-border/50 sticky top-0">
                 {t(`levels.${group.level}s` as Parameters<typeof t>[0])}
               </div>
               {group.items.map((item) => {

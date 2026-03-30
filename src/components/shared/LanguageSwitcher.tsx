@@ -92,7 +92,7 @@ export function LanguageSwitcher({ variant = 'dropdown', className }: LanguageSw
               locale === loc.value && 'font-semibold text-foreground'
             )}
           >
-            <span className="w-4 text-[10px] text-muted-foreground font-mono">{loc.short}</span>
+            <span className="w-4 text-2xs text-muted-foreground font-mono">{loc.short}</span>
             {loc.label}
           </DropdownMenuItem>
         ))}

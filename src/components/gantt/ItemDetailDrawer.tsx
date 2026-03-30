@@ -224,7 +224,7 @@ export function ItemDetailDrawer() {
               <div className="px-5 pt-5 pb-3 flex items-start gap-3">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1.5">
-                    <StatusBadge status={item.data.status} className="text-[9px]" />
+                    <StatusBadge status={item.data.status} className="text-2xs" />
                     <span className="text-xs font-mono text-muted-foreground">{itemLabel}</span>
                   </div>
                   <div className="flex items-baseline justify-between gap-2">
@@ -243,7 +243,7 @@ export function ItemDetailDrawer() {
                       maxLength={255}
                       className="flex-1 text-lg font-semibold bg-transparent border-0 focus:outline-none p-0 focus:ring-0 leading-snug"
                     />
-                    <p className="text-[10px] text-muted-foreground/60 shrink-0">{nameDraft.length}/255</p>
+                    <p className="text-2xs text-muted-foreground/60 shrink-0">{nameDraft.length}/255</p>
                   </div>
                 </div>
                 <SheetClose className="flex-shrink-0 mt-0.5 rounded-md opacity-60 hover:opacity-100 hover:bg-muted p-1.5 transition-all" />
@@ -512,7 +512,7 @@ function DrawerDescription({
         <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wider">
           {t('description')}
         </label>
-        <span className="text-[10px] text-muted-foreground/60">{draft.length}/5000</span>
+        <span className="text-2xs text-muted-foreground/60">{draft.length}/5000</span>
       </div>
       <textarea
         value={draft}

@@ -109,7 +109,7 @@ export function InviteMemberDialog({ open, onOpenChange }: InviteMemberDialogPro
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={loading}>
               {t('cancel')}
             </Button>
-            <Button type="submit" disabled={loading || success} className="bg-blue-600 hover:bg-blue-500 text-white">
+            <Button type="submit" disabled={loading || success}>
               {loading ? <><Loader2 size={14} className="mr-1.5 animate-spin" />{t('sending')}</> : t('sendButton')}
             </Button>
           </DialogFooter>

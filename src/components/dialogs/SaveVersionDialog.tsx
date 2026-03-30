@@ -67,7 +67,6 @@ export function SaveVersionDialog({ open, onClose }: SaveVersionDialogProps) {
             <Button
               type="submit"
               disabled={loading || !name.trim()}
-              className="bg-blue-600 hover:bg-blue-500 text-white"
             >
               {loading ? t('saving') : t('saveButton')}
             </Button>

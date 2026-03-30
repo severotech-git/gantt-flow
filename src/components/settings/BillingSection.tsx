@@ -11,10 +11,10 @@ import { useTranslations } from 'next-intl';
 import { format } from 'date-fns';
 
 const STATUS_COLORS: Record<string, string> = {
-  active: 'bg-emerald-500/15 text-emerald-600',
-  past_due: 'bg-amber-500/15 text-amber-600',
+  active: 'bg-success/15 text-success-foreground',
+  past_due: 'bg-warning/15 text-warning-foreground',
   canceled: 'bg-zinc-500/15 text-zinc-500',
-  suspended: 'bg-red-500/15 text-red-600',
+  suspended: 'bg-destructive/15 text-destructive',
   trial: 'bg-violet-500/15 text-violet-600',
 };
 

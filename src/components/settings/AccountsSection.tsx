@@ -142,15 +142,15 @@ export function AccountsSection() {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
                     <span className="font-semibold text-sm text-foreground truncate">{acc.name}</span>
-                    <Badge variant="outline" className="text-[10px] shrink-0">{acc.role}</Badge>
+                    <Badge variant="outline" className="text-2xs shrink-0">{acc.role}</Badge>
                     {isMain && (
-                      <span className="inline-flex items-center gap-1 bg-yellow-500 text-yellow-950 text-[10px] font-semibold px-1.5 py-0.5 rounded-md shrink-0">
+                      <span className="inline-flex items-center gap-1 bg-yellow-500 text-yellow-950 text-2xs font-semibold px-1.5 py-0.5 rounded-md shrink-0">
                         <Star size={9} className="fill-yellow-950" />
                         {t('defaultBadge')}
                       </span>
                     )}
                     {isActive && (
-                      <Badge className="text-[10px] shrink-0 bg-blue-500/15 text-blue-400 border-blue-500/20">
+                      <Badge className="text-2xs shrink-0 bg-blue-500/15 text-blue-400 border-blue-500/20">
                         {t('activeBadge')}
                       </Badge>
                     )}
@@ -238,7 +238,6 @@ export function AccountsSection() {
             <Button
               onClick={handleRename}
               disabled={isSaving || editName.trim().length < 2}
-              className="bg-blue-600 hover:bg-blue-500 text-white"
             >
               {isSaving ? <Loader2 size={14} className="animate-spin mr-1.5" /> : null}
               {t('save')}

@@ -107,7 +107,7 @@ function RegisterPageContent() {
             />
             <span className="flex flex-col leading-tight">
               <span>GanttFlow</span>
-              <span className="text-[10px] font-normal text-muted-foreground">by SeveroTech</span>
+              <span className="text-2xs font-normal text-muted-foreground">by SeveroTech</span>
             </span>
           </h1>
           <div className="flex items-center gap-1">

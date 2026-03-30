@@ -44,11 +44,11 @@ function FeatureStatusCell({
           className="w-1.5 h-1.5 rounded-full shrink-0"
           style={{ backgroundColor: status.color }}
         />
-        <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide truncate flex-1">
+        <span className="text-2xs font-semibold text-muted-foreground uppercase tracking-wide truncate flex-1">
           {status.label}
         </span>
         {totalTasks > 0 && (
-          <span className="text-[10px] tabular-nums text-muted-foreground/70 shrink-0">
+          <span className="text-2xs tabular-nums text-muted-foreground/70 shrink-0">
             {tasks.length}/{totalTasks}
           </span>
         )}
@@ -77,7 +77,7 @@ function FeatureStatusCell({
         ))}
         {isOver && isDragging && (
           <div className="border-2 border-dashed border-primary/25 rounded-lg h-14 bg-primary/5 flex items-center justify-center shrink-0">
-            <span className="text-[10px] text-primary/50">
+            <span className="text-2xs text-primary/50">
               {t('dropHere', { status: status.label })}
             </span>
           </div>
@@ -146,7 +146,7 @@ export function KanbanFeatureRow({
         </span>
 
         {/* Task count */}
-        <span className="text-[10px] text-muted-foreground shrink-0 whitespace-nowrap">
+        <span className="text-2xs text-muted-foreground shrink-0 whitespace-nowrap">
           {t('subtasksCount', { count: totalTasks })}
         </span>
 
@@ -154,12 +154,12 @@ export function KanbanFeatureRow({
         {epicColor && (
           <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: epicColor }} />
         )}
-        <span className="text-[10px] text-muted-foreground/70 truncate max-w-[100px] shrink-0 hidden sm:block">
+        <span className="text-2xs text-muted-foreground/70 truncate max-w-[100px] shrink-0 hidden sm:block">
           {epicName}
         </span>
 
         {/* Feature status badge */}
-        <StatusBadge status={feature.status} className="text-[9px] px-1 py-px shrink-0" />
+        <StatusBadge status={feature.status} className="text-2xs px-1 py-px shrink-0" />
 
         {/* Feature owner */}
         <OwnerAvatar name={owner?.name} color={owner?.color} size={22} />

@@ -117,9 +117,9 @@ export function KanbanCard({
     >
       {/* Top row: status badge + feature label */}
       <div className="flex items-center gap-1.5 mb-1.5">
-        <StatusBadge status={item.status} className="text-[9px] px-1 py-px" />
+        <StatusBadge status={item.status} className="text-2xs px-1 py-px" />
         {isFeatureCard && (
-          <span className="text-[9px] font-semibold text-muted-foreground/60 uppercase tracking-wide border border-border/50 rounded px-1 py-px">
+          <span className="text-2xs font-semibold text-muted-foreground/60 uppercase tracking-wide border border-border/50 rounded px-1 py-px">
             {t('featureBadge', { featureLabel: levelNames.feature })}
           </span>
         )}
@@ -141,7 +141,7 @@ export function KanbanCard({
                   style={{ backgroundColor: epicColor }}
                 />
               )}
-              <span className="text-[10px] text-muted-foreground truncate">
+              <span className="text-2xs text-muted-foreground truncate">
                 {breadcrumb}
               </span>
             </div>

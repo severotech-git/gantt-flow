@@ -25,9 +25,10 @@ export default function ProjectsPage() {
   const [importOpen, setImportOpen] = useState(false);
   const [editProject, setEditProject] = useState<Omit<IProject, 'epics'> | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [skippedOnboarding, setSkippedOnboarding] = useState(false);
   const onboardingComplete = useSettingsStore((s) => s.onboardingComplete);
+  const sidebarCollapse = useSettingsStore((s) => s.sidebarCollapse);
+  const setSidebarCollapse = useSettingsStore((s) => s.setSidebarCollapse);
   const showOnboarding = !onboardingComplete && !skippedOnboarding;
   const t = useTranslations('projects');
   const tCommon = useTranslations('common');
@@ -36,13 +37,13 @@ export default function ProjectsPage() {
 
   return (
     <div className="flex overflow-hidden" style={{ height: 'calc(100vh - var(--trial-banner-height, 0px))', marginTop: 'var(--trial-banner-height, 0px)' }}>
-      <Sidebar collapsed={sidebarCollapsed} />
+      <Sidebar collapse={sidebarCollapse} />
 
       <main className="flex-1 flex flex-col overflow-hidden">
         <PageNavbar
           title={t('pageTitle')}
-          sidebarOpen={!sidebarCollapsed}
-          onToggleSidebar={() => setSidebarCollapsed((v) => !v)}
+          sidebarOpen={sidebarCollapse === 'none'}
+          onToggleSidebar={() => setSidebarCollapse(sidebarCollapse === 'none' ? 'icon' : 'none')}
           actions={
             <div className="flex items-center gap-2">
               <Button
@@ -57,7 +58,7 @@ export default function ProjectsPage() {
               <Button
                 size="sm"
                 onClick={() => setNewProjectOpen(true)}
-                className="h-7 px-3 text-xs bg-blue-600 hover:bg-blue-500 text-white gap-1.5"
+                className="h-7 px-3 text-xs gap-1.5"
               >
                 <Plus size={12} />
                 {t('newProject')}
@@ -85,7 +86,7 @@ export default function ProjectsPage() {
                 </Button>
                 <Button
                   onClick={() => setNewProjectOpen(true)}
-                  className="bg-blue-600 hover:bg-blue-500 text-white gap-1.5"
+                  className="gap-1.5"
                 >
                   <Plus size={14} />
                   {t('newProject')}
@@ -115,7 +116,7 @@ export default function ProjectsPage() {
               <Archive size={13} />
               <span>{t('archivedProjects')}</span>
               {archivedProjects.length > 0 && (
-                <span className="px-1.5 py-0.5 rounded-full bg-muted text-muted-foreground text-[10px] tabular-nums">
+                <span className="px-1.5 py-0.5 rounded-full bg-muted text-muted-foreground text-2xs tabular-nums">
                   {archivedProjects.length}
                 </span>
               )}
@@ -263,7 +264,7 @@ function ArchivedProjectCard({
         >
           <FolderKanban size={16} className="text-white" />
         </div>
-        <span className="flex items-center gap-1 text-[10px] text-muted-foreground bg-muted/40 px-1.5 py-0.5 rounded">
+        <span className="flex items-center gap-1 text-2xs text-muted-foreground bg-muted/40 px-1.5 py-0.5 rounded">
           <Archive size={10} />
           {tCommon('archived')}
         </span>

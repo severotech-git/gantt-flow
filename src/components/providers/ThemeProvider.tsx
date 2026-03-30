@@ -15,12 +15,19 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (theme === 'system') {
       const mq = window.matchMedia('(prefers-color-scheme: dark)');
-      applyTheme(mq.matches ? 'dark' : 'light');
-      const handler = (e: MediaQueryListEvent) => applyTheme(e.matches ? 'dark' : 'light');
+      const resolved = mq.matches ? 'dark' : 'light';
+      applyTheme(resolved);
+      localStorage.setItem('ganttflow-theme', resolved);
+      const handler = (e: MediaQueryListEvent) => {
+        const newTheme = e.matches ? 'dark' : 'light';
+        applyTheme(newTheme);
+        localStorage.setItem('ganttflow-theme', newTheme);
+      };
       mq.addEventListener('change', handler);
       return () => mq.removeEventListener('change', handler);
     }
     applyTheme(theme);
+    localStorage.setItem('ganttflow-theme', theme);
   }, [theme]);
 
   return <>{children}</>;

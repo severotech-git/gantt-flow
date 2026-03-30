@@ -46,7 +46,7 @@ export function UsersSection() {
       <section className="space-y-3">
         <div className="flex items-center gap-2">
           <h3 className="text-sm font-medium text-foreground">{t('accountMembers')}</h3>
-          <Badge variant="outline" className="text-[10px]">{t('syncedBadge')}</Badge>
+          <Badge variant="outline" className="text-2xs">{t('syncedBadge')}</Badge>
         </div>
         <p className="text-xs text-muted-foreground -mt-1">
           {t.rich('accountMembersNote', {
@@ -86,7 +86,7 @@ export function UsersSection() {
       <section className="space-y-3">
         <div className="flex items-center gap-2">
           <h3 className="text-sm font-medium text-foreground">{t('guestAssignees')}</h3>
-          <Badge variant="outline" className="text-[10px]">{t('virtualBadge')}</Badge>
+          <Badge variant="outline" className="text-2xs">{t('virtualBadge')}</Badge>
         </div>
         <p className="text-xs text-muted-foreground -mt-1">{t('guestNote')}</p>
 
@@ -118,7 +118,6 @@ export function UsersSection() {
       <Button
         onClick={() => persistSettings('users')}
         disabled={isSaving}
-        className="bg-blue-600 hover:bg-blue-500 text-white"
       >
         {isSaving ? t('saving') : t('saveButton')}
       </Button>
@@ -151,7 +150,7 @@ function AccountMemberRow({
             {t('youBadge')}
           </span>
         )}
-      {role && <Badge variant="outline" className="text-[10px] shrink-0">{role}</Badge>}
+      {role && <Badge variant="outline" className="text-2xs shrink-0">{role}</Badge>}
       </div>
 
       {/* Static color dot — not interactive */}

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, Suspense } from 'react';
+import { Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { useSettingsStore } from '@/store/useSettingsStore';
@@ -22,8 +22,9 @@ import { PageNavbar } from '@/components/layout/PageNavbar';
 function SettingsContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const isSaving = useSettingsStore((s) => s.isSaving);
+  const sidebarCollapse = useSettingsStore((s) => s.sidebarCollapse);
+  const setSidebarCollapse = useSettingsStore((s) => s.setSidebarCollapse);
 
   // Derive active section from URL (Source of Truth)
   const querySection = searchParams.get('section') as SettingsSection;
@@ -41,13 +42,13 @@ function SettingsContent() {
     <div className="flex overflow-hidden bg-background" style={{ height: 'calc(100vh - var(--trial-banner-height, 0px))', marginTop: 'var(--trial-banner-height, 0px)' }}>
       {showPaywall && <Paywall />}
       <div id={showPaywall ? 'paywall-behind' : undefined} className="contents">
-      <Sidebar collapsed={sidebarCollapsed} />
+      <Sidebar collapse={sidebarCollapse} />
 
       <main className="flex flex-col flex-1 overflow-hidden">
         <PageNavbar
           title="Settings"
-          sidebarOpen={!sidebarCollapsed}
-          onToggleSidebar={() => setSidebarCollapsed((v) => !v)}
+          sidebarOpen={sidebarCollapse === 'none'}
+          onToggleSidebar={() => setSidebarCollapse(sidebarCollapse === 'none' ? 'icon' : 'none')}
           actions={
             isSaving ? (
               <div className="flex items-center gap-1.5 text-xs text-muted-foreground">

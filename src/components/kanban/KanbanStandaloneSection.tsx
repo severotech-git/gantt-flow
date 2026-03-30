@@ -41,11 +41,11 @@ function StandaloneStatusCell({
           className="w-1.5 h-1.5 rounded-full shrink-0"
           style={{ backgroundColor: status.color }}
         />
-        <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide truncate flex-1">
+        <span className="text-2xs font-semibold text-muted-foreground uppercase tracking-wide truncate flex-1">
           {status.label}
         </span>
         {matching.length > 0 && (
-          <span className="text-[10px] text-muted-foreground/70 shrink-0 tabular-nums">
+          <span className="text-2xs text-muted-foreground/70 shrink-0 tabular-nums">
             {matching.length}
           </span>
         )}
@@ -73,7 +73,7 @@ function StandaloneStatusCell({
         ))}
         {isOver && isDragging && (
           <div className="border-2 border-dashed border-primary/25 rounded-lg h-14 bg-primary/5 flex items-center justify-center shrink-0">
-            <span className="text-[10px] text-primary/50">
+            <span className="text-2xs text-primary/50">
               {t('dropHere', { status: status.label })}
             </span>
           </div>
@@ -121,7 +121,7 @@ export function KanbanStandaloneSection({
         <span className="text-xs font-medium text-muted-foreground italic flex-1">
           {t('standaloneSection', { featureLabel: levelNames.feature })}
         </span>
-        <span className="text-[10px] text-muted-foreground/50 shrink-0">
+        <span className="text-2xs text-muted-foreground/50 shrink-0">
           ({entries.length})
         </span>
       </button>

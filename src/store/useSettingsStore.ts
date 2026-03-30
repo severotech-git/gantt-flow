@@ -54,6 +54,7 @@ interface SettingsState {
   onboardingComplete: boolean;
   isLoading: boolean;
   isSaving: boolean;
+  sidebarCollapse: 'none' | 'icon';
 }
 
 interface SettingsActions {
@@ -65,6 +66,7 @@ interface SettingsActions {
   setLocale: (l: AppLocale) => void;
   setGanttScale: (s: TimelineScale) => void;
   setAllowWeekends: (v: boolean) => void;
+  setSidebarCollapse: (v: 'none' | 'icon') => void;
   setLevelName: (level: 'epic' | 'feature' | 'task', v: string) => void;
   // User list CRUD
   addUser: (user: IUserConfig) => void;
@@ -89,6 +91,7 @@ export const useSettingsStore = create<SettingsState & SettingsActions>()(
     onboardingComplete: true,
     isLoading: false,
     isSaving: false,
+    sidebarCollapse: 'none',
 
     fetchSettings: async () => {
       set((s) => { s.isLoading = true; });
@@ -156,6 +159,10 @@ export const useSettingsStore = create<SettingsState & SettingsActions>()(
     setAllowWeekends: (v) => {
       set((s) => { s.allowWeekends = v; });
       setTimeout(() => get().persistSettings('allowWeekends'), 0);
+    },
+
+    setSidebarCollapse: (v) => {
+      set((s) => { s.sidebarCollapse = v; });
     },
 
     setLevelName: (level, v) => set((s) => { s.levelNames[level] = v; }),

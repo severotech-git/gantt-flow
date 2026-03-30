@@ -163,8 +163,8 @@ export function ImportProjectDialog({ open, onClose }: Props) {
           <div className="flex items-center gap-2 pt-2">
             {STEP_LABELS.map((label, i) => (
               <div key={i} className="flex items-center gap-2">
-                <div className={`flex items-center gap-1.5 text-xs ${i === step ? 'text-blue-600 font-medium' : i < step ? 'text-muted-foreground' : 'text-muted-foreground/40'}`}>
-                  <div className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold ${i === step ? 'bg-blue-600 text-white' : i < step ? 'bg-muted text-muted-foreground' : 'bg-muted/40 text-muted-foreground/40'}`}>
+                <div className={`flex items-center gap-1.5 text-xs ${i === step ? 'text-primary font-medium' : i < step ? 'text-muted-foreground' : 'text-muted-foreground/40'}`}>
+                  <div className={`w-5 h-5 rounded-full flex items-center justify-center text-2xs font-bold ${i === step ? 'bg-primary text-primary-foreground' : i < step ? 'bg-muted text-muted-foreground' : 'bg-muted/40 text-muted-foreground/40'}`}>
                     {i + 1}
                   </div>
                   {label}

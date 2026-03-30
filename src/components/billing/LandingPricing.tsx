@@ -383,7 +383,7 @@ export function LandingPricing({ showHeading = true }: LandingPricingProps) {
               )}
             >
               {t('pricing.tabYearly')}
-              <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-primary/15 text-primary">
+              <span className="text-2xs font-bold px-1.5 py-0.5 rounded-full bg-primary/15 text-primary">
                 −16%
               </span>
             </button>

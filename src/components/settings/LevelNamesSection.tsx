@@ -46,7 +46,7 @@ export function LevelNamesSection() {
               {canManage && local[key] !== DEFAULTS[key] && (
                 <button
                   onClick={() => setLocal((p) => ({ ...p, [key]: DEFAULTS[key] }))}
-                  className="flex items-center gap-1 text-[10px] text-muted-foreground hover:text-foreground transition-colors"
+                  className="flex items-center gap-1 text-2xs text-muted-foreground hover:text-foreground transition-colors"
                   title={`${t('reset')} "${DEFAULTS[key]}"`}
                 >
                   <RotateCcw size={10} />
@@ -62,7 +62,7 @@ export function LevelNamesSection() {
               disabled={!canManage}
               className="focus-visible:ring-blue-500"
             />
-            <p className="text-[10px] text-muted-foreground/50">{t('default', { value: DEFAULTS[key] })}</p>
+            <p className="text-2xs text-muted-foreground/50">{t('default', { value: DEFAULTS[key] })}</p>
           </div>
         ))}
       </div>
@@ -71,7 +71,6 @@ export function LevelNamesSection() {
         <Button
           onClick={handleSave}
           disabled={isSaving}
-          className="bg-blue-600 hover:bg-blue-500 text-white"
         >
           {isSaving ? t('saving') : t('saveButton')}
         </Button>

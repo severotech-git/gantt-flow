@@ -100,12 +100,12 @@ export function ImportPreviewStep({
                 {expandedEpics.has(ei) ? <ChevronDown size={12} className="shrink-0 text-muted-foreground" /> : <ChevronRight size={12} className="shrink-0 text-muted-foreground" />}
                 <span className="text-xs font-semibold text-foreground truncate flex-1">{epic.name}</span>
                 <span
-                  className="text-[10px] px-1.5 py-0.5 rounded-full shrink-0"
+                  className="text-2xs px-1.5 py-0.5 rounded-full shrink-0"
                   style={{ backgroundColor: `${statusColor(epic.status)}25`, color: statusColor(epic.status) }}
                 >
                   {epic.status}
                 </span>
-                <span className="text-[10px] text-muted-foreground shrink-0">{levelNames.epic}</span>
+                <span className="text-2xs text-muted-foreground shrink-0">{levelNames.epic}</span>
               </div>
 
               {/* Features */}
@@ -114,13 +114,13 @@ export function ImportPreviewStep({
                   <div className="flex items-center gap-2 py-1 pl-6 pr-1 rounded hover:bg-muted/30">
                     <span className={cn('w-1.5 h-1.5 rounded-full shrink-0')} style={{ backgroundColor: statusColor(feat.status) }} />
                     <span className="text-xs text-foreground truncate flex-1">{feat.name}</span>
-                    <span className="text-[10px] text-muted-foreground shrink-0">{levelNames.feature}</span>
+                    <span className="text-2xs text-muted-foreground shrink-0">{levelNames.feature}</span>
                   </div>
                   {feat.tasks.map((task, ti) => (
                     <div key={ti} className="flex items-center gap-2 py-0.5 pl-10 pr-1 rounded hover:bg-muted/20">
                       <span className="w-1 h-1 rounded-full bg-muted-foreground/40 shrink-0" />
                       <span className="text-[11px] text-muted-foreground truncate flex-1">{task.name}</span>
-                      <span className="text-[10px] text-muted-foreground/60 shrink-0">{levelNames.task}</span>
+                      <span className="text-2xs text-muted-foreground/60 shrink-0">{levelNames.task}</span>
                     </div>
                   ))}
                 </div>
@@ -139,7 +139,6 @@ export function ImportPreviewStep({
           type="button"
           disabled={importing || epics.length === 0}
           onClick={onImport}
-          className="bg-blue-600 hover:bg-blue-500 text-white"
         >
           {importing ? t('actions.importing') : t('actions.import')}
         </Button>

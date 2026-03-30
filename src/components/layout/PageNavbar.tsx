@@ -38,7 +38,7 @@ export function PageNavbar({
   const t = useTranslations('layout.navbar');
 
   return (
-    <header className="flex items-center h-12 px-4 gap-3 border-b border-border bg-surface-2 shrink-0 overflow-x-auto">
+    <header className="flex items-center h-10 px-4 gap-3 border-b border-border bg-surface-2 shrink-0 overflow-x-auto">
       {/* Sidebar toggle */}
       <button
         onClick={onToggleSidebar}
@@ -123,7 +123,7 @@ export function PageNavbar({
               </Link>
               <DropdownMenuSeparator />
               <DropdownMenuItem
-                className="cursor-pointer text-red-500 focus:text-red-500 focus:bg-red-500/10"
+                className="cursor-pointer text-destructive focus:text-destructive focus:bg-destructive/10"
                 onClick={() => signOut({ callbackUrl: '/login' })}
               >
                 <LogOut className="mr-2 h-4 w-4" />

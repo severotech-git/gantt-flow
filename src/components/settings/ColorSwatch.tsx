@@ -80,7 +80,7 @@ export function ColorSwatch({ color, onChange, size = 28 }: ColorSwatchProps) {
             className="flex items-center gap-2 text-xs text-slate-400 hover:text-slate-200 transition-colors"
           >
             <span
-              className="w-6 h-6 rounded-md border border-dashed border-white/30 flex items-center justify-center text-[10px] font-bold"
+              className="w-6 h-6 rounded-md border border-dashed border-white/30 flex items-center justify-center text-2xs font-bold"
               style={{ backgroundColor: color }}
             >
               +

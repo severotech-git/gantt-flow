@@ -118,7 +118,7 @@ export function TeamSection() {
         <div className="flex items-center justify-between">
           <h3 className="text-sm font-medium">{t('membersTitle')}</h3>
           {canManage && (
-            <Button size="sm" onClick={() => setShowInvite(true)} className="bg-blue-600 hover:bg-blue-500 text-white">
+            <Button size="sm" onClick={() => setShowInvite(true)}>
               <UserPlus size={14} className="mr-1.5" />
               {t('inviteButton')}
             </Button>
@@ -141,7 +141,7 @@ export function TeamSection() {
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium truncate">
                     {displayName}
-                    {isYou && <span className="ml-2 text-[10px] text-muted-foreground">{t('youLabel')}</span>}
+                    {isYou && <span className="ml-2 text-2xs text-muted-foreground">{t('youLabel')}</span>}
                   </p>
                   <p className="text-xs text-muted-foreground truncate">{m.user?.email}</p>
                 </div>
@@ -151,7 +151,7 @@ export function TeamSection() {
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <button
-                        className="flex items-center gap-0.5 text-[10px] border border-border rounded px-1.5 py-0.5 hover:bg-muted transition-colors shrink-0"
+                        className="flex items-center gap-0.5 text-2xs border border-border rounded px-1.5 py-0.5 hover:bg-muted transition-colors shrink-0"
                         disabled={isUpdatingRole}
                       >
                         {isUpdatingRole
@@ -175,7 +175,7 @@ export function TeamSection() {
                     </DropdownMenuContent>
                   </DropdownMenu>
                 ) : (
-                  <Badge variant="outline" className="text-[10px] shrink-0">
+                  <Badge variant="outline" className="text-2xs shrink-0">
                     {t(`roles.${m.role}` as Parameters<typeof t>[0]) ?? m.role}
                   </Badge>
                 )}
@@ -214,8 +214,8 @@ export function TeamSection() {
                       {t('expiresLabel', { time: format.relativeTime(new Date(inv.expiresAt), now) })}
                     </p>
                   </div>
-                  <Badge variant="outline" className="text-[10px] shrink-0">{inv.role}</Badge>
-                  <Badge className="text-[10px] shrink-0 bg-yellow-100 text-yellow-800 border-yellow-200">
+                  <Badge variant="outline" className="text-2xs shrink-0">{inv.role}</Badge>
+                  <Badge className="text-2xs shrink-0 bg-yellow-100 text-yellow-800 border-yellow-200">
                     {t('pendingBadge')}
                   </Badge>
                   {canManage && (

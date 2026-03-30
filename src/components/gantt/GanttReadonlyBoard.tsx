@@ -45,7 +45,7 @@ const EPIC_COLORS_TIMELINE = [
   'rgba(6,182,212,0.40)',
 ];
 
-const DEFAULT_BAR_COLOR = '#64748b';
+const DEFAULT_BAR_COLOR = 'var(--gantt-bar-default)';
 
 const BAR_H: Record<string, number> = {
   epic:    10,
@@ -207,7 +207,7 @@ function ReadonlyStatusBadge({ status, statuses }: { status: string; statuses: I
   const config = statuses.find((s) => s.value === status);
   return (
     <span
-      className="inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-white"
+      className="inline-flex items-center rounded px-1.5 py-0.5 text-2xs font-semibold uppercase tracking-wider text-white"
       style={{ backgroundColor: config?.color ?? '#475569' }}
     >
       {config?.label ?? status}
@@ -811,7 +811,7 @@ export function GanttReadonlyBoard({ project, statuses = [], users = [], expires
                     key={i}
                     style={{ width: pxPerDay, minWidth: pxPerDay }}
                     className={cn(
-                      'shrink-0 flex items-center justify-center text-[10px] font-medium border-r border-border/40',
+                      'shrink-0 flex items-center justify-center text-2xs font-medium border-r border-border/40',
                       d.isToday ? 'text-blue-500 bg-blue-500/10' :
                       d.isWeekend ? 'text-muted-foreground/50 bg-[var(--weekend-bg)]' :
                       'text-muted-foreground/70'
@@ -840,7 +840,7 @@ export function GanttReadonlyBoard({ project, statuses = [], users = [], expires
                 const barColorHex = statusConfig?.color ?? DEFAULT_BAR_COLOR;
                 const delayDays = getDelayDays(row.plannedEnd, row.actualEnd, isFinal);
                 const isDelayed = delayDays > 0 && !isFinal;
-                const barColor = isDelayed ? '#ef4444' : barColorHex;
+                const barColor = isDelayed ? 'var(--gantt-bar-delayed)' : barColorHex;
                 const epicClipPath = row.level === 'epic'
                   ? 'polygon(6px 0%, calc(100% - 6px) 0%, 100% 50%, calc(100% - 6px) 100%, 6px 100%, 0% 50%)'
                   : undefined;
@@ -889,7 +889,7 @@ export function GanttReadonlyBoard({ project, statuses = [], users = [], expires
                           />
                         )}
                         {bWidth > 44 && row.level !== 'epic' && (
-                          <span className="relative px-2 text-[10px] font-semibold text-white/90 truncate leading-none pointer-events-none whitespace-nowrap flex items-center gap-1">
+                          <span className="relative px-2 text-2xs font-semibold text-white/90 truncate leading-none pointer-events-none whitespace-nowrap flex items-center gap-1">
                             {isDelayed && <span className="opacity-90">⚠</span>}
                             {row.name}
                           </span>
@@ -900,7 +900,7 @@ export function GanttReadonlyBoard({ project, statuses = [], users = [], expires
                     {/* Delay label */}
                     {isDelayed && (
                       <div
-                        className="absolute top-1/2 text-[10px] font-semibold whitespace-nowrap pointer-events-none text-red-400"
+                        className="absolute top-1/2 text-2xs font-semibold whitespace-nowrap pointer-events-none text-red-400"
                         style={{ left: bLeft - 2, transform: 'translateX(-100%) translateY(-50%)' }}
                       >
                         +{delayDays}d

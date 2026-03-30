@@ -12,15 +12,19 @@ import { NewProjectDialog } from '@/components/dialogs/NewProjectDialog';
 import logoIcon from '../../../public/icon.png';
 import { useTranslations } from 'next-intl';
 
+export type SidebarCollapse = 'none' | 'icon';
+
 interface SidebarProps {
-  collapsed?: boolean;
+  collapse?: SidebarCollapse;
 }
 
-export function Sidebar({ collapsed = false }: SidebarProps) {
+export function Sidebar({ collapse = 'none' }: SidebarProps) {
   const pathname = usePathname();
   const { projects, fetchProjects } = useProjectStore();
   const [newProjectOpen, setNewProjectOpen] = useState(false);
   const t = useTranslations('sidebar');
+
+  const iconOnly = collapse === 'icon';
 
   useEffect(() => {
     fetchProjects();
@@ -35,73 +39,94 @@ export function Sidebar({ collapsed = false }: SidebarProps) {
     <aside
       className={cn(
         'flex flex-col h-full bg-surface-2 border-r border-border select-none overflow-hidden transition-all duration-200',
-        collapsed ? 'w-0 border-r-0' : 'w-48 min-w-[192px]',
+        iconOnly ? 'w-12 min-w-[48px]' : 'w-48 min-w-[192px]',
       )}
     >
       {/* Logo */}
-      <Link href="/projects" className="flex items-center gap-2 px-4 h-12 border-b border-border shrink-0 hover:bg-accent/50 transition-colors">
+      <Link
+        href="/projects"
+        title={iconOnly ? 'GanttFlow' : undefined}
+        className={cn(
+          'flex items-center h-10 border-b border-border shrink-0 hover:bg-accent/50 transition-colors',
+          iconOnly ? 'justify-center px-0' : 'gap-2 px-4',
+        )}
+      >
         <span className="w-5 h-5 flex items-center justify-center shrink-0">
           <Image src={logoIcon} alt="GanttFlow Logo" width={20} height={20} className="object-contain" />
         </span>
-        <span className="flex flex-col leading-tight">
-          <span className="font-bold text-sm tracking-tight text-foreground">GanttFlow</span>
-          <span className="text-[9px] text-muted-foreground -mt-0.5">by SeveroTech</span>
-        </span>
+        {!iconOnly && (
+          <span className="flex flex-col leading-tight">
+            <span className="font-bold text-sm tracking-tight text-foreground">GanttFlow</span>
+            <span className="text-2xs text-muted-foreground opacity-60 -mt-0.5">by SeveroTech</span>
+          </span>
+        )}
       </Link>
 
-      <div className="mt-1 border-b border-border">
-        <AccountSwitcher />
-      </div>
-
-      {/* Recent */}
-      <div className="mt-5">
-        <div className="flex items-center justify-between px-4 mb-1">
-          <span className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
-            {t('recent')}
-          </span>
-          <button
-            onClick={() => setNewProjectOpen(true)}
-            className="text-muted-foreground hover:text-foreground transition-colors"
-            title={t('newProject')}
-          >
-            <Plus size={13} />
-          </button>
+      {!iconOnly && (
+        <div className="mt-1 border-b border-border">
+          <AccountSwitcher />
         </div>
-        {recent.map((p) => (
-          <SidebarLink
-            key={p._id}
-            href={`/projects/${p._id}`}
-            active={pathname === `/projects/${p._id}`}
-            icon={<span className="inline-block w-2 h-2 rounded-full shrink-0" style={{ background: p.color ?? '#6366f1' }} />}
-            label={p.name}
-            rawIcon
-          />
-        ))}
-        {recent.length === 0 && (
-          <p className="px-4 text-[11px] text-muted-foreground/60 italic">{t('noProjectsYet')}</p>
-        )}
-      </div>
+      )}
+
+      {/* Recent — full mode only */}
+      {!iconOnly && (
+        <div className="mt-5">
+          <div className="flex items-center justify-between px-4 mb-1">
+            <span className="text-2xs font-semibold uppercase tracking-widest text-muted-foreground">
+              {t('recent')}
+            </span>
+            <button
+              onClick={() => setNewProjectOpen(true)}
+              className="text-muted-foreground hover:text-foreground transition-colors"
+              title={t('newProject')}
+            >
+              <Plus size={13} />
+            </button>
+          </div>
+          {recent.map((p) => (
+            <SidebarLink
+              key={p._id}
+              href={`/projects/${p._id}`}
+              active={pathname === `/projects/${p._id}`}
+              icon={<span className="inline-block w-2 h-2 rounded-full shrink-0" style={{ background: p.color ?? '#6366f1' }} />}
+              label={p.name}
+              rawIcon
+            />
+          ))}
+          {recent.length === 0 && (
+            <p className="px-4 text-[11px] text-muted-foreground/60 italic">{t('noProjectsYet')}</p>
+          )}
+        </div>
+      )}
 
       {/* Workspace */}
-      <div className="mt-5">
-        <div className="px-4 mb-1">
-          <span className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
-            {t('workspace')}
-          </span>
-        </div>
+      <div className={iconOnly ? 'mt-3' : 'mt-5'}>
+        {!iconOnly && (
+          <div className="px-4 mb-1">
+            <span className="text-2xs font-semibold uppercase tracking-widest text-muted-foreground">
+              {t('workspace')}
+            </span>
+          </div>
+        )}
         <SidebarLink
           href="/projects"
           active={pathname === '/projects'}
           icon={<LayoutGrid size={14} />}
           label={t('allProjects')}
+          iconOnly={iconOnly}
         />
       </div>
 
       <div className="flex-1" />
 
-      {/* Bottom: workspace switcher + settings */}
       <div className="border-t border-border pt-1 pb-2">
-        <SidebarLink href="/settings" active={pathname === '/settings'} icon={<Settings size={14} />} label={t('settings')} />
+        <SidebarLink
+          href="/settings"
+          active={pathname === '/settings'}
+          icon={<Settings size={14} />}
+          label={t('settings')}
+          iconOnly={iconOnly}
+        />
       </div>
     </aside>
 
@@ -110,25 +135,28 @@ export function Sidebar({ collapsed = false }: SidebarProps) {
   );
 }
 
-function SidebarLink({ href, active, icon, label, rawIcon }: {
+function SidebarLink({ href, active, icon, label, rawIcon, iconOnly }: {
   href: string;
   active: boolean;
   icon: React.ReactNode;
   label: string;
   rawIcon?: boolean;
+  iconOnly?: boolean;
 }) {
   return (
     <Link
       href={href}
+      title={iconOnly ? label : undefined}
       className={cn(
-        'flex items-center gap-2.5 px-4 py-1.5 text-[13px] transition-colors rounded-none',
+        'flex items-center gap-2.5 py-1.5 text-[13px] transition-colors rounded-none',
+        iconOnly ? 'justify-center px-0' : 'px-4',
         active
           ? 'bg-accent text-foreground'
           : 'text-muted-foreground hover:text-foreground hover:bg-accent/50'
       )}
     >
       <span className={cn('shrink-0', !rawIcon && 'text-muted-foreground')}>{icon}</span>
-      <span className="truncate">{label}</span>
+      {!iconOnly && <span className="truncate">{label}</span>}
     </Link>
   );
 }

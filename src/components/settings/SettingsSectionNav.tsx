@@ -53,7 +53,7 @@ export function SettingsSectionNav({ active, onChange }: SettingsSectionNavProps
     <nav className="w-48 shrink-0 border-r border-border py-4 flex flex-col gap-4">
       {GROUPS.map((group) => (
         <div key={group.groupKey}>
-          <p className="px-4 mb-1 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/60">
+          <p className="px-4 mb-1 text-2xs font-semibold uppercase tracking-widest text-muted-foreground/60">
             {t(`groups.${group.groupKey}`)}
           </p>
           <div className="flex flex-col gap-0.5">

@@ -42,7 +42,14 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const messages = await getMessages();
 
   return (
-    <html lang={locale} className="dark">
+    <html lang={locale} suppressHydrationWarning>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){const s=localStorage.getItem('ganttflow-theme');const d=window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';document.documentElement.classList.add(s==='light'||s==='dark'?s:d);})();`,
+          }}
+        />
+      </head>
       <GoogleAnalytics />
       <body className={`${inter.variable} font-sans antialiased bg-background text-foreground`}>
         <NextIntlClientProvider locale={locale} messages={messages}>

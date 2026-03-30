@@ -163,7 +163,6 @@ export function OnboardingDialog({ open, onSkip }: OnboardingDialogProps) {
                 <Button
                   disabled={!industry}
                   onClick={() => setStep(1)}
-                  className="bg-blue-600 hover:bg-blue-500 text-white"
                 >
                   {t('actions.next')}
                 </Button>
@@ -252,7 +251,6 @@ export function OnboardingDialog({ open, onSkip }: OnboardingDialogProps) {
                 <Button
                   disabled={!teamSize || !useCase}
                   onClick={handleSubmit}
-                  className="bg-blue-600 hover:bg-blue-500 text-white"
                 >
                   {t('actions.createSample')}
                 </Button>

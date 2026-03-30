@@ -111,7 +111,7 @@ export function ProfileSection() {
         <Button
           type="submit"
           disabled={status === 'loading' || name === session?.user?.name}
-          className="w-full bg-blue-600 hover:bg-blue-500 text-white"
+          className="w-full"
         >
           {status === 'loading' ? (
             <>

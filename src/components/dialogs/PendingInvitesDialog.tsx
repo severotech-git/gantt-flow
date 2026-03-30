@@ -85,7 +85,7 @@ export function PendingInvitesDialog({ open, onOpenChange }: PendingInvitesDialo
                     Invited by <span className="text-foreground">{inv.inviterName}</span>
                   </p>
                   <div className="flex items-center gap-2 mt-1">
-                    <Badge variant="outline" className="text-[10px]">{inv.role}</Badge>
+                    <Badge variant="outline" className="text-2xs">{inv.role}</Badge>
                     <span className="text-[11px] text-muted-foreground">Expires {expiry}</span>
                   </div>
                 </div>
@@ -102,7 +102,6 @@ export function PendingInvitesDialog({ open, onOpenChange }: PendingInvitesDialo
                     size="sm"
                     disabled={isLoading}
                     onClick={() => handleAccept(inv.token)}
-                    className="bg-blue-600 hover:bg-blue-500 text-white"
                   >
                     {isLoading ? <Loader2 size={12} className="animate-spin" /> : 'Accept'}
                   </Button>

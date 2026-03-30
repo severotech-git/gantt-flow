@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { use } from 'react';
 import { useProjectStore, selectDisplayProject } from '@/store/useProjectStore';
+import { useSettingsStore } from '@/store/useSettingsStore';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { TopNavbar } from '@/components/gantt/TopNavbar';
 import { GanttBoard } from '@/components/gantt/GanttBoard';
@@ -30,7 +31,8 @@ export default function ProjectPage({ params }: ProjectPageProps) {
   const [editProjectOpen, setEditProjectOpen] = useState(false);
   const [saveVersionOpen, setSaveVersionOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const sidebarCollapse = useSettingsStore((s) => s.sidebarCollapse);
+  const setSidebarCollapse = useSettingsStore((s) => s.setSidebarCollapse);
 
   // Real-time collaboration: connect to Socket.IO when project loads
   useSocket(id);
@@ -94,13 +96,13 @@ export default function ProjectPage({ params }: ProjectPageProps) {
 
   return (
     <div className="flex overflow-hidden" style={{ height: 'calc(100vh - var(--trial-banner-height, 0px))', marginTop: 'var(--trial-banner-height, 0px)' }}>
-      <Sidebar collapsed={!sidebarOpen} />
+      <Sidebar collapse={sidebarCollapse} />
 
       <div className="flex flex-col flex-1 overflow-hidden">
         <TopNavbar
           onSaveVersion={() => setSaveVersionOpen(true)}
-          sidebarOpen={sidebarOpen}
-          onToggleSidebar={() => setSidebarOpen((v) => !v)}
+          sidebarOpen={sidebarCollapse === 'none'}
+          onToggleSidebar={() => setSidebarCollapse(sidebarCollapse === 'none' ? 'icon' : 'none')}
         />
 
         {viewMode === 'gantt' ? <GanttBoard /> : <KanbanBoard />}

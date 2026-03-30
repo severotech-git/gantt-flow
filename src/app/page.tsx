@@ -232,7 +232,7 @@ export default function LandingPage() {
             />
             <span className="flex flex-col leading-tight">
               <span className="font-bold text-sm">GanttFlow</span>
-              <span className="text-[9px] text-muted-foreground">by SeveroTech</span>
+              <span className="text-2xs text-muted-foreground opacity-60">by SeveroTech</span>
             </span>
           </Link>
 
@@ -284,7 +284,7 @@ export default function LandingPage() {
                     </Link>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem
-                      className="cursor-pointer text-red-500 focus:text-red-500 focus:bg-red-500/10"
+                      className="cursor-pointer text-destructive focus:text-destructive focus:bg-destructive/10"
                       onClick={() => signOut({ callbackUrl: '/login' })}
                     >
                       <LogOut className="mr-2 h-4 w-4" />
@@ -347,7 +347,7 @@ export default function LandingPage() {
                 <hr className="border-border" />
                 <button
                   onClick={() => signOut({ callbackUrl: '/login' })}
-                  className="flex items-center gap-3 px-4 py-2 text-sm text-red-500 hover:bg-red-500/10 rounded-md w-full"
+                  className="flex items-center gap-3 px-4 py-2 text-sm text-destructive hover:bg-destructive/10 rounded-md w-full"
                 >
                   <LogOut size={16} /> {tNav('logOut')}
                 </button>
@@ -580,7 +580,7 @@ export default function LandingPage() {
               />
               <span className="flex flex-col leading-tight">
                 <span className="font-bold text-sm">GanttFlow</span>
-                <span className="text-[9px] text-muted-foreground">by SeveroTech</span>
+                <span className="text-2xs text-muted-foreground opacity-60">by SeveroTech</span>
               </span>
             </Link>
 

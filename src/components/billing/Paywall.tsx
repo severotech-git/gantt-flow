@@ -169,7 +169,7 @@ export function Paywall() {
         {/* ── Switch workspace ─────────────────────────────────────── */}
         {otherAccounts.length > 0 && (
           <div className="border-t border-border px-8 py-5">
-            <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/50 mb-2">
+            <p className="text-2xs font-semibold uppercase tracking-widest text-muted-foreground/50 mb-2">
               {t('paywall.switchAccount')}
             </p>
             <div className="flex flex-col gap-0.5">

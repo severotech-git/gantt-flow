@@ -297,7 +297,7 @@ export const GanttTimeline = forwardRef<GanttTimelineHandle, GanttTimelineProps>
                   key={i}
                   style={{ width: pxPerDay, minWidth: pxPerDay }}
                   className={cn(
-                    'shrink-0 flex items-center justify-center text-[10px] font-medium border-r border-border/40',
+                    'shrink-0 flex items-center justify-center text-2xs font-medium border-r border-border/40',
                     d.isToday
                       ? 'text-blue-500 bg-blue-500/10'
                       : d.isWeekend

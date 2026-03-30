@@ -55,7 +55,7 @@ export function AccountSwitcher({ side = 'bottom' }: { side?: 'top' | 'bottom' }
       </PopoverTrigger>
 
       <PopoverContent className="w-64 p-1" align="start" side={side}>
-        <div className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground px-3 py-1.5">
+        <div className="text-2xs font-semibold uppercase tracking-widest text-muted-foreground px-3 py-1.5">
           {t('workspaces')}
         </div>
 
@@ -82,7 +82,7 @@ export function AccountSwitcher({ side = 'bottom' }: { side?: 'top' | 'bottom' }
                 : <span className="w-2 h-2 rounded-full shrink-0 bg-primary" style={{ opacity: isActive ? 1 : 0.4 }} />
               }
               <span className="flex-1 truncate">{acc.name}</span>
-              <Badge variant="outline" className="text-[10px] shrink-0">{acc.role}</Badge>
+              <Badge variant="outline" className="text-2xs shrink-0">{acc.role}</Badge>
               {isMain && (
                 <span title={t('defaultWorkspaceTitle')}>
                   <Star size={11} className="shrink-0 fill-yellow-400 text-yellow-400" />

@@ -29,14 +29,14 @@ export function PresenceAvatars() {
         ))}
         {overflow > 0 && (
           <span
-            className="flex items-center justify-center w-6 h-6 rounded-full bg-muted text-[10px] font-medium text-muted-foreground ring-2 ring-background shrink-0"
+            className="flex items-center justify-center w-6 h-6 rounded-full bg-muted text-2xs font-medium text-muted-foreground ring-2 ring-background shrink-0"
             title={t('moreUsers', { count: overflow })}
           >
             +{overflow}
           </span>
         )}
       </div>
-      <span className="text-[10px] text-muted-foreground hidden sm:inline">
+      <span className="text-2xs text-muted-foreground hidden sm:inline">
         {t('viewing', { count: connectedUsers.length })}
       </span>
     </div>

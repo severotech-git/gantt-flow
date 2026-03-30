@@ -106,7 +106,7 @@ export function RemoteDragGhosts({
           >
             {/* User name badge */}
             <span
-              className="absolute -top-5 left-0 whitespace-nowrap rounded px-1.5 py-0.5 text-[10px] font-medium text-white shadow-sm"
+              className="absolute -top-5 left-0 whitespace-nowrap rounded px-1.5 py-0.5 text-2xs font-medium text-white shadow-sm"
               style={{ backgroundColor: user.color }}
             >
               {user.name}

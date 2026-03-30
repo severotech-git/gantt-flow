@@ -202,7 +202,6 @@ export function AddItemDialog({ open, onClose, mode, epicId, featureId }: AddIte
             <Button
               type="submit"
               disabled={loading || !name.trim()}
-              className="bg-blue-600 hover:bg-blue-500 text-white"
             >
               {loading ? t('adding') : t('addButton', { levelLabel })}
             </Button>

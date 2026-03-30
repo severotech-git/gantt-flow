@@ -145,7 +145,6 @@ export function StatusConfigSection() {
         <Button
           onClick={() => persistSettings('statuses')}
           disabled={isSaving}
-          className="bg-blue-600 hover:bg-blue-500 text-white"
         >
           {isSaving ? t('saving') : t('saveButton')}
         </Button>
@@ -201,7 +200,7 @@ function StatusRow({ status, idx, total, readonly, usageCount, deleteDisabled, o
       />
 
       {usageCount > 0 && (
-        <span className="text-[10px] text-muted-foreground/70 tabular-nums shrink-0">
+        <span className="text-2xs text-muted-foreground/70 tabular-nums shrink-0">
           {t('usageCount', { count: usageCount })}
         </span>
       )}
@@ -211,7 +210,7 @@ function StatusRow({ status, idx, total, readonly, usageCount, deleteDisabled, o
         disabled={isFinalLocked}
         title={isSystem ? t('systemStatusTitle') : status.isFinal ? t('terminalTitle') : t('nonTerminalTitle')}
         className={cn(
-          'px-2 py-0.5 rounded text-[10px] font-medium border transition-colors shrink-0',
+          'px-2 py-0.5 rounded text-2xs font-medium border transition-colors shrink-0',
           status.isFinal
             ? 'border-emerald-500/40 text-emerald-400 bg-emerald-500/10'
             : 'border-border text-muted-foreground/60 hover:text-muted-foreground',
@@ -222,7 +221,7 @@ function StatusRow({ status, idx, total, readonly, usageCount, deleteDisabled, o
       </button>
 
       {isSystem && (
-        <span title={t('systemStatusTitle')} className="flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] text-muted-foreground/50 border border-border/50 shrink-0">
+        <span title={t('systemStatusTitle')} className="flex items-center gap-1 px-1.5 py-0.5 rounded text-2xs text-muted-foreground/50 border border-border/50 shrink-0">
           <Lock size={10} />
         </span>
       )}

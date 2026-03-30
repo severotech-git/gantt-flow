@@ -113,15 +113,15 @@ export function TopNavbar({ onSaveVersion, sidebarOpen, onToggleSidebar }: TopNa
       {/* Read-only version banner — Gantt only, hidden on small screens */}
       {viewMode === 'gantt' && isVersionReadOnly && (
         <div className="hidden sm:flex items-center text-xs font-medium shrink-0">
-          <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-l-md bg-amber-500/10 border border-amber-500/30 border-r-0 text-amber-600 dark:text-amber-400">
+          <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-l-md bg-warning/10 border border-warning/30 border-r-0 text-warning-foreground">
             <Eye size={12} className="shrink-0" />
             <span className="hidden md:inline">{activeVersion?.versionName}</span>
           </span>
           <button
             onClick={clearVersion}
-            className="flex items-center gap-1.5 px-2 md:px-2.5 py-1 rounded-r-md bg-emerald-500/10 border border-emerald-500/30 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-500/20 transition-colors"
+            className="flex items-center gap-1.5 px-2 md:px-2.5 py-1 rounded-r-md bg-success/10 border border-success/30 text-success-foreground hover:bg-success/20 transition-colors"
           >
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shrink-0" />
+            <span className="w-1.5 h-1.5 rounded-full bg-success animate-pulse shrink-0" />
             <span className="hidden md:inline">{t('backToLive')}</span>
           </button>
         </div>
@@ -217,7 +217,7 @@ export function TopNavbar({ onSaveVersion, sidebarOpen, onToggleSidebar }: TopNa
 
       {/* Save Snapshot — Gantt only */}
       {viewMode === 'gantt' && !isVersionReadOnly && project && (
-        <Button size="sm" onClick={onSaveVersion} className="h-7 px-2 xl:px-3 text-xs bg-blue-600 hover:bg-blue-500 text-white gap-1.5 shrink-0">
+        <Button size="sm" onClick={onSaveVersion} className="h-7 px-2 xl:px-3 text-xs gap-1.5 shrink-0">
           <Camera size={12} />
           <span className="hidden xl:inline">{t('saveSnapshot')}</span>
         </Button>
