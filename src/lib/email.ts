@@ -460,3 +460,62 @@ export async function sendShareLinkEmails(
 
   await getResend().batch.send(batchEmails);
 }
+
+export async function sendNotificationEmail(
+  to: string,
+  locale: AppLocale,
+  data: {
+    actorName: string;
+    projectName: string;
+    itemName: string;
+    actionDescription: string;
+    itemUrl: string;
+  }
+): Promise<void> {
+  const loc = resolveEmailLocale(locale);
+  const from = process.env.EMAIL_FROM ?? 'GanttFlow <ganttflow@severotech.com>';
+  const t = (key: string, params?: Record<string, string | number>) =>
+    getEmailText(loc, `emails.notification.${key}`, params);
+
+  const subjectParams = {
+    actorName: data.actorName,
+    actionDescription: data.actionDescription,
+    projectName: data.projectName,
+  };
+
+  const [subject, title, greeting, button, footer] = await Promise.all([
+    t('subject', subjectParams),
+    t('title'),
+    t('greeting'),
+    t('button'),
+    loadFooter(loc),
+  ]);
+
+  const body = `${escapeHtml(data.actorName)} ${escapeHtml(data.actionDescription)} "${escapeHtml(data.itemName)}" in project "${escapeHtml(data.projectName)}"`;
+
+  const html = renderEmailLayout(
+    subject,
+    `
+    <h1 class="title">${escapeHtml(title)}</h1>
+    <div class="content">
+      <p>${escapeHtml(greeting)}</p>
+      <p>${body}</p>
+    </div>
+    <div class="button-container">
+      <a href="${escapeHtml(data.itemUrl)}" class="button">${escapeHtml(button)}</a>
+    </div>
+  `,
+    loc,
+    footer
+  );
+
+  const plainBody = `${data.actorName} ${data.actionDescription} "${data.itemName}" in project "${data.projectName}"\n\n${data.itemUrl}`;
+
+  await getResend().emails.send({
+    from,
+    to,
+    subject,
+    text: plainBody,
+    html,
+  });
+}

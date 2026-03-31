@@ -594,7 +594,21 @@
         "profile": "Meu Perfil",
         "theme": "Tema",
         "language": "Idioma",
+        "notifications": "Notificações",
         "billing": "Cobrança"
+      }
+    },
+    "notifications": {
+      "title": "Notificações",
+      "subtitle": "Escolha como deseja ser notificado sobre atividades.",
+      "itemsCreated": "Itens que criei",
+      "itemsOwned": "Itens atribuídos a mim",
+      "mentions": "@menções em comentários",
+      "channels": {
+        "off": "Desativado",
+        "in-app": "Apenas no app",
+        "email": "Apenas por e-mail",
+        "both": "Ambos (app e e-mail)"
       }
     },
     "readOnly": "Apenas proprietários e admins podem alterar esta configuração.",
@@ -895,6 +909,12 @@
       "plainBody": "{sharerName} compartilhou o projeto \"{projectName}\" com você.",
       "plainExpiry": "Este link expira em {expiryDate}.",
       "plainIgnore": "Se você não esperava este link compartilhado, pode ignorar este e-mail com segurança."
+    },
+    "notification": {
+      "subject": "{actorName} {actionDescription} em {projectName}",
+      "title": "Atividade do Projeto",
+      "greeting": "Você tem uma nova notificação no seu projeto.",
+      "button": "Ver Item"
     }
   },
   "shareDialog": {
@@ -974,5 +994,12 @@
     "noResults": "Nenhum item corresponde aos filtros atuais.",
     "clearFilters": "Limpar filtros",
     "filters": "Filtros"
+  },
+  "notifications": {
+    "title": "Notificações",
+    "markAllRead": "Marcar todas como lidas",
+    "noNotifications": "Sem notificações ainda",
+    "viewAll": "Ver tudo",
+    "loading": "Carregando..."
   }
 }

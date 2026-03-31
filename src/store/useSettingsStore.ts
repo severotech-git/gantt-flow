@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
-import { IStatusConfig, IUserConfig, AppLocale, TimelineScale } from '@/types';
+import { IStatusConfig, IUserConfig, AppLocale, TimelineScale, INotificationPreferences } from '@/types';
 
 import { SYSTEM_STATUS_VALUES } from '@/lib/statusConstants';
 export { SYSTEM_STATUS_VALUES };
@@ -41,7 +41,7 @@ function ensureSystemStatuses(statuses: IStatusConfig[]): IStatusConfig[] {
   return result;
 }
 
-type SettingsKey = 'users' | 'theme' | 'locale' | 'levelNames' | 'statuses' | 'allowWeekends' | 'ganttScale';
+type SettingsKey = 'users' | 'theme' | 'locale' | 'levelNames' | 'statuses' | 'allowWeekends' | 'ganttScale' | 'notificationPreferences';
 
 interface SettingsState {
   users: IUserConfig[];
@@ -55,6 +55,7 @@ interface SettingsState {
   isLoading: boolean;
   isSaving: boolean;
   sidebarCollapse: 'none' | 'icon';
+  notificationPreferences: INotificationPreferences;
 }
 
 interface SettingsActions {
@@ -68,6 +69,7 @@ interface SettingsActions {
   setAllowWeekends: (v: boolean) => void;
   setSidebarCollapse: (v: 'none' | 'icon') => void;
   setLevelName: (level: 'epic' | 'feature' | 'task', v: string) => void;
+  setNotificationPreferences: (prefs: INotificationPreferences) => void;
   // User list CRUD
   addUser: (user: IUserConfig) => void;
   updateUser: (uid: string, patch: Partial<IUserConfig>) => void;
@@ -92,6 +94,7 @@ export const useSettingsStore = create<SettingsState & SettingsActions>()(
     isLoading: false,
     isSaving: false,
     sidebarCollapse: 'none',
+    notificationPreferences: { itemsCreated: 'both', itemsOwned: 'both', mentions: 'both' },
 
     fetchSettings: async () => {
       set((s) => { s.isLoading = true; });
@@ -109,6 +112,7 @@ export const useSettingsStore = create<SettingsState & SettingsActions>()(
           s.statuses = ensureSystemStatuses(data.statuses?.length ? data.statuses : DEFAULT_STATUSES);
           s.allowWeekends = data.allowWeekends ?? false;
           s.onboardingComplete = data.onboardingComplete ?? true;
+          s.notificationPreferences = data.notificationPreferences ?? { itemsCreated: 'both', itemsOwned: 'both', mentions: 'both' };
         });
         // Apply saved scale to project store without re-persisting
         const { useProjectStore } = await import('@/store/useProjectStore');
@@ -159,6 +163,11 @@ export const useSettingsStore = create<SettingsState & SettingsActions>()(
     setAllowWeekends: (v) => {
       set((s) => { s.allowWeekends = v; });
       setTimeout(() => get().persistSettings('allowWeekends'), 0);
+    },
+
+    setNotificationPreferences: (prefs) => {
+      set((s) => { s.notificationPreferences = prefs; });
+      setTimeout(() => get().persistSettings('notificationPreferences'), 0);
     },
 
     setSidebarCollapse: (v) => {

@@ -594,7 +594,21 @@
         "profile": "My Profile",
         "theme": "Theme",
         "language": "Language",
+        "notifications": "Notifications",
         "billing": "Billing"
+      }
+    },
+    "notifications": {
+      "title": "Notifications",
+      "subtitle": "Choose how you want to be notified about activity.",
+      "itemsCreated": "Items I created",
+      "itemsOwned": "Items assigned to me",
+      "mentions": "@mentions in comments",
+      "channels": {
+        "off": "Off",
+        "in-app": "In-app only",
+        "email": "Email only",
+        "both": "Both in-app and email"
       }
     },
     "readOnly": "Only owners and admins can change this setting.",
@@ -895,6 +909,12 @@
       "plainBody": "{sharerName} has shared the project \"{projectName}\" with you.",
       "plainExpiry": "This link expires on {expiryDate}.",
       "plainIgnore": "If you did not expect this shared link, you can safely ignore this email."
+    },
+    "notification": {
+      "subject": "{actorName} {actionDescription} in {projectName}",
+      "title": "Project Activity",
+      "greeting": "You have a new notification in your project.",
+      "button": "View Item"
     }
   },
   "shareDialog": {
@@ -974,5 +994,12 @@
     "noResults": "No items match the current filters.",
     "clearFilters": "Clear filters",
     "filters": "Filters"
+  },
+  "notifications": {
+    "title": "Notifications",
+    "markAllRead": "Mark all as read",
+    "noNotifications": "No notifications yet",
+    "viewAll": "View all",
+    "loading": "Loading..."
   }
 }

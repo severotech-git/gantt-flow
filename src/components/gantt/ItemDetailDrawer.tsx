@@ -23,6 +23,7 @@ import { parseISO } from 'date-fns';
 import { snapToWorkday } from '@/lib/dateUtils';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { DrawerChangelog } from '@/components/gantt/DrawerChangelog';
+import { MentionTextarea } from '@/components/shared/MentionTextarea';
 
 type ItemLevel = 'epic' | 'feature' | 'task';
 interface ItemRef {
@@ -453,8 +454,8 @@ export function ItemDetailDrawer() {
               <DrawerActivity
                 item={item}
                 users={users}
-                onComment={(text) => {
-                  addComment(item.epicId, item.featureId, item.taskId, text, currentUserUid);
+                onComment={(text, mentionedUserIds) => {
+                  addComment(item.epicId, item.featureId, item.taskId, text, currentUserUid, mentionedUserIds);
                 }}
               />
             </TabsContent>
@@ -533,25 +534,31 @@ function DrawerActivity({
 }: {
   item: ItemRef;
   users: IUserConfig[];
-  onComment: (text: string) => void;
+  onComment: (text: string, mentionedUserIds?: string[]) => void;
 }) {
   const t = useTranslations('gantt.drawer');
   const format = useFormatter();
   const [commentDraft, setCommentDraft] = useState('');
+  const [pendingMentions, setPendingMentions] = useState<string[]>([]);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const comments = item.data.comments || [];
   const userMap = Object.fromEntries(users.map((u) => [u.uid, u]));
   const userByName = Object.fromEntries(users.map((u) => [u.name, u]));
 
-  const handleSubmit = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+  const submitComment = () => {
+    if (commentDraft.trim()) {
+      onComment(commentDraft, pendingMentions.length > 0 ? pendingMentions : undefined);
+      setCommentDraft('');
+      setPendingMentions([]);
+      requestAnimationFrame(() => textareaRef.current?.focus());
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
       e.preventDefault();
-      if (commentDraft.trim()) {
-        onComment(commentDraft);
-        setCommentDraft('');
-        if (textareaRef.current) textareaRef.current.focus();
-      }
+      submitComment();
     }
   };
 
@@ -593,27 +600,24 @@ function DrawerActivity({
       {/* Comment input */}
       <div className="flex-shrink-0 border-t px-5 py-4">
         <div className="rounded-2xl border bg-muted/30 focus-within:bg-background focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary/50 transition-all">
-          <textarea
-            ref={textareaRef}
+          <MentionTextarea
             value={commentDraft}
-            onChange={(e) => setCommentDraft(e.target.value)}
-            onKeyDown={handleSubmit}
+            onChange={setCommentDraft}
+            onMentionsChange={setPendingMentions}
+            onKeyDown={handleKeyDown}
+            users={users}
             placeholder={t('addComment')}
             maxLength={5000}
             rows={3}
-            className="w-full text-sm bg-transparent px-4 pt-3 pb-1 focus:outline-none resize-none leading-relaxed"
+            className="text-sm px-4 pt-3 pb-1 leading-relaxed"
+            textareaRef={textareaRef}
           />
           <div className="flex items-center justify-between px-4 pb-3 pt-1">
             <span className="text-xs text-muted-foreground">{t('cmdEnterToSend')}</span>
             <Button
               size="sm"
               disabled={!commentDraft.trim()}
-              onClick={() => {
-                if (commentDraft.trim()) {
-                  onComment(commentDraft);
-                  setCommentDraft('');
-                }
-              }}
+              onClick={submitComment}
               className="h-7 px-3 gap-1.5"
             >
               <SendIcon className="w-3.5 h-3.5" />

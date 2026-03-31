@@ -4,6 +4,8 @@ import { PanelLeftClose, PanelLeftOpen, LogOut, User, Settings as SettingsIcon, 
 import type { ReactNode } from 'react';
 import { useSession, signOut } from 'next-auth/react';
 import { OwnerAvatar } from '@/components/shared/OwnerAvatar';
+import { NotificationBell } from '@/components/notifications/NotificationBell';
+import { useNotifications } from '@/hooks/useNotifications';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -36,6 +38,9 @@ export function PageNavbar({
 }: PageNavbarProps) {
   const { data: session } = useSession();
   const t = useTranslations('layout.navbar');
+
+  // Initialize notifications (subscribe to socket, fetch unread count)
+  useNotifications();
 
   return (
     <header className="flex items-center h-10 px-4 gap-3 border-b border-border bg-surface-2 shrink-0 overflow-x-auto">
@@ -72,6 +77,8 @@ export function PageNavbar({
             {actions}
           </div>
         )}
+
+        {session?.user && <NotificationBell />}
 
         {session?.user && (
           <DropdownMenu>

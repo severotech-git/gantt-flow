@@ -1,4 +1,5 @@
 import mongoose, { Schema, Document, Model } from 'mongoose';
+import type { INotificationPreferences } from '@/types/index.js';
 
 export interface IUserDocument extends Document {
   email: string;
@@ -10,6 +11,7 @@ export interface IUserDocument extends Document {
   theme: 'dark' | 'light' | 'system';
   locale: 'en' | 'pt-BR' | 'es';
   ganttScale: 'week' | 'month' | 'quarter';
+  notificationPreferences?: INotificationPreferences;
 }
 
 const UserSchema = new Schema<IUserDocument>(
@@ -58,6 +60,14 @@ const UserSchema = new Schema<IUserDocument>(
       type: String,
       enum: ['week', 'month', 'quarter'],
       default: 'week',
+    },
+    notificationPreferences: {
+      type: {
+        itemsCreated: { type: String, enum: ['in-app', 'email', 'both', 'off'], default: 'both' },
+        itemsOwned: { type: String, enum: ['in-app', 'email', 'both', 'off'], default: 'both' },
+        mentions: { type: String, enum: ['in-app', 'email', 'both', 'off'], default: 'both' },
+      },
+      default: { itemsCreated: 'both', itemsOwned: 'both', mentions: 'both' },
     },
   },
   {
