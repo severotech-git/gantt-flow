@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState, useRef } from 'react';
+import { useMemo, useState, useRef, useEffect } from 'react';
 import { useTranslations, useFormatter } from 'next-intl';
 import { useProjectStore } from '@/store/useProjectStore';
 import { useSettingsStore } from '@/store/useSettingsStore';
@@ -15,10 +15,9 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { OwnerAvatar } from '@/components/shared/OwnerAvatar';
-import { StatusBadge } from '@/components/shared/StatusBadge';
 import { cn } from '@/lib/utils';
 import { IEpic, IFeature, ITask, IUserConfig } from '@/types';
-import { SendIcon } from 'lucide-react';
+import { SendIcon, PencilIcon } from 'lucide-react';
 import { parseISO } from 'date-fns';
 import { snapToWorkday } from '@/lib/dateUtils';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
@@ -50,6 +49,7 @@ export function ItemDetailDrawer() {
 
   const users = useSettingsStore((s) => s.users);
   const statuses = useSettingsStore((s) => s.statuses);
+  const levelNames = useSettingsStore((s) => s.levelNames);
 
   // Get current user's uid by matching session user name with workspace users
   const currentUserUid = useMemo(() => {
@@ -122,16 +122,30 @@ export function ItemDetailDrawer() {
   const [pctDraft, setPctDraft] = useState(String(item?.data.completionPct ?? 0));
 
   // Reset drafts synchronously during render when a different item is opened
+  // or when the store updates the same item's dates/pct from an external source
   // (React re-renders immediately when setState is called during render)
   const [prevItemKey, setPrevItemKey] = useState('');
+  const [prevDateKey, setPrevDateKey] = useState('');
   const currentItemKey = `${item?.epicId ?? ''}-${item?.featureId ?? ''}-${item?.taskId ?? ''}`;
+  const currentDateKey = `${item?.data.plannedStart ?? ''}|${item?.data.plannedEnd ?? ''}|${item?.data.completionPct ?? 0}`;
   if (currentItemKey !== prevItemKey) {
     setPrevItemKey(currentItemKey);
+    setPrevDateKey(currentDateKey);
     setNameDraft(item?.data.name ?? '');
     setStartDraft(item?.data.plannedStart?.split('T')[0] ?? '');
     setEndDraft(item?.data.plannedEnd?.split('T')[0] ?? '');
     setPctDraft(String(item?.data.completionPct ?? 0));
+  } else if (currentDateKey !== prevDateKey) {
+    // Same item, but dates/pct changed in store (e.g., rollup from child or another client)
+    setPrevDateKey(currentDateKey);
+    setStartDraft(item?.data.plannedStart?.split('T')[0] ?? '');
+    setEndDraft(item?.data.plannedEnd?.split('T')[0] ?? '');
+    setPctDraft(String(item?.data.completionPct ?? 0));
   }
+
+  // Debounce timers for auto-save on type
+  const nameTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const pctTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const TRACKED_FIELDS = ['status', 'ownerId', 'completionPct', 'plannedStart', 'plannedEnd', 'actualStart', 'actualEnd', 'description'];
 
@@ -225,25 +239,37 @@ export function ItemDetailDrawer() {
               <div className="px-5 pt-5 pb-3 flex items-start gap-3">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1.5">
-                    <StatusBadge status={item.data.status} className="text-2xs" />
+                    <span className="text-2xs font-semibold uppercase tracking-wider text-primary">
+                      {levelNames[item.level]}
+                    </span>
                     <span className="text-xs font-mono text-muted-foreground">{itemLabel}</span>
                   </div>
-                  <div className="flex items-baseline justify-between gap-2">
-                    <input
-                      type="text"
-                      value={nameDraft}
-                      onChange={(e) => setNameDraft(e.target.value)}
-                      onBlur={() => {
-                        const next = nameDraft.trim();
-                        if (!next) { setNameDraft(item.data.name); return; }
-                        if (next !== item.data.name) {
-                          writeChangelog('name', item.data.name, next);
-                          patchItem({ name: next });
-                        }
-                      }}
-                      maxLength={255}
-                      className="flex-1 text-lg font-semibold bg-transparent border-0 focus:outline-none p-0 focus:ring-0 leading-snug"
-                    />
+                  <div className="flex items-baseline justify-between gap-2 group/name">
+                    <div className="flex items-baseline gap-1.5 flex-1 min-w-0">
+                      <input
+                        type="text"
+                        value={nameDraft}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setNameDraft(val);
+                          if (nameTimerRef.current) clearTimeout(nameTimerRef.current);
+                          nameTimerRef.current = setTimeout(() => {
+                            const next = val.trim() || item.data.name;
+                            if (next !== item.data.name) {
+                              writeChangelog('name', item.data.name, next);
+                              patchItem({ name: next });
+                            }
+                          }, 600);
+                        }}
+                        onBlur={() => {
+                          const next = nameDraft.trim();
+                          if (!next) setNameDraft(item.data.name);
+                        }}
+                        maxLength={255}
+                        className="flex-1 text-lg font-semibold bg-transparent border-0 focus:outline-none p-0 focus:ring-0 leading-snug cursor-text text-foreground hover:text-foreground/80 transition-colors"
+                      />
+                      <PencilIcon className="w-3.5 h-3.5 text-muted-foreground/0 group-hover/name:text-muted-foreground/50 group-focus-within/name:text-muted-foreground/50 transition-colors shrink-0" />
+                    </div>
                     <p className="text-2xs text-muted-foreground/60 shrink-0">{nameDraft.length}/255</p>
                   </div>
                 </div>
@@ -325,14 +351,18 @@ export function ItemDetailDrawer() {
                         <Input
                           type="date"
                           value={startDraft}
-                          onChange={(e) => setStartDraft(e.target.value)}
-                          onBlur={() => {
-                            if (!startDraft) { setStartDraft(item.data.plannedStart.split('T')[0]); return; }
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            setStartDraft(val);
+                            if (!val) return;
                             const allowWeekends = useSettingsStore.getState().allowWeekends;
                             const newISO = allowWeekends
-                              ? new Date(startDraft).toISOString()
-                              : snapToWorkday(parseISO(startDraft), 'forward').toISOString();
+                              ? new Date(val).toISOString()
+                              : snapToWorkday(parseISO(val), 'forward').toISOString();
                             if (newISO !== item.data.plannedStart) patchItem({ plannedStart: newISO });
+                          }}
+                          onBlur={() => {
+                            if (!startDraft) { setStartDraft(item.data.plannedStart.split('T')[0]); }
                           }}
                         />
                       )}
@@ -349,14 +379,18 @@ export function ItemDetailDrawer() {
                         <Input
                           type="date"
                           value={endDraft}
-                          onChange={(e) => setEndDraft(e.target.value)}
-                          onBlur={() => {
-                            if (!endDraft) { setEndDraft(item.data.plannedEnd.split('T')[0]); return; }
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            setEndDraft(val);
+                            if (!val) return;
                             const allowWeekends = useSettingsStore.getState().allowWeekends;
                             const newISO = allowWeekends
-                              ? new Date(endDraft).toISOString()
-                              : snapToWorkday(parseISO(endDraft), 'backward').toISOString();
+                              ? new Date(val).toISOString()
+                              : snapToWorkday(parseISO(val), 'backward').toISOString();
                             if (newISO !== item.data.plannedEnd) patchItem({ plannedEnd: newISO });
+                          }}
+                          onBlur={() => {
+                            if (!endDraft) { setEndDraft(item.data.plannedEnd.split('T')[0]); }
                           }}
                         />
                       )}
@@ -424,11 +458,22 @@ export function ItemDetailDrawer() {
                           min="0"
                           max="100"
                           value={pctDraft}
-                          onChange={(e) => setPctDraft(e.target.value)}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            setPctDraft(val);
+                            if (pctTimerRef.current) clearTimeout(pctTimerRef.current);
+                            pctTimerRef.current = setTimeout(() => {
+                              const n = Math.min(100, Math.max(0, parseInt(val, 10) || 0));
+                              setPctDraft(String(n));
+                              if (n !== item.data.completionPct) {
+                                writeChangelog('completionPct', item.data.completionPct, n);
+                                patchItem({ completionPct: n });
+                              }
+                            }, 600);
+                          }}
                           onBlur={() => {
                             const n = Math.min(100, Math.max(0, parseInt(pctDraft, 10) || 0));
                             setPctDraft(String(n));
-                            if (n !== item.data.completionPct) patchItem({ completionPct: n });
                           }}
                           className="w-20 [&::-webkit-outer-spin-button]:hidden [&::-webkit-inner-spin-button]:hidden"
                         />
@@ -613,7 +658,10 @@ function DrawerActivity({
             textareaRef={textareaRef}
           />
           <div className="flex items-center justify-between px-4 pb-3 pt-1">
-            <span className="text-xs text-muted-foreground">{t('cmdEnterToSend')}</span>
+            <div className="flex items-center gap-3">
+              <span className="text-xs text-muted-foreground">{t('cmdEnterToSend')}</span>
+              <span className="text-2xs text-muted-foreground/60">{commentDraft.length}/5000</span>
+            </div>
             <Button
               size="sm"
               disabled={!commentDraft.trim()}

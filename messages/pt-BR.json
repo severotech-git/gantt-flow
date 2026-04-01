@@ -1019,11 +1019,6 @@
       "status-change": "alterou o status de",
       "assignment": "atribuiu você a",
       "item-update": "atualizou"
-    },
-    "levels": {
-      "epic": "Épico",
-      "feature": "Funcionalidade",
-      "task": "Tarefa"
     }
   }
 }

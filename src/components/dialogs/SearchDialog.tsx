@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { useProjectStore } from '@/store/useProjectStore';
+import { useSettingsStore } from '@/store/useSettingsStore';
 import { StatusBadge } from '@/components/shared/StatusBadge';
 import { cn } from '@/lib/utils';
 import { parseISO, format, isValid, addDays } from 'date-fns';
@@ -50,6 +51,7 @@ export function SearchDialog({ open, onClose }: SearchDialogProps) {
     setTimelineStartDate,
     setFocusedBarId,
   } = useProjectStore();
+  const levelNames = useSettingsStore((s) => s.levelNames);
 
   // Focus input and reset state when dialog opens
   useEffect(() => {
@@ -221,7 +223,7 @@ export function SearchDialog({ open, onClose }: SearchDialogProps) {
           {groups.map((group) => (
             <div key={group.level}>
               <div className="px-4 py-1.5 text-2xs font-semibold text-muted-foreground uppercase tracking-wider bg-muted/30 border-b border-border/50 sticky top-0">
-                {t(`levels.${group.level}s` as Parameters<typeof t>[0])}
+                {levelNames[group.level]}
               </div>
               {group.items.map((item) => {
                 const Icon = LEVEL_ICONS[item.level];

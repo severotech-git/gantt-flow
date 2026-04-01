@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback, useMemo } from 'react';
 import { useTranslations } from 'next-intl';
 import { useNotificationStore } from '@/store/useNotificationStore';
+import { useSettingsStore } from '@/store/useSettingsStore';
 import { useRouter } from 'next/navigation';
 import {
   MessageCircle, CheckCircle, AlertCircle, Pencil,
@@ -105,6 +106,7 @@ export function NotificationDropdown() {
     markAsRead, markAllAsRead, dismissNotification,
     unreadCount,
   } = useNotificationStore();
+  const levelNames = useSettingsStore((s) => s.levelNames);
   const router = useRouter();
 
   const [tab, setTab] = useState<Tab>('unread');
@@ -267,6 +269,7 @@ export function NotificationDropdown() {
                 key={notification._id}
                 notification={notification}
                 t={t}
+                levelNames={levelNames}
                 isNavigating={navigatingId === notification._id}
                 isDismissing={dismissingId === notification._id}
                 onClick={() =>
@@ -391,6 +394,7 @@ function ProjectFilter({
 function NotificationItem({
   notification,
   t,
+  levelNames,
   isNavigating,
   isDismissing,
   onClick,
@@ -398,6 +402,7 @@ function NotificationItem({
 }: {
   notification: INotification;
   t: (key: string) => string;
+  levelNames: { epic: string; feature: string; task: string };
   isNavigating: boolean;
   isDismissing: boolean;
   onClick: () => void;
@@ -466,14 +471,14 @@ function NotificationItem({
             <>
               <span className="text-[10px] text-muted-foreground flex items-center gap-0.5">
                 <span className={cn('w-1.5 h-1.5 rounded-full', LEVEL_COLORS.epic)} />
-                {t('levels.epic')}
+                {levelNames.epic}
               </span>
               {notification.level === 'task' && (
                 <>
                   <span className="text-muted-foreground/40">›</span>
                   <span className="text-[10px] text-muted-foreground flex items-center gap-0.5">
                     <span className={cn('w-1.5 h-1.5 rounded-full', LEVEL_COLORS.feature)} />
-                    {t('levels.feature')}
+                    {levelNames.feature}
                   </span>
                 </>
               )}
