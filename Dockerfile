@@ -33,7 +33,7 @@ RUN pnpm exec esbuild server.ts --bundle --platform=node --format=esm \
     --outfile=next.config.mjs --packages=external
 
 # Prune dev dependencies for a leaner production image
-RUN pnpm prune --prod
+RUN pnpm prune --prod --ignore-scripts
 
 # ──────────────────────────────────────────────
 # Stage 2: runner – minimal production image
