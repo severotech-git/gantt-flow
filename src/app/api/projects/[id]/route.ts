@@ -65,18 +65,25 @@ export async function PATCH(req: NextRequest, { params }: Params) {
       }
     }
 
-    // Snapshot previous epics if we need to detect item-level changes
+    // Snapshot previous epics BEFORE the update so comparison is accurate
     const needsDiff = 'epics' in body && Array.isArray(body.epics);
 
     const previousProject = needsDiff
       ? await Project.findOne({ _id: id, accountId }, { epics: 1, name: 1 }).lean()
       : null;
 
-    const project = await Project.findOneAndUpdate(
+    // Apply the update
+    await Project.findOneAndUpdate(
       { _id: id, accountId },
       { $set: update },
       { new: true, runValidators: true }
-    ).lean();
+    );
+
+    // Fetch post-update state fresh (not from the returned doc, to avoid Mongoose
+    // change-detection artifacts on parent subdocuments)
+    const project = needsDiff
+      ? await Project.findOne({ _id: id, accountId }, { epics: 1, name: 1 }).lean()
+      : await Project.findOne({ _id: id, accountId }).lean();
 
     if (!project) return NextResponse.json({ error: 'Not found' }, { status: 404 });
 

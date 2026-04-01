@@ -56,7 +56,7 @@ const UserConfigSchema = new Schema(
   {
     uid:   { type: String, required: true },
     name:  { type: String, default: '', maxlength: 100 },
-    color: { type: String, default: '#6366f1', maxlength: 7 },
+    color: { type: String, default: '#6366f1', maxlength: 30 },
   },
   { _id: false, id: false }
 );
@@ -65,7 +65,7 @@ const StatusConfigSchema = new Schema(
   {
     value:    { type: String, required: true, maxlength: 100 },
     label:    { type: String, required: true, maxlength: 100 },
-    color:    { type: String, required: true, maxlength: 7 },
+    color:    { type: String, required: true, maxlength: 30 },
     isFinal:  { type: Boolean, default: false },
     isSystem: { type: Boolean, default: false },
   },

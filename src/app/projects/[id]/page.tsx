@@ -74,10 +74,10 @@ export default function ProjectPage({ params }: ProjectPageProps) {
     }
   }, [isLoadingProject, projectError, router]);
 
-  // Global Cmd+K / Ctrl+K shortcut
+  // Global Cmd+F / Ctrl+F shortcut
   useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {
-      if (e.key === 'k' && (e.metaKey || e.ctrlKey)) {
+      if (e.key === 'f' && (e.metaKey || e.ctrlKey)) {
         e.preventDefault();
         setSearchOpen((v) => !v);
       }
