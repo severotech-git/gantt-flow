@@ -94,7 +94,7 @@ export const useSettingsStore = create<SettingsState & SettingsActions>()(
     isLoading: false,
     isSaving: false,
     sidebarCollapse: 'none',
-    notificationPreferences: { itemsCreated: 'both', itemsOwned: 'both', mentions: 'both' },
+    notificationPreferences: { itemsCreated: 'off', itemsOwned: 'in-app', mentions: 'in-app' },
 
     fetchSettings: async () => {
       set((s) => { s.isLoading = true; });
@@ -112,7 +112,7 @@ export const useSettingsStore = create<SettingsState & SettingsActions>()(
           s.statuses = ensureSystemStatuses(data.statuses?.length ? data.statuses : DEFAULT_STATUSES);
           s.allowWeekends = data.allowWeekends ?? false;
           s.onboardingComplete = data.onboardingComplete ?? true;
-          s.notificationPreferences = data.notificationPreferences ?? { itemsCreated: 'both', itemsOwned: 'both', mentions: 'both' };
+          s.notificationPreferences = data.notificationPreferences ?? { itemsCreated: 'off', itemsOwned: 'in-app', mentions: 'in-app' };
         });
         // Apply saved scale to project store without re-persisting
         const { useProjectStore } = await import('@/store/useProjectStore');

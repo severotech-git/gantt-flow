@@ -264,6 +264,8 @@ export interface INotificationPreferences {
   mentions: NotificationChannel;       // @mentioned in comments
 }
 
+export type NotificationLevel = 'epic' | 'feature' | 'task';
+
 export interface INotification {
   _id: string;
   recipientUserId: string;
@@ -276,9 +278,13 @@ export interface INotification {
     taskId?: string;
   };
   itemName: string;
+  epicName: string;
+  featureName?: string;
+  level: NotificationLevel;
   actorUserId: string;
   actorName: string;
   message: string;
   read: boolean;
+  readAt?: string;
   createdAt: string;
 }

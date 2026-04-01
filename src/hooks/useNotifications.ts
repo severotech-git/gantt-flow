@@ -15,9 +15,8 @@ export function useNotifications() {
     // Connect socket and subscribe to notification events
     const socket = getSocket();
 
-    const handleNotification = (data: INotification) => {
+    const handleNotification = (data: INotification[]) => {
       useNotificationStore.getState().addRealtime(data);
-      // TODO: Show toast notification
     };
 
     socket.on('notification', handleNotification);

@@ -11,10 +11,14 @@ export interface INotificationDocument extends Document {
     taskId?: string;
   };
   itemName: string;
+  epicName: string;
+  featureName?: string;
+  level: 'epic' | 'feature' | 'task';
   actorUserId: string;
   actorName: string;
   message: string;
   read: boolean;
+  readAt?: Date;
   createdAt: Date;
 }
 
@@ -50,6 +54,16 @@ const NotificationSchema = new Schema<INotificationDocument>(
       type: String,
       required: true,
     },
+    epicName: {
+      type: String,
+      required: true,
+    },
+    featureName: String,
+    level: {
+      type: String,
+      enum: ['epic', 'feature', 'task'],
+      required: true,
+    },
     actorUserId: {
       type: String,
       required: true,
@@ -67,10 +81,12 @@ const NotificationSchema = new Schema<INotificationDocument>(
       default: false,
       index: true,
     },
+    readAt: {
+      type: Date,
+    },
     createdAt: {
       type: Date,
       default: Date.now,
-      index: true,
     },
   },
   {
@@ -81,8 +97,10 @@ const NotificationSchema = new Schema<INotificationDocument>(
 // Compound index for efficient queries
 NotificationSchema.index({ recipientUserId: 1, read: 1, createdAt: -1 });
 
-// TTL index: auto-delete notifications after 90 days
+// TTL index: auto-delete unread notifications after 90 days
 NotificationSchema.index({ createdAt: 1 }, { expireAfterSeconds: 7776000 });
+// TTL index: auto-delete read notifications after 30 days from when they were read
+NotificationSchema.index({ readAt: 1 }, { expireAfterSeconds: 2592000 });
 
 // Force schema reload on hot-reload in development only
 if (process.env.NODE_ENV !== 'production') {

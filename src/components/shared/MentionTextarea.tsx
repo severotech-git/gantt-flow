@@ -1,16 +1,15 @@
 'use client';
 
-import { useRef, useState, useEffect } from 'react';
-import { useSettingsStore } from '@/store/useSettingsStore';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { useRef, useState } from 'react';
 import { cn } from '@/lib/utils';
+import type { IUserConfig } from '@/types/index';
 
 interface MentionTextareaProps {
   value: string;
   onChange: (value: string) => void;
   onMentionsChange: (userIds: string[]) => void;
   onKeyDown?: (e: React.KeyboardEvent<HTMLTextAreaElement>) => void;
-  users: any[];
+  users: IUserConfig[];
   placeholder?: string;
   maxLength?: number;
   rows?: number;
@@ -37,13 +36,30 @@ export function MentionTextarea({
   const [showMentionDropdown, setShowMentionDropdown] = useState(false);
   const [mentionQuery, setMentionQuery] = useState('');
   const [mentionIndex, setMentionIndex] = useState(0);
+  const [activeIndex, setActiveIndex] = useState(0);
+
+  // Sync with parent: when parent clears pendingMentions (after comment submit), reset internal state
+  const prevMentionsLengthRef = useRef<number | null>(null);
+  const syncMentions = (ids: string[]) => {
+    onMentionsChange(ids);
+    // Parent is clearing (submitting a comment) - reset internal tracking when ids goes to 0 and we had mentions
+    if (ids.length === 0 && prevMentionsLengthRef.current !== null && prevMentionsLengthRef.current > 0) {
+      setMentionedUserIds([]);
+    }
+    prevMentionsLengthRef.current = ids.length;
+  };
 
   // Filter users for mention dropdown
-  const filteredUsers = users.filter(
-    (u) =>
-      u.name.toLowerCase().includes(mentionQuery.toLowerCase()) &&
-      !mentionedUserIds.includes(u.uid)
+  const filteredUsers = users.filter((u) =>
+    u.name.toLowerCase().includes(mentionQuery.toLowerCase())
   );
+
+  // Reset active index in the same render when the filtered list length changes
+  const [trackedFilterLen, setTrackedFilterLen] = useState(filteredUsers.length);
+  if (trackedFilterLen !== filteredUsers.length) {
+    setTrackedFilterLen(filteredUsers.length);
+    setActiveIndex(0);
+  }
 
   // Handle text changes and detect @ mentions
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -61,6 +77,7 @@ export function MentionTextarea({
         setMentionQuery(textAfterAt);
         setMentionIndex(lastAtIndex);
         setShowMentionDropdown(true);
+        setActiveIndex(0);
         return;
       }
     }
@@ -69,7 +86,7 @@ export function MentionTextarea({
   };
 
   // Insert mention
-  const insertMention = (user: any) => {
+  const insertMention = (user: IUserConfig) => {
     if (!textareaRef.current) return;
 
     const text = value;
@@ -81,29 +98,45 @@ export function MentionTextarea({
 
     const newMentionedIds = [...mentionedUserIds, user.uid];
     setMentionedUserIds(newMentionedIds);
-    onMentionsChange(newMentionedIds);
+    syncMentions(newMentionedIds);
 
     setShowMentionDropdown(false);
     setMentionQuery('');
 
     // Focus textarea and move cursor
     setTimeout(() => {
-      if (textareaRef && 'current' in textareaRef && textareaRef.current) {
+      const el = textareaRef?.current;
+      if (el) {
         const newCursorPos = beforeAt.length + user.name.length + 2;
-        textareaRef.current.focus();
-        textareaRef.current.setSelectionRange(newCursorPos, newCursorPos);
+        el.focus();
+        el.setSelectionRange(newCursorPos, newCursorPos);
       }
     }, 0);
   };
 
   // Handle keyboard navigation in dropdown
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (showMentionDropdown) {
+    if (showMentionDropdown && filteredUsers.length > 0) {
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        setActiveIndex((i) => Math.min(i + 1, filteredUsers.length - 1));
+        return;
+      }
+      if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        setActiveIndex((i) => Math.max(i - 1, 0));
+        return;
+      }
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        insertMention(filteredUsers[activeIndex]);
+        return;
+      }
       if (e.key === 'Escape') {
         setShowMentionDropdown(false);
         e.preventDefault();
+        return;
       }
-      return;
     }
 
     // Call parent's onKeyDown if provided
@@ -130,12 +163,17 @@ export function MentionTextarea({
 
       {showMentionDropdown && filteredUsers.length > 0 && (
         <div className="absolute bottom-full left-0 mb-1 w-full bg-popover border border-border rounded-md shadow-md z-50 max-h-[200px] overflow-y-auto">
-          {filteredUsers.map((user) => (
+          {filteredUsers.map((user, idx) => (
             <button
               key={user.uid}
               type="button"
               onClick={() => insertMention(user)}
-              className="w-full text-left px-3 py-2 hover:bg-muted transition-colors text-sm flex items-center gap-2"
+              className={cn(
+                'w-full text-left px-3 py-2 transition-colors text-sm flex items-center gap-2',
+                idx === activeIndex
+                  ? 'bg-muted'
+                  : 'hover:bg-muted'
+              )}
             >
               <div
                 className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-semibold text-white shrink-0"

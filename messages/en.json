@@ -997,9 +997,33 @@
   },
   "notifications": {
     "title": "Notifications",
+    "allProjects": "All projects",
     "markAllRead": "Mark all as read",
-    "noNotifications": "No notifications yet",
-    "viewAll": "View all",
-    "loading": "Loading..."
+    "noNotifications": "You're all caught up!",
+    "noReadNotifications": "No read notifications in the last 30 days",
+    "noProjectNotifications": "No notifications from this project",
+    "noNotificationsHint": "New activity will appear here",
+    "tabUnread": "Unread",
+    "tabRead": "Read",
+    "loadMore": "Load more",
+    "loading": "Loading...",
+    "dismiss": "Dismiss",
+    "justNow": "just now",
+    "minutesAgo": "{count}m ago",
+    "hoursAgo": "{count}h ago",
+    "yesterday": "yesterday",
+    "daysAgo": "{count}d ago",
+    "actions": {
+      "comment": "commented on",
+      "mention": "mentioned you in",
+      "status-change": "changed status of",
+      "assignment": "assigned you to",
+      "item-update": "updated"
+    },
+    "levels": {
+      "epic": "Epic",
+      "feature": "Feature",
+      "task": "Task"
+    }
   }
 }

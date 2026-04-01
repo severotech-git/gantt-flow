@@ -6,6 +6,7 @@ import Account from '@/lib/models/Account';
 import { createNotifications } from '@/lib/notifications';
 import mongoose from 'mongoose';
 import { randomBytes } from 'crypto';
+import type { IEpic, IFeature, ITask, IUserConfig } from '@/types/index';
 
 export const runtime = 'nodejs';
 
@@ -14,7 +15,6 @@ interface CommentPayload {
   featureId?: string;
   taskId?: string;
   text: string;
-  authorId: string;
   mentionedUserIds?: string[];
 }
 
@@ -43,10 +43,6 @@ export async function POST(
     if (!body.epicId) {
       return NextResponse.json({ error: 'epicId is required' }, { status: 400 });
     }
-    if (!body.authorId) {
-      return NextResponse.json({ error: 'authorId is required' }, { status: 400 });
-    }
-
     // Validate projectId
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return NextResponse.json({ error: 'Invalid project ID' }, { status: 400 });
@@ -64,19 +60,21 @@ export async function POST(
     }
 
     // Find the item to add comment to
-    const epicDoc = project.epics.id(body.epicId) as any;
+    const epicDoc = project.epics.id(body.epicId) as unknown as IEpic;
     if (!epicDoc) {
       return NextResponse.json({ error: 'Epic not found' }, { status: 404 });
     }
 
-    let target: any = epicDoc;
+    let target: IEpic | IFeature | ITask = epicDoc;
+    let featureDoc: IFeature | undefined = undefined;
     if (body.featureId) {
-      const feature = epicDoc.features?.id(body.featureId);
+      const feature = epicDoc.features?.find((f) => f._id?.toString() === body.featureId);
       if (!feature) {
         return NextResponse.json({ error: 'Feature not found' }, { status: 404 });
       }
+      featureDoc = feature;
       if (body.taskId) {
-        const task = feature.tasks?.id(body.taskId);
+        const task = feature.tasks?.find((t) => t._id?.toString() === body.taskId);
         if (!task) {
           return NextResponse.json({ error: 'Task not found' }, { status: 404 });
         }
@@ -89,10 +87,10 @@ export async function POST(
     // Create comment
     const comment = {
       _id: randomBytes(12).toString('hex'),
-      authorId: body.authorId,
+      authorId: userId,
       text: body.text.trim(),
       mentionedUserIds: body.mentionedUserIds ?? [],
-      createdAt: new Date(),
+      createdAt: new Date().toISOString(),
     };
 
     if (!target.comments) {
@@ -107,9 +105,9 @@ export async function POST(
     (async () => {
       try {
         // Get actor name from workspace settings
-        const account = await Account.findById(accountId, { 'settings.users': 1 }).lean();
-        const workspaceUsers = (account as any)?.settings?.users ?? [];
-        const actorUser = workspaceUsers.find((u: any) => u.uid === userId);
+        const account = await Account.findById(accountId, { 'settings.users': 1 }).lean() as { settings?: { users?: IUserConfig[] } } | null;
+        const workspaceUsers = account?.settings?.users ?? [];
+        const actorUser = workspaceUsers.find((u) => u.uid === userId);
         const actorName = actorUser?.name ?? 'Someone';
 
         // Build recipient list
@@ -135,12 +133,17 @@ export async function POST(
 
         if (recipients.length > 0) {
           const notifType = (body.mentionedUserIds?.length ?? 0) > 0 ? 'mention' : 'comment';
+          const isTask = !!body.taskId;
+          const isFeature = !!body.featureId && !body.taskId;
           await createNotifications({
             type: notifType,
             projectId: id,
             projectName: project.name,
             itemPath: { epicId: body.epicId, featureId: body.featureId, taskId: body.taskId },
             itemName: target.name,
+            epicName: epicDoc.name,
+            featureName: featureDoc?.name,
+            level: isTask ? 'task' : isFeature ? 'feature' : 'epic',
             actorUserId: userId,
             actorName,
             message: `${actorName} commented on "${target.name}" in project "${project.name}"`,

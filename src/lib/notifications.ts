@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import User from '@/lib/models/User';
 import Notification from '@/lib/models/Notification';
 import { getIO } from '@/lib/socketServer';
@@ -14,6 +15,9 @@ export interface CreateNotificationParams {
     taskId?: string;
   };
   itemName: string;
+  epicName: string;
+  featureName?: string;
+  level: 'epic' | 'feature' | 'task';
   actorUserId: string;
   actorName: string;
   message: string;
@@ -36,7 +40,7 @@ export async function createNotifications(params: CreateNotificationParams) {
     if (uniqueRecipients.size === 0) return;
 
     // Fetch all recipient preferences in one query
-    const recipientIds = Array.from(uniqueRecipients.keys());
+    const recipientIds = Array.from(uniqueRecipients.keys()).map((id) => new mongoose.Types.ObjectId(id));
     const users = await User.find(
       { _id: { $in: recipientIds } },
       { notificationPreferences: 1, email: 1, locale: 1 }
@@ -66,6 +70,9 @@ export async function createNotifications(params: CreateNotificationParams) {
         projectName: params.projectName,
         itemPath: params.itemPath,
         itemName: params.itemName,
+        epicName: params.epicName,
+        featureName: params.featureName,
+        level: params.level,
         actorUserId: params.actorUserId,
         actorName: params.actorName,
         message: params.message,
@@ -75,7 +82,7 @@ export async function createNotifications(params: CreateNotificationParams) {
 
       // In-app notification
       if (channel === 'in-app' || channel === 'both') {
-        notificationsToCreate.push({ ...notification, recipientUserId: recipientId });
+        notificationsToCreate.push(notification);
       }
 
       // Email notification
@@ -92,8 +99,12 @@ export async function createNotifications(params: CreateNotificationParams) {
     if (notificationsToCreate.length > 0) {
       const created = await Notification.insertMany(notificationsToCreate);
       if (io) {
+        // Batch all socket events — collect per-user, then emit once per user
+        const userEvents = new Map<string, unknown[]>();
         for (const doc of created) {
-          io.to(`user:${doc.recipientUserId}`).emit('notification', {
+          const key = `user:${doc.recipientUserId}`;
+          if (!userEvents.has(key)) userEvents.set(key, []);
+          userEvents.get(key)!.push({
             _id: doc._id.toString(),
             recipientUserId: doc.recipientUserId,
             type: doc.type,
@@ -101,12 +112,18 @@ export async function createNotifications(params: CreateNotificationParams) {
             projectName: doc.projectName,
             itemPath: doc.itemPath,
             itemName: doc.itemName,
+            epicName: doc.epicName,
+            featureName: doc.featureName,
+            level: doc.level,
             actorUserId: doc.actorUserId,
             actorName: doc.actorName,
             message: doc.message,
             read: doc.read,
-            createdAt: typeof doc.createdAt === 'string' ? doc.createdAt : new Date(doc.createdAt as unknown as string).toISOString(),
+            createdAt: new Date(doc.createdAt).toISOString(),
           });
+        }
+        for (const [room, events] of userEvents) {
+          io.to(room).emit('notification', events);
         }
       }
     }
@@ -125,19 +142,21 @@ export async function createNotifications(params: CreateNotificationParams) {
 async function sendEmailNotifications(
   emails: Array<{ to: string; locale: string; notification: Omit<INotification, '_id'> }>
 ) {
-  for (const email of emails) {
-    try {
-      await sendNotificationEmail(email.to, email.locale as 'en' | 'pt-BR' | 'es', {
-        actorName: email.notification.actorName,
-        projectName: email.notification.projectName,
-        itemName: email.notification.itemName,
-        actionDescription: getActionDescription(email.notification.type),
-        itemUrl: `${process.env.NEXTAUTH_URL}/projects/${email.notification.projectId}?open=${email.notification.itemPath.epicId}${email.notification.itemPath.featureId ? ',' + email.notification.itemPath.featureId : ''}${email.notification.itemPath.taskId ? ',' + email.notification.itemPath.taskId : ''}`,
-      });
-    } catch (err) {
-      console.error(`[sendNotificationEmail to ${email.to}]`, err);
-    }
-  }
+  await Promise.all(
+    emails.map(async (email) => {
+      try {
+        await sendNotificationEmail(email.to, email.locale as 'en' | 'pt-BR' | 'es', {
+          actorName: email.notification.actorName,
+          projectName: email.notification.projectName,
+          itemName: email.notification.itemName,
+          actionDescription: getActionDescription(email.notification.type),
+          itemUrl: `${process.env.NEXTAUTH_URL}/projects/${email.notification.projectId}?open=${[email.notification.itemPath.epicId, email.notification.itemPath.featureId, email.notification.itemPath.taskId].filter(Boolean).join(',')}`,
+        });
+      } catch (err) {
+        console.error(`[sendNotificationEmail to ${email.to}]`, err);
+      }
+    })
+  );
 }
 
 function getActionDescription(type: string): string {

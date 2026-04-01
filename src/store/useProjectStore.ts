@@ -8,6 +8,8 @@ import { usePresenceStore } from '@/store/usePresenceStore';
 import { getSocket } from '@/lib/socket';
 import type { ProjectAction } from '@/lib/socketEvents';
 
+const BASE_PX: Record<TimelineScale, number> = { week: 28, month: 10, quarter: 4 };
+
 function computeDayCount(s: string, e: string, allowWeekends: boolean): number {
   const start = parseISO(s);
   const end = parseISO(e);
@@ -284,7 +286,6 @@ export const useProjectStore = create<ProjectStore>()(
         }
         const data: IProject = await res.json();
         set((s) => {
-          const BASE_PX: Record<string, number> = { week: 28, month: 10, quarter: 4 };
           const pxPerDay = BASE_PX[s.timelineScale] * s.zoomLevel;
           const { startDate, todayOffsetDays } = getProjectTimelineStart(data, s.timelineScale);
           s.activeProject = data;
@@ -329,7 +330,6 @@ export const useProjectStore = create<ProjectStore>()(
     // ── Timeline ────────────────────────────────────────────────────────────
     setTimelineScale: (scale) => {
       set((s) => {
-        const BASE_PX: Record<string, number> = { week: 28, month: 10, quarter: 4 };
         const pxPerDay = BASE_PX[scale] * s.zoomLevel;
         if (s.activeProject) {
           const { startDate, todayOffsetDays } = getProjectTimelineStart(s.activeProject, scale);
@@ -348,7 +348,6 @@ export const useProjectStore = create<ProjectStore>()(
 
     applyTimelineScale: (scale) => {
       set((s) => {
-        const BASE_PX: Record<string, number> = { week: 28, month: 10, quarter: 4 };
         const pxPerDay = BASE_PX[scale] * s.zoomLevel;
         s.timelineScale = scale;
         if (s.activeProject) {
@@ -371,7 +370,6 @@ export const useProjectStore = create<ProjectStore>()(
 
     jumpToToday: () => {
       const { timelineScale, zoomLevel, activeProject } = get();
-      const BASE_PX: Record<string, number> = { week: 28, month: 10, quarter: 4 };
       const pxPerDay = BASE_PX[timelineScale] * zoomLevel;
       if (activeProject) {
         const { startDate, todayOffsetDays } = getProjectTimelineStart(activeProject, timelineScale);
@@ -957,7 +955,6 @@ export const useProjectStore = create<ProjectStore>()(
             featureId,
             taskId,
             text,
-            authorId,
             mentionedUserIds,
           }),
         });

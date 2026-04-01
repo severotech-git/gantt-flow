@@ -81,7 +81,7 @@ export interface ServerToClientEvents {
   }) => void;
   'drag-move': (data: { userId: string; dragId: string; deltaX: number }) => void;
   'drag-end': (data: { userId: string; dragId: string }) => void;
-  'notification': (data: INotification) => void;
+  'notification': (data: INotification[]) => void;
 }
 
 // ─── Socket data attached after auth ─────────────────────────────────────────

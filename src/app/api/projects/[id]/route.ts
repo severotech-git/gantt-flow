@@ -4,6 +4,7 @@ import { requireAuth } from '@/lib/apiAuth';
 import Project from '@/lib/models/Project';
 import Account from '@/lib/models/Account';
 import { createNotifications } from '@/lib/notifications';
+import type { IEpic, IFeature, ITask, IUserConfig } from '@/types/index';
 
 export const runtime = 'nodejs';
 
@@ -66,6 +67,7 @@ export async function PATCH(req: NextRequest, { params }: Params) {
 
     // Snapshot previous epics if we need to detect item-level changes
     const needsDiff = 'epics' in body && Array.isArray(body.epics);
+
     const previousProject = needsDiff
       ? await Project.findOne({ _id: id, accountId }, { epics: 1, name: 1 }).lean()
       : null;
@@ -82,10 +84,10 @@ export async function PATCH(req: NextRequest, { params }: Params) {
     if (previousProject && needsDiff) {
       fireItemChangeNotifications({
         projectId: id,
-        projectName: (project as any).name,
+        projectName: (project as { name: string }).name,
         actorUserId: userId,
-        previousEpics: (previousProject as any).epics ?? [],
-        nextEpics: (project as any).epics ?? [],
+        previousEpics: (previousProject as unknown as { epics?: IEpic[] }).epics ?? [],
+        nextEpics: (project as unknown as { epics?: IEpic[] }).epics ?? [],
         accountId,
       }).catch((err) => console.error('[item change notifications error]', err));
     }
@@ -101,8 +103,8 @@ interface ItemChangeParams {
   projectId: string;
   projectName: string;
   actorUserId: string;
-  previousEpics: any[];
-  nextEpics: any[];
+  previousEpics: IEpic[];
+  nextEpics: IEpic[];
   accountId: string;
 }
 
@@ -110,9 +112,9 @@ async function fireItemChangeNotifications(params: ItemChangeParams) {
   const { projectId, projectName, actorUserId, previousEpics, nextEpics, accountId } = params;
 
   // Get actor name from workspace settings
-  const account = await Account.findById(accountId, { 'settings.users': 1 }).lean();
-  const workspaceUsers = (account as any)?.settings?.users ?? [];
-  const actorUser = workspaceUsers.find((u: any) => u.uid === actorUserId);
+  const account = await Account.findById(accountId, { 'settings.users': 1 }).lean() as { settings?: { users?: IUserConfig[] } } | null;
+  const workspaceUsers = account?.settings?.users ?? [];
+  const actorUser = workspaceUsers.find((u) => u.uid === actorUserId);
   const actorName = actorUser?.name ?? 'Someone';
 
   // Build a flat map of previous items by _id for quick lookup
@@ -127,20 +129,24 @@ async function fireItemChangeNotifications(params: ItemChangeParams) {
     }
   }
 
-  // Walk next items and detect ownerId / status changes
+  // Walk next items and detect ownerId / status changes — collect all promises for parallel execution
+  const changePromises: Promise<void>[] = [];
   for (const epic of nextEpics) {
-    await checkItemChanges({ item: epic, epicId: epic._id?.toString(), projectId, projectName, actorUserId, actorName, prevItemMap });
+    changePromises.push(checkItemChanges({ item: epic, epic, epicId: epic._id?.toString(), projectId, projectName, actorUserId, actorName, prevItemMap }));
     for (const feature of epic.features ?? []) {
-      await checkItemChanges({ item: feature, epicId: epic._id?.toString(), featureId: feature._id?.toString(), projectId, projectName, actorUserId, actorName, prevItemMap });
+      changePromises.push(checkItemChanges({ item: feature, epic, feature, epicId: epic._id?.toString(), featureId: feature._id?.toString(), projectId, projectName, actorUserId, actorName, prevItemMap }));
       for (const task of feature.tasks ?? []) {
-        await checkItemChanges({ item: task, epicId: epic._id?.toString(), featureId: feature._id?.toString(), taskId: task._id?.toString(), projectId, projectName, actorUserId, actorName, prevItemMap });
+        changePromises.push(checkItemChanges({ item: task, epic, feature, epicId: epic._id?.toString(), featureId: feature._id?.toString(), taskId: task._id?.toString(), projectId, projectName, actorUserId, actorName, prevItemMap }));
       }
     }
   }
+  await Promise.all(changePromises);
 }
 
 interface CheckItemParams {
-  item: any;
+  item: IEpic | IFeature | ITask;
+  epic: IEpic;
+  feature?: IFeature;
   epicId: string;
   featureId?: string;
   taskId?: string;
@@ -152,7 +158,7 @@ interface CheckItemParams {
 }
 
 async function checkItemChanges(p: CheckItemParams) {
-  const { item, epicId, featureId, taskId, projectId, projectName, actorUserId, actorName, prevItemMap } = p;
+  const { item, epic, feature, epicId, featureId, taskId, projectId, projectName, actorUserId, actorName, prevItemMap } = p;
   const itemId = (taskId ?? featureId ?? epicId)?.toString();
   const prev = prevItemMap.get(itemId);
   if (!prev) return;
@@ -168,10 +174,13 @@ async function checkItemChanges(p: CheckItemParams) {
         projectName,
         itemPath: { epicId, featureId, taskId },
         itemName: item.name,
+        epicName: p.epic?.name ?? item.name,
+        featureName: p.feature?.name,
+        level: taskId ? 'task' : featureId ? 'feature' : 'epic',
         actorUserId,
         actorName,
         message: `${actorName} assigned you to "${item.name}" in project "${projectName}"`,
-        recipients: [{ userId: item.ownerId, category: 'itemsOwned' }],
+        recipients: [{ userId: item.ownerId!, category: 'itemsOwned' }],
       })
     );
   }
@@ -193,6 +202,9 @@ async function checkItemChanges(p: CheckItemParams) {
           projectName,
           itemPath: { epicId, featureId, taskId },
           itemName: item.name,
+          epicName: epic.name,
+          featureName: feature?.name,
+          level: taskId ? 'task' : featureId ? 'feature' : 'epic',
           actorUserId,
           actorName,
           message: `${actorName} changed the status of "${item.name}" to "${item.status}" in project "${projectName}"`,

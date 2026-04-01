@@ -997,9 +997,33 @@
   },
   "notifications": {
     "title": "Notificaciones",
+    "allProjects": "Todos los proyectos",
     "markAllRead": "Marcar todas como leídas",
-    "noNotifications": "Sin notificaciones aún",
-    "viewAll": "Ver todo",
-    "loading": "Cargando..."
+    "noNotifications": "¡Estás al día!",
+    "noReadNotifications": "Sin notificaciones leídas en los últimos 30 días",
+    "noProjectNotifications": "Sin notificaciones de este proyecto",
+    "noNotificationsHint": "La nueva actividad aparecerá aquí",
+    "tabUnread": "No leídas",
+    "tabRead": "Leídas",
+    "loadMore": "Cargar más",
+    "loading": "Cargando...",
+    "dismiss": "Descartar",
+    "justNow": "ahora",
+    "minutesAgo": "hace {count}m",
+    "hoursAgo": "hace {count}h",
+    "yesterday": "ayer",
+    "daysAgo": "hace {count}d",
+    "actions": {
+      "comment": "comentó en",
+      "mention": "te mencionó en",
+      "status-change": "cambió el estado de",
+      "assignment": "te asignó a",
+      "item-update": "actualizó"
+    },
+    "levels": {
+      "epic": "Épico",
+      "feature": "Funcionalidad",
+      "task": "Tarea"
+    }
   }
 }

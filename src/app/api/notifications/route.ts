@@ -17,11 +17,11 @@ export async function GET(request: NextRequest) {
 
     const url = new URL(request.url);
     const page = parseInt(url.searchParams.get('page') ?? '0', 10);
-    const readFilter = url.searchParams.get('read'); // 'true', 'false', or null for all
+    const readParam = url.searchParams.get('read');
 
     const query: Record<string, unknown> = { recipientUserId: userId };
-    if (readFilter !== null) {
-      query.read = readFilter === 'true';
+    if (readParam !== null) {
+      query.read = readParam === 'true';
     }
 
     const [notifications, total] = await Promise.all([
@@ -60,7 +60,7 @@ export async function PATCH(request: Request) {
     if (body.markAllRead === true) {
       await Notification.updateMany(
         { recipientUserId: userId, read: false },
-        { $set: { read: true } }
+        { $set: { read: true, readAt: new Date() } }
       );
 
       return NextResponse.json({ success: true });

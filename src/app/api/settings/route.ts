@@ -3,6 +3,7 @@ import { connectDB } from '@/lib/mongodb';
 import { requireAuth, requireManage } from '@/lib/apiAuth';
 import Account from '@/lib/models/Account';
 import User from '@/lib/models/User';
+import type { NotificationChannel } from '@/types/index';
 
 export const runtime = 'nodejs';
 
@@ -33,7 +34,6 @@ export async function GET() {
   }
 }
 
-// Fields only owner/admin may change (account-level)
 const MANAGED_FIELDS = ['levelNames', 'statuses', 'allowWeekends', 'users'] as const;
 
 export async function PATCH(request: Request) {
@@ -81,16 +81,13 @@ export async function PATCH(request: Request) {
 
     // notificationPreferences → User document
     if ('notificationPreferences' in body) {
-      const VALID_CHANNELS: ('in-app' | 'email' | 'both' | 'off')[] = ['in-app', 'email', 'both', 'off'];
+      const VALID_CHANNELS = new Set<NotificationChannel>(['in-app', 'email', 'both', 'off']);
       const prefs = body.notificationPreferences as Record<string, unknown>;
-      if (prefs.itemsCreated && typeof prefs.itemsCreated === 'string' && !VALID_CHANNELS.includes(prefs.itemsCreated as 'in-app' | 'email' | 'both' | 'off')) {
-        return NextResponse.json({ error: 'Invalid notification channel for itemsCreated' }, { status: 400 });
-      }
-      if (prefs.itemsOwned && typeof prefs.itemsOwned === 'string' && !VALID_CHANNELS.includes(prefs.itemsOwned as 'in-app' | 'email' | 'both' | 'off')) {
-        return NextResponse.json({ error: 'Invalid notification channel for itemsOwned' }, { status: 400 });
-      }
-      if (prefs.mentions && typeof prefs.mentions === 'string' && !VALID_CHANNELS.includes(prefs.mentions as 'in-app' | 'email' | 'both' | 'off')) {
-        return NextResponse.json({ error: 'Invalid notification channel for mentions' }, { status: 400 });
+      const invalidPref = (['itemsCreated', 'itemsOwned', 'mentions'] as const).find(
+        (key) => prefs[key] && (typeof prefs[key] !== 'string' || !VALID_CHANNELS.has(prefs[key] as NotificationChannel))
+      );
+      if (invalidPref) {
+        return NextResponse.json({ error: `Invalid notification channel for ${invalidPref}` }, { status: 400 });
       }
       ops.push(User.findByIdAndUpdate(userId, { $set: { notificationPreferences: body.notificationPreferences } }, { runValidators: true }));
     }
