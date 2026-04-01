@@ -594,7 +594,21 @@
         "profile": "Mi Perfil",
         "theme": "Tema",
         "language": "Idioma",
+        "notifications": "Notificaciones",
         "billing": "Facturación"
+      }
+    },
+    "notifications": {
+      "title": "Notificaciones",
+      "subtitle": "Elige cómo deseas ser notificado sobre la actividad.",
+      "itemsCreated": "Elementos que creé",
+      "itemsOwned": "Elementos asignados a mí",
+      "mentions": "@menciones en comentarios",
+      "channels": {
+        "off": "Desactivado",
+        "in-app": "Solo en la app",
+        "email": "Solo por correo",
+        "both": "Ambos (app y correo)"
       }
     },
     "readOnly": "Solo los propietarios y admins pueden cambiar esta configuración.",
@@ -895,6 +909,12 @@
       "plainBody": "{sharerName} ha compartido el proyecto \"{projectName}\" contigo.",
       "plainExpiry": "Este enlace expira el {expiryDate}.",
       "plainIgnore": "Si no esperabas este enlace compartido, puedes ignorar este correo con seguridad."
+    },
+    "notification": {
+      "subject": "{actorName} {actionDescription} en {projectName}",
+      "title": "Actividad del Proyecto",
+      "greeting": "Tienes una nueva notificación en tu proyecto.",
+      "button": "Ver Elemento"
     }
   },
   "shareDialog": {
@@ -974,5 +994,36 @@
     "noResults": "Ningún elemento coincide con los filtros actuales.",
     "clearFilters": "Limpiar filtros",
     "filters": "Filtros"
+  },
+  "notifications": {
+    "title": "Notificaciones",
+    "allProjects": "Todos los proyectos",
+    "markAllRead": "Marcar todas como leídas",
+    "noNotifications": "¡Estás al día!",
+    "noReadNotifications": "Sin notificaciones leídas en los últimos 30 días",
+    "noProjectNotifications": "Sin notificaciones de este proyecto",
+    "noNotificationsHint": "La nueva actividad aparecerá aquí",
+    "tabUnread": "No leídas",
+    "tabRead": "Leídas",
+    "loadMore": "Cargar más",
+    "loading": "Cargando...",
+    "dismiss": "Descartar",
+    "justNow": "ahora",
+    "minutesAgo": "hace {count}m",
+    "hoursAgo": "hace {count}h",
+    "yesterday": "ayer",
+    "daysAgo": "hace {count}d",
+    "actions": {
+      "comment": "comentó en",
+      "mention": "te mencionó en",
+      "status-change": "cambió el estado de",
+      "assignment": "te asignó a",
+      "item-update": "actualizó"
+    },
+    "levels": {
+      "epic": "Épico",
+      "feature": "Funcionalidad",
+      "task": "Tarea"
+    }
   }
 }

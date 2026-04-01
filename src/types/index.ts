@@ -124,6 +124,7 @@ export interface IComment {
   _id: string;
   authorId: string;
   text: string;
+  mentionedUserIds?: string[];
   createdAt: string;
 }
 
@@ -132,6 +133,7 @@ export interface ITask {
   name: string;
   status: StatusType;
   ownerId?: string;  // references IUserConfig.uid
+  createdBy?: string;  // user ID who created this task
   completionPct: number;
   plannedStart: string;
   plannedEnd: string;
@@ -149,6 +151,7 @@ export interface IFeature {
   name: string;
   status: StatusType;
   ownerId?: string;  // references IUserConfig.uid
+  createdBy?: string;  // user ID who created this feature
   completionPct: number;
   plannedStart: string;
   plannedEnd: string;
@@ -167,6 +170,7 @@ export interface IEpic {
   name: string;
   status: StatusType;
   ownerId?: string;  // references IUserConfig.uid
+  createdBy?: string;  // user ID who created this epic
   completionPct: number;
   plannedStart: string;
   plannedEnd: string;
@@ -248,4 +252,39 @@ export interface GanttItem {
   children?: GanttItem[];
   epicId?: string;
   featureId?: string;
+}
+
+// ─── Notifications ────────────────────────────────────────────────────────────
+
+export type NotificationChannel = 'in-app' | 'email' | 'both' | 'off';
+
+export interface INotificationPreferences {
+  itemsCreated: NotificationChannel;   // items user created
+  itemsOwned: NotificationChannel;     // items assigned to user (ownerId)
+  mentions: NotificationChannel;       // @mentioned in comments
+}
+
+export type NotificationLevel = 'epic' | 'feature' | 'task';
+
+export interface INotification {
+  _id: string;
+  recipientUserId: string;
+  type: 'comment' | 'mention' | 'status-change' | 'assignment' | 'item-update';
+  projectId: string;
+  projectName: string;
+  itemPath: {
+    epicId: string;
+    featureId?: string;
+    taskId?: string;
+  };
+  itemName: string;
+  epicName: string;
+  featureName?: string;
+  level: NotificationLevel;
+  actorUserId: string;
+  actorName: string;
+  message: string;
+  read: boolean;
+  readAt?: string;
+  createdAt: string;
 }

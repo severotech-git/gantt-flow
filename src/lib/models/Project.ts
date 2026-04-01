@@ -4,9 +4,10 @@ import mongoose, { Schema, Document, Model } from 'mongoose';
 
 const CommentSchema = new Schema(
   {
-    authorId:  { type: String, required: true },
-    text:      { type: String, required: true, maxlength: 5000 },
-    createdAt: { type: Date, default: Date.now },
+    authorId:          { type: String, required: true },
+    text:              { type: String, required: true, maxlength: 5000 },
+    mentionedUserIds:  { type: [String], default: [] },
+    createdAt:         { type: Date, default: Date.now },
   },
   { _id: true }
 );
@@ -16,6 +17,7 @@ const TaskSchema = new Schema(
     name:          { type: String, required: true, trim: true, maxlength: 255 },
     status:        { type: String, default: 'todo' },
     ownerId:       { type: String },   // references IUserConfig.uid
+    createdBy:     { type: String },   // user ID who created this task
     completionPct: { type: Number, min: 0, max: 100, default: 0 },
     plannedStart:  { type: Date, required: true },
     plannedEnd:    { type: Date, required: true },
@@ -35,6 +37,7 @@ const FeatureSchema = new Schema(
     name:          { type: String, required: true, trim: true, maxlength: 255 },
     status:        { type: String, default: 'todo' },
     ownerId:       { type: String },   // references IUserConfig.uid
+    createdBy:     { type: String },   // user ID who created this feature
     completionPct: { type: Number, min: 0, max: 100, default: 0 },
     plannedStart:  { type: Date, required: true },
     plannedEnd:    { type: Date, required: true },
@@ -55,6 +58,7 @@ const EpicSchema = new Schema(
     name:          { type: String, required: true, trim: true, maxlength: 255 },
     status:        { type: String, default: 'todo' },
     ownerId:       { type: String },   // references IUserConfig.uid
+    createdBy:     { type: String },   // user ID who created this epic
     completionPct: { type: Number, min: 0, max: 100, default: 0 },
     plannedStart:  { type: Date, required: true },
     plannedEnd:    { type: Date, required: true },

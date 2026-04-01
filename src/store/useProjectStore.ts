@@ -8,6 +8,8 @@ import { usePresenceStore } from '@/store/usePresenceStore';
 import { getSocket } from '@/lib/socket';
 import type { ProjectAction } from '@/lib/socketEvents';
 
+const BASE_PX: Record<TimelineScale, number> = { week: 28, month: 10, quarter: 4 };
+
 function computeDayCount(s: string, e: string, allowWeekends: boolean): number {
   const start = parseISO(s);
   const end = parseISO(e);
@@ -84,17 +86,17 @@ interface ProjectActions {
   restoreVersion: (versionId: string) => Promise<void>;
 
   // Epics
-  addEpic: (epic: Omit<IEpic, '_id'>) => Promise<void>;
+  addEpic: (epic: Omit<IEpic, '_id'>, createdBy?: string) => Promise<void>;
   updateEpic: (epicId: string, patch: Partial<IEpic>) => Promise<void>;
   removeEpic: (epicId: string) => Promise<void>;
 
   // Features
-  addFeature: (epicId: string, feature: Omit<IFeature, '_id'>) => Promise<void>;
+  addFeature: (epicId: string, feature: Omit<IFeature, '_id'>, createdBy?: string) => Promise<void>;
   updateFeature: (epicId: string, featureId: string, patch: Partial<IFeature>) => Promise<void>;
   removeFeature: (epicId: string, featureId: string) => Promise<void>;
 
   // Tasks
-  addTask: (epicId: string, featureId: string, task: Omit<ITask, '_id'>) => Promise<void>;
+  addTask: (epicId: string, featureId: string, task: Omit<ITask, '_id'>, createdBy?: string) => Promise<void>;
   updateTask: (epicId: string, featureId: string, taskId: string, patch: Partial<ITask>) => Promise<void>;
   removeTask: (epicId: string, featureId: string, taskId: string) => Promise<void>;
   updateDayCount: (epicId: string, featureId: string | undefined, taskId: string | undefined, n: number) => Promise<void>;
@@ -110,7 +112,7 @@ interface ProjectActions {
   // Item detail drawer
   openItem: (ref: { epicId: string; featureId?: string; taskId?: string }) => void;
   closeItem: () => void;
-  addComment: (epicId: string, featureId: string | undefined, taskId: string | undefined, text: string, authorId: string) => Promise<void>;
+  addComment: (epicId: string, featureId: string | undefined, taskId: string | undefined, text: string, authorId: string, mentionedUserIds?: string[]) => Promise<void>;
 
   // Persist to server
   persistProject: () => Promise<void>;
@@ -284,7 +286,6 @@ export const useProjectStore = create<ProjectStore>()(
         }
         const data: IProject = await res.json();
         set((s) => {
-          const BASE_PX: Record<string, number> = { week: 28, month: 10, quarter: 4 };
           const pxPerDay = BASE_PX[s.timelineScale] * s.zoomLevel;
           const { startDate, todayOffsetDays } = getProjectTimelineStart(data, s.timelineScale);
           s.activeProject = data;
@@ -329,7 +330,6 @@ export const useProjectStore = create<ProjectStore>()(
     // ── Timeline ────────────────────────────────────────────────────────────
     setTimelineScale: (scale) => {
       set((s) => {
-        const BASE_PX: Record<string, number> = { week: 28, month: 10, quarter: 4 };
         const pxPerDay = BASE_PX[scale] * s.zoomLevel;
         if (s.activeProject) {
           const { startDate, todayOffsetDays } = getProjectTimelineStart(s.activeProject, scale);
@@ -348,7 +348,6 @@ export const useProjectStore = create<ProjectStore>()(
 
     applyTimelineScale: (scale) => {
       set((s) => {
-        const BASE_PX: Record<string, number> = { week: 28, month: 10, quarter: 4 };
         const pxPerDay = BASE_PX[scale] * s.zoomLevel;
         s.timelineScale = scale;
         if (s.activeProject) {
@@ -371,7 +370,6 @@ export const useProjectStore = create<ProjectStore>()(
 
     jumpToToday: () => {
       const { timelineScale, zoomLevel, activeProject } = get();
-      const BASE_PX: Record<string, number> = { week: 28, month: 10, quarter: 4 };
       const pxPerDay = BASE_PX[timelineScale] * zoomLevel;
       if (activeProject) {
         const { startDate, todayOffsetDays } = getProjectTimelineStart(activeProject, timelineScale);
@@ -483,8 +481,8 @@ export const useProjectStore = create<ProjectStore>()(
     },
 
     // ── Epics ───────────────────────────────────────────────────────────────
-    addEpic: async (epic) => {
-      const newEpic = { ...epic, _id: tempId() } as IEpic;
+    addEpic: async (epic, createdBy?) => {
+      const newEpic = { ...epic, _id: tempId(), createdBy } as IEpic;
       set((s) => {
         if (!s.activeProject) return;
         const allowWeekends = useSettingsStore.getState().allowWeekends;
@@ -519,8 +517,8 @@ export const useProjectStore = create<ProjectStore>()(
     },
 
     // ── Features ────────────────────────────────────────────────────────────
-    addFeature: async (epicId, feature) => {
-      const newFeat = { ...feature, _id: tempId() } as IFeature;
+    addFeature: async (epicId, feature, createdBy?) => {
+      const newFeat = { ...feature, _id: tempId(), createdBy } as IFeature;
       set((s) => {
         if (!s.activeProject) return;
         const epic = s.activeProject.epics.find((e) => e._id === epicId);
@@ -570,8 +568,8 @@ export const useProjectStore = create<ProjectStore>()(
     },
 
     // ── Tasks ────────────────────────────────────────────────────────────────
-    addTask: async (epicId, featureId, task) => {
-      const newTask = { ...task, _id: tempId() } as ITask;
+    addTask: async (epicId, featureId, task, createdBy?) => {
+      const newTask = { ...task, _id: tempId(), createdBy } as ITask;
       set((s) => {
         if (!s.activeProject) return;
         const epic = s.activeProject.epics.find((e) => e._id === epicId);
@@ -908,15 +906,20 @@ export const useProjectStore = create<ProjectStore>()(
       set((s) => { s.openItemRef = null; });
     },
 
-    addComment: async (epicId, featureId, taskId, text, authorId) => {
+    addComment: async (epicId, featureId, taskId, text, authorId, mentionedUserIds) => {
       const { activeProject } = get();
       if (!activeProject) return;
+
+      const commentId = tempId();
       const comment: IComment = {
-        _id: tempId(),
+        _id: commentId,
         authorId,
         text,
+        mentionedUserIds,
         createdAt: new Date().toISOString(),
       };
+
+      // Optimistic update: add comment to local state
       set((s) => {
         if (!s.activeProject) return;
         const epic = s.activeProject.epics.find((e) => e._id === epicId);
@@ -938,8 +941,26 @@ export const useProjectStore = create<ProjectStore>()(
         if (!target.comments) target.comments = [];
         target.comments.push(comment);
       });
+
+      // Emit to other clients for real-time sync
       emitAction({ type: 'addComment', epicId, featureId, taskId, comment });
-      await get().persistProject();
+
+      // Post to dedicated comment endpoint (will trigger notifications)
+      try {
+        await fetch(`/api/projects/${activeProject._id}/comments`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            epicId,
+            featureId,
+            taskId,
+            text,
+            mentionedUserIds,
+          }),
+        });
+      } catch (err) {
+        console.error('[addComment] API call failed', err);
+      }
     },
 
     // ── Persist ──────────────────────────────────────────────────────────────

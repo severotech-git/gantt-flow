@@ -3,6 +3,7 @@ import { parse } from 'node:url';
 import next from 'next';
 import { Server as SocketServer } from 'socket.io';
 import { socketAuthMiddleware } from './src/lib/socketAuth.js';
+import { setIO } from './src/lib/socketServer.js';
 import type {
   ClientToServerEvents,
   ServerToClientEvents,
@@ -80,6 +81,9 @@ async function main() {
     },
   });
 
+  // Store io instance for use in API routes
+  setIO(io);
+
   // ─── Auth middleware ─────────────────────────────────────────────────────
 
   io.use(socketAuthMiddleware);
@@ -102,6 +106,9 @@ async function main() {
   io.on('connection', (socket) => {
     const { userId, accountId, name } = socket.data;
     let currentRoom: string | null = null;
+
+    // Auto-join user's personal notification room (independent of project)
+    socket.join(`user:${userId}`);
 
     // ── Join project room ────────────────────────────────────────────────────
 

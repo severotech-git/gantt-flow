@@ -3,6 +3,7 @@ import { connectDB } from '@/lib/mongodb';
 import { requireAuth, requireManage } from '@/lib/apiAuth';
 import Account from '@/lib/models/Account';
 import User from '@/lib/models/User';
+import type { NotificationChannel } from '@/types/index';
 
 export const runtime = 'nodejs';
 
@@ -15,16 +16,17 @@ export async function GET() {
     await connectDB();
     const [account, user] = await Promise.all([
       Account.findById(accountId, { settings: 1, onboardingComplete: 1 }).lean(),
-      User.findById(userId, { theme: 1, locale: 1, ganttScale: 1 }).lean(),
+      User.findById(userId, { theme: 1, locale: 1, ganttScale: 1, notificationPreferences: 1 }).lean(),
     ]);
 
-    const u = user as { theme?: string; locale?: string; ganttScale?: string } | null;
+    const u = user as { theme?: string; locale?: string; ganttScale?: string; notificationPreferences?: Record<string, string> } | null;
     return NextResponse.json({
       ...(account?.settings ?? {}),
       onboardingComplete: account?.onboardingComplete ?? true,
       theme: u?.theme ?? 'system',
       locale: u?.locale ?? 'en',
       ganttScale: u?.ganttScale ?? 'week',
+      notificationPreferences: u?.notificationPreferences ?? { itemsCreated: 'both', itemsOwned: 'both', mentions: 'both' },
     });
   } catch (err) {
     console.error('[settings GET]', err);
@@ -32,7 +34,6 @@ export async function GET() {
   }
 }
 
-// Fields only owner/admin may change (account-level)
 const MANAGED_FIELDS = ['levelNames', 'statuses', 'allowWeekends', 'users'] as const;
 
 export async function PATCH(request: Request) {
@@ -76,6 +77,19 @@ export async function PATCH(request: Request) {
         return NextResponse.json({ error: 'Invalid locale value' }, { status: 400 });
       }
       ops.push(User.findByIdAndUpdate(userId, { $set: { locale: body.locale } }, { runValidators: true }));
+    }
+
+    // notificationPreferences → User document
+    if ('notificationPreferences' in body) {
+      const VALID_CHANNELS = new Set<NotificationChannel>(['in-app', 'email', 'both', 'off']);
+      const prefs = body.notificationPreferences as Record<string, unknown>;
+      const invalidPref = (['itemsCreated', 'itemsOwned', 'mentions'] as const).find(
+        (key) => prefs[key] && (typeof prefs[key] !== 'string' || !VALID_CHANNELS.has(prefs[key] as NotificationChannel))
+      );
+      if (invalidPref) {
+        return NextResponse.json({ error: `Invalid notification channel for ${invalidPref}` }, { status: 400 });
+      }
+      ops.push(User.findByIdAndUpdate(userId, { $set: { notificationPreferences: body.notificationPreferences } }, { runValidators: true }));
     }
 
     // account-level fields (owner/admin only)
@@ -131,10 +145,10 @@ export async function PATCH(request: Request) {
     // Return merged settings so the frontend state stays consistent
     const [account, user] = await Promise.all([
       Account.findById(accountId, { settings: 1, onboardingComplete: 1 }).lean(),
-      User.findById(userId, { theme: 1, locale: 1, ganttScale: 1 }).lean(),
+      User.findById(userId, { theme: 1, locale: 1, ganttScale: 1, notificationPreferences: 1 }).lean(),
     ]);
 
-    const u2 = user as { theme?: string; locale?: string; ganttScale?: string } | null;
+    const u2 = user as { theme?: string; locale?: string; ganttScale?: string; notificationPreferences?: Record<string, string> } | null;
     const locale = u2?.locale ?? 'en';
     const res = NextResponse.json({
       ...(account?.settings ?? {}),
@@ -142,6 +156,7 @@ export async function PATCH(request: Request) {
       theme: u2?.theme ?? 'system',
       locale,
       ganttScale: u2?.ganttScale ?? 'week',
+      notificationPreferences: u2?.notificationPreferences ?? { itemsCreated: 'both', itemsOwned: 'both', mentions: 'both' },
     });
 
     // If locale changed, update NEXT_LOCALE cookie so next-intl picks it up immediately

@@ -1,7 +1,8 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { use } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { useProjectStore, selectDisplayProject } from '@/store/useProjectStore';
 import { useSettingsStore } from '@/store/useSettingsStore';
 import { Sidebar } from '@/components/layout/Sidebar';
@@ -12,12 +13,36 @@ import { ItemDetailDrawer } from '@/components/gantt/ItemDetailDrawer';
 import { EditProjectDialog } from '@/components/dialogs/EditProjectDialog';
 import { SaveVersionDialog } from '@/components/dialogs/SaveVersionDialog';
 import { SearchDialog } from '@/components/dialogs/SearchDialog';
-import { useRouter } from 'next/navigation';
 import { useSocket } from '@/hooks/useSocket';
 
 interface ProjectPageProps {
   params: Promise<{ id: string }>;
 }
+
+// ─── ?open= query param handler (client-only, needs useSearchParams) ───────────
+
+function OpenDrawerHandler({ projectId }: { projectId: string }) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const openItem = useProjectStore((s) => s.openItem);
+  const project = useProjectStore(selectDisplayProject);
+
+  useEffect(() => {
+    const open = searchParams.get('open');
+    if (!open || !project) return;
+    const parts = open.split(',').filter(Boolean);
+    if (parts.length === 0) return;
+    const epicId = parts[0];
+    const featureId = parts[1];
+    const taskId = parts[2];
+    openItem({ epicId, ...(featureId ? { featureId } : {}), ...(taskId ? { taskId } : {}) });
+    router.replace(`/projects/${projectId}`, { scroll: false });
+  }, [searchParams, project, openItem, router, projectId]);
+
+  return null;
+}
+
+// ─── Main page ────────────────────────────────────────────────────────────────
 
 export default function ProjectPage({ params }: ProjectPageProps) {
   const { id } = use(params);
@@ -44,7 +69,6 @@ export default function ProjectPage({ params }: ProjectPageProps) {
   }, [id, fetchProject, fetchVersions, clearActiveProject]);
 
   useEffect(() => {
-    // Only redirect if loading is finished AND there's an explicit "Not Found" error
     if (!isLoadingProject && projectError === 'Not found') {
       router.push('/projects');
     }
@@ -73,13 +97,12 @@ export default function ProjectPage({ params }: ProjectPageProps) {
     );
   }
 
-  // If there's an error that isn't a 404 (handled by redirect), show it here
   if (projectError && projectError !== 'Not found') {
     return (
       <div className="flex items-center justify-center bg-background p-4" style={{ height: 'calc(100vh - var(--trial-banner-height, 0px))', marginTop: 'var(--trial-banner-height, 0px)' }}>
         <div className="text-center space-y-4">
           <p className="text-red-500 font-medium">{projectError}</p>
-          <button 
+          <button
             onClick={() => fetchProject(id)}
             className="text-sm text-primary hover:underline"
           >
@@ -90,28 +113,33 @@ export default function ProjectPage({ params }: ProjectPageProps) {
     );
   }
 
-  // If project is null and no error yet, we might still be in a transition.
-  // The loading state above handles the initial load.
   if (!project) return null;
 
   return (
-    <div className="flex overflow-hidden" style={{ height: 'calc(100vh - var(--trial-banner-height, 0px))', marginTop: 'var(--trial-banner-height, 0px)' }}>
-      <Sidebar collapse={sidebarCollapse} />
+    <>
+      {/* Handles ?open= query param to open item drawer — must be in Suspense for useSearchParams */}
+      <Suspense fallback={null}>
+        <OpenDrawerHandler projectId={id} />
+      </Suspense>
 
-      <div className="flex flex-col flex-1 overflow-hidden">
-        <TopNavbar
-          onSaveVersion={() => setSaveVersionOpen(true)}
-          sidebarOpen={sidebarCollapse === 'none'}
-          onToggleSidebar={() => setSidebarCollapse(sidebarCollapse === 'none' ? 'icon' : 'none')}
-        />
+      <div className="flex overflow-hidden" style={{ height: 'calc(100vh - var(--trial-banner-height, 0px))', marginTop: 'var(--trial-banner-height, 0px)' }}>
+        <Sidebar collapse={sidebarCollapse} />
 
-        {viewMode === 'gantt' ? <GanttBoard /> : <KanbanBoard />}
+        <div className="flex flex-col flex-1 overflow-hidden">
+          <TopNavbar
+            onSaveVersion={() => setSaveVersionOpen(true)}
+            sidebarOpen={sidebarCollapse === 'none'}
+            onToggleSidebar={() => setSidebarCollapse(sidebarCollapse === 'none' ? 'icon' : 'none')}
+          />
+
+          {viewMode === 'gantt' ? <GanttBoard /> : <KanbanBoard />}
+        </div>
+
+        <ItemDetailDrawer />
+        <EditProjectDialog open={editProjectOpen} onClose={() => setEditProjectOpen(false)} />
+        <SaveVersionDialog open={saveVersionOpen} onClose={() => setSaveVersionOpen(false)} />
+        <SearchDialog open={searchOpen} onClose={() => setSearchOpen(false)} />
       </div>
-
-      <ItemDetailDrawer />
-      <EditProjectDialog open={editProjectOpen} onClose={() => setEditProjectOpen(false)} />
-      <SaveVersionDialog open={saveVersionOpen} onClose={() => setSaveVersionOpen(false)} />
-      <SearchDialog open={searchOpen} onClose={() => setSearchOpen(false)} />
-    </div>
+    </>
   );
 }

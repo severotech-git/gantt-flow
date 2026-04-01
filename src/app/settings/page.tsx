@@ -15,6 +15,7 @@ import { TeamSection } from '@/components/settings/TeamSection';
 import { AccountsSection } from '@/components/settings/AccountsSection';
 import { LanguageSection } from '@/components/settings/LanguageSection';
 import { BillingSection } from '@/components/settings/BillingSection';
+import { NotificationsSection } from '@/components/settings/NotificationsSection';
 import { Paywall } from '@/components/billing/Paywall';
 import { Loader2 } from 'lucide-react';
 import { PageNavbar } from '@/components/layout/PageNavbar';
@@ -28,7 +29,7 @@ function SettingsContent() {
 
   // Derive active section from URL (Source of Truth)
   const querySection = searchParams.get('section') as SettingsSection;
-  const validSections: SettingsSection[] = ['accounts', 'team', 'users', 'levels', 'statuses', 'calendar', 'profile', 'theme', 'language', 'billing'];
+  const validSections: SettingsSection[] = ['accounts', 'team', 'users', 'levels', 'statuses', 'calendar', 'profile', 'theme', 'language', 'billing', 'notifications'];
   const activeSection = validSections.includes(querySection) ? querySection : 'accounts';
   const showPaywall = searchParams.get('paywall') === '1';
 
@@ -63,16 +64,17 @@ function SettingsContent() {
           <SettingsSectionNav active={activeSection} onChange={handleSectionChange} />
 
           <div className="flex-1 overflow-y-auto p-8">
-            {activeSection === 'team'     && <TeamSection />}
-            {activeSection === 'users'    && <UsersSection />}
-            {activeSection === 'levels'   && <LevelNamesSection />}
-            {activeSection === 'statuses' && <StatusConfigSection />}
-            {activeSection === 'calendar' && <CalendarSection />}
-            {activeSection === 'profile'  && <ProfileSection />}
-            {activeSection === 'theme'    && <ThemeSection />}
-            {activeSection === 'accounts'  && <AccountsSection />}
-            {activeSection === 'language'  && <LanguageSection />}
-            {activeSection === 'billing'   && <BillingSection />}
+            {activeSection === 'team'            && <TeamSection />}
+            {activeSection === 'users'           && <UsersSection />}
+            {activeSection === 'levels'          && <LevelNamesSection />}
+            {activeSection === 'statuses'        && <StatusConfigSection />}
+            {activeSection === 'calendar'        && <CalendarSection />}
+            {activeSection === 'profile'         && <ProfileSection />}
+            {activeSection === 'theme'           && <ThemeSection />}
+            {activeSection === 'accounts'        && <AccountsSection />}
+            {activeSection === 'language'        && <LanguageSection />}
+            {activeSection === 'billing'         && <BillingSection />}
+            {activeSection === 'notifications'   && <NotificationsSection />}
           </div>
         </div>
       </main>
